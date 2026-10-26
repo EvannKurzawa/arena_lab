@@ -1,119 +1,89 @@
-# AGENTS.md — Arena Lab Development Instructions
+# AGENTS.md — Instructions for Codex
 
-These instructions apply to the entire repository.
+## Mission
 
-## 1. Read the project reference first
+Build **Arena Lab**, an original browser-based arena-management game inspired by the visual language of Nintendo DS-era monster RPGs. The current milestone is a playable single-player prototype. Read `README.md` for the product vision, feature scope, architecture, and definition of done.
 
-- Before starting a task, read `README.md` to understand Arena Lab's vision, priorities, roadmap, and acceptance criteria.
-- Read `RESEARCH.md` when relevant to technical choices or existing research.
-- Inspect the actual source code before describing implementation status or proposing changes.
-- The codebase is the source of truth for what currently works. `README.md` is the source of truth for intended product direction.
+## Mandatory workflow
 
-## 2. Understand before changing
+1. Inspect the repository, existing files, `package.json`, and Git status before editing.
+2. Read `README.md` before starting implementation.
+3. If the repository is empty, scaffold the project using Vite + TypeScript + Phaser 3.
+4. Implement the actual game; do not only return a plan or a list of suggestions.
+5. Keep changes focused and avoid unnecessary dependencies.
+6. Run `npm install` if needed, then run tests and `npm run build`.
+7. Fix errors caused by your changes. If a command cannot be run, state exactly why.
+8. Update `README.md` to reflect what was actually implemented, including controls, commands, and known limitations.
+9. Summarize changed files, features, commands run, test/build results, and remaining work.
 
-Before editing:
-1. Check `git status` and preserve the user's existing changes.
-2. Inspect relevant files, entry points, dependencies, and callers.
-3. Identify the requested outcome and its acceptance criteria.
-4. For multi-file, architectural, or risky changes, present a concise plan before implementing.
-5. Prefer the smallest coherent change that achieves the requested outcome.
+## Stack decisions
 
-Do not rewrite the whole application to implement a small feature. Do not introduce a new framework, backend, database, battle engine, or networking layer without first explaining the need, trade-offs, and migration strategy.
+- Use TypeScript and Vite.
+- Use Phaser 3 for the 2D game world.
+- Use plain TypeScript and HTML/CSS overlays for UI unless a framework is clearly justified.
+- Use browser `localStorage` for the first prototype's save data.
+- Use Vitest for pure logic tests when practical.
+- Do **not** implement multiplayer in this milestone.
+- Do **not** add React, Vue, a database, login/authentication, Colyseus, Socket.IO, or cloud deployment yet.
+- Do not introduce an elaborate architecture for hypothetical future needs.
 
-## 3. Protect existing work
+## Required first playable prototype
 
-- Do not delete files or remove working functionality without a clear reason and explicit user approval where appropriate.
-- Do not overwrite unrelated user changes.
-- Do not perform destructive Git operations, rewrite history, force-push, or reset user work without explicit approval.
-- Avoid unrelated refactoring.
-- Do not commit, push, publish, or deploy unless the user asks you to do so.
-- Never expose, copy into the repository, or commit credentials, access tokens, private keys, or secrets.
+Aim to deliver all of the following in this milestone:
 
-## 4. Product priorities
+- A crisp top-down pixel-art arena with a DS-era RPG aesthetic.
+- Keyboard movement for the player and collisions with walls/furniture.
+- A clear grid-based room.
+- An editor mode to place and remove a small set of furniture items.
+- Save/load arena layout using `localStorage`.
+- At least one interactive trainer NPC with dialogue.
+- A trainer-management panel with editable demo team data.
+- A simple turn-based battle demo launched from the trainer, with a battle result.
+- A coherent game-style interface, not a generic dashboard.
+- A README with actual controls and working commands.
 
-Follow the sequence in `README.md`. The near-term priority is a small, complete, playable local gameplay loop, not a large unfinished feature set.
+If completing every item at once risks leaving the project broken, prioritize a reliable playable arena first, then implement the remaining features in small steps. Do not leave non-functional controls disguised as finished features.
 
-Prioritize, in order:
-1. Audit and stabilize the existing prototype.
-2. Build a reliable grid-based arena editor and save/load flow.
-3. Add playable character movement and collision.
-4. Add a configurable trainer and a complete minimal turn-based battle.
-5. Connect arena, trainer, team, and battle data cleanly.
-6. Add reusable puzzles and progression.
-7. Design and implement real online persistence and multiplayer only after the core loop is reliable.
-8. Expand the creature roster and content once the underlying systems are proven.
+## Art direction
 
-Do not try to implement the entire roadmap in one task. Keep the intended top-down, tile-based, Nintendo DS-era RPG atmosphere while developing an original game identity.
+- Use original placeholder art with a Nintendo DS-era pixel-art feel.
+- Prefer 16×16 logical tiles (or another documented consistent tile size) and nearest-neighbor scaling.
+- In Phaser, enable pixel-art rendering (`pixelArt: true` or equivalent settings).
+- Keep sprites, tiles, UI, and colors stylistically consistent.
+- Do not use blurry scaling or unrelated generic dashboard design.
+- Do not fetch, scrape, or bundle official Pokémon sprites, game ROM contents, copyrighted music, logos, or other proprietary assets without authorization.
+- Use original placeholder creature names and designs. Never imply placeholders are official Pokémon.
+- If third-party assets are used, confirm their license and document the source and attribution.
 
-## 5. Architecture and code quality
+## Code quality
 
-- Separate game rules and domain data from UI, rendering, and input handling as the codebase grows.
-- Prefer reusable, data-driven definitions over hardcoded special cases.
-- Keep arena data independent of its visual renderer; editor and play mode should use consistent underlying data and collision rules.
-- Keep battle calculations separate from battle presentation.
-- Use clear names, focused functions, and existing project conventions.
-- Add dependencies only when justified; explain significant dependency and architecture choices.
-- Validate external or user-provided data where appropriate.
-- Design persisted data with versioning and future migration in mind when introducing schemas.
-- Do not claim that local storage or communication between browser tabs is real online multiplayer.
-- Do not trust client-submitted battle results or permissions in any future multiplayer implementation.
+- Separate pure game rules and data from Phaser scenes and UI.
+- Use typed interfaces for arena objects, trainers, furniture, and battle state.
+- Keep arena layouts serializable and include a save schema version.
+- Give placed objects stable IDs.
+- Validate placement and prevent invalid overlaps.
+- Handle corrupt or outdated `localStorage` data gracefully; fall back to a safe default layout.
+- Avoid giant files. Keep names and modules clear, but do not over-engineer.
+- Do not use `any` unless necessary and explained.
+- Add tests for placement validation, save/load, and battle calculations where practical.
+- Ensure the app has useful error handling and no obvious console errors.
 
-## 6. Intellectual property and licenses
+## Scope boundaries
 
-- Do not assume that publicly accessible Pokémon sprites, names, datasets, or artwork are free to redistribute.
-- Check licenses for third-party code, packages, datasets, and assets before adopting them.
-- Code licenses do not automatically cover associated artwork or franchise intellectual property.
-- Document the source and license of dependencies and assets when adding them.
-- Prefer original or properly licensed production assets, and flag unresolved licensing risks before public release.
-- Before integrating an existing battle engine such as Pokémon Showdown, verify its current license, dependencies, API, compatibility, and data/asset licensing separately.
+Do not implement yet:
+- Online or local multiplayer.
+- User accounts or cloud saves.
+- The full Pokédex or all official battle mechanics.
+- Trading, breeding, story campaigns, badges, or a large world.
+- Payments, analytics, or telemetry.
 
-## 7. Testing and verification
+Keep the code structured so multiplayer and a larger data catalogue can be added later, but do not let future features delay the first playable version.
 
-For each meaningful change:
-- Run the relevant automated tests, build, lint, or other checks available in the repository.
-- If no suitable tests exist, perform reasonable manual verification and recommend focused tests where useful.
-- Check browser console errors for frontend behavior when feasible.
-- Test important edge cases and persistence behavior where relevant.
-- Report exactly which checks were run and their results.
-- If a check could not be run, say so. Never claim tests passed unless they were actually executed.
+## Done means
 
-A feature is not complete merely because a button, screen, or mockup exists. Distinguish clearly between implemented behavior, prototype behavior, simulated behavior, and unimplemented behavior.
-
-## 8. Documentation and implementation status
-
-- Update `README.md` when meaningful changes affect the product direction, actual feature status, setup, architecture, or roadmap.
-- Update `RESEARCH.md` when a technical investigation or source review materially changes its findings.
-- Keep documentation consistent with the implementation.
-- Never mark a feature as tested without testing it.
-- Document important limitations, unresolved decisions, and follow-up work.
-
-## 9. Expected workflow for each task
-
-1. Read `README.md` and these instructions.
-2. Inspect Git status and the relevant code.
-3. Summarize the current behavior and relevant constraints.
-4. State a concise implementation plan when the task is not trivial.
-5. Implement the smallest complete change within the requested scope.
-6. Run relevant checks and inspect the resulting diff.
-7. Update documentation when necessary.
-8. Summarize:
-   - what changed;
-   - which files changed;
-   - what was tested and the results;
-   - known limitations or remaining work.
-
-Do not silently change the game's long-term direction. If a request conflicts with the documented vision or would introduce significant technical debt, explain the conflict and recommend a practical alternative. Ask a question only when an important decision cannot reasonably be inferred from the repository and requirements.
-
-## 10. First task when entering an unfamiliar codebase
-
-If the user has not specified a concrete implementation task, do not immediately build major features. First audit the repository and report:
-- its structure and entry points;
-- how to run it locally;
-- the architecture and dependencies actually present;
-- what works and what is mocked, incomplete, or missing;
-- bugs and technical risks;
-- whether incremental extension is sensible;
-- recommended architecture changes, with trade-offs;
-- the next three to five small tasks and their acceptance criteria.
-
-Do not rewrite the application during this audit.
+- `npm run dev` starts the game.
+- `npm run build` succeeds.
+- `npm test` succeeds if configured.
+- Player movement, collision, furniture placement/removal, save/load, trainer interaction, team editing, and the demo battle work.
+- The README accurately describes the implementation and controls.
+- The final response reports what was built and any known gaps honestly.
