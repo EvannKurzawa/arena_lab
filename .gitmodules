@@ -1,0 +1,7 @@
+[submodule "upstream/pokemon-essentials"]
+    path = upstream/pokemon-essentials
+    url = https://github.com/Maruno17/pokemon-essentials.git
+
+[submodule "upstream/pokemon-essentials-mmo-kit"]
+    path = upstream/pokemon-essentials-mmo-kit
+    url = https://github.com/SamDreamsMaker/pokemon-essentials-mmo-kit.git
