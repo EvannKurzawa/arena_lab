@@ -16,6 +16,23 @@ class Table
   def _dump(_depth)
     @payload
   end
+
+  def [](x, y = 0, z = 0)
+    _, width, height, = @payload.unpack("V5")
+    @payload.byteslice(20 + 2 * (x + y * width + z * width * height), 2).unpack1("v")
+  end
+
+  def self.build(width, height, layers)
+    table = allocate
+    values = []
+    layers.times do |z|
+      height.times do |y|
+        width.times { |x| values << yield(x, y, z) }
+      end
+    end
+    table.instance_variable_set(:@payload, [3, width, height, layers, values.length].pack("V5") + values.pack("v*"))
+    table
+  end
 end
 
 class Tone
@@ -39,6 +56,7 @@ module RPG
   class MoveRoute; end
   class MoveCommand; end
   class AudioFile; end
+  class Tileset; end
 end
 
 MAP_ID = 100
@@ -116,31 +134,56 @@ def transfer_point(map, target_map_id)
   return nil
 end
 
-home_map = Marshal.load(File.binread(HOME_MAP))
-start = transfer_point(home_map, 2)
-abort "Could not find the Player's House exit transfer to Lappet Town (map 2)" unless start
+start = [12, 16, 8]
 File.binwrite(START_FILE, start.join(","))
 
 map = Marshal.load(File.binread(SOURCE_MAP))
-map_width = map.instance_variable_get(:@width).to_i
-map_height = map.instance_variable_get(:@height).to_i
-sx, sy, = start
-near = lambda do |dx, dy|
-  [[sx + dx, 0].max.clamp(0, [map_width - 1, 0].max),
-   [sy + dy, 0].max.clamp(0, [map_height - 1, 0].max)]
+# Reuse a real, fully passable ground stack from the installed tileset, but
+# construct a new arena rather than copying buildings or village events.
+tilesets = Marshal.load(File.binread(File.join(DATA_DIR, "Tilesets.rxdata")))
+tileset = tilesets[map.instance_variable_get(:@tileset_id)]
+passages = tileset.instance_variable_get(:@passages)
+priorities = tileset.instance_variable_get(:@priorities)
+terrain = tileset.instance_variable_get(:@terrain_tags)
+source = map.instance_variable_get(:@data)
+grounds = Hash.new(0)
+map.instance_variable_get(:@height).times do |y|
+  map.instance_variable_get(:@width).times do |x|
+    stack = 3.times.map { |z| source[x, y, z] }
+    next if stack[0] == 0
+    next unless stack.all? { |tile| tile == 0 || (passages[tile] & 15 == 0 && priorities[tile] == 0 && terrain[tile] == 0) }
+    grounds[stack] += 1
+  end
 end
-manager_x, manager_y = near.call(-2, 0)
-trainer_x, trainer_y = near.call(2, 0)
-boulder_x, boulder_y = near.call(-2, 2)
-rock_x, rock_y = near.call(0, 2)
-tree_x, tree_y = near.call(2, 2)
+ground = grounds.max_by { |_stack, count| count }&.first
+abort "No ordinary passable ground found in the local town tileset" unless ground
+map.instance_variable_set(:@width, 25)
+map.instance_variable_set(:@height, 19)
+map.instance_variable_set(:@data, Table.build(25, 19, 3) { |_x, _y, z| ground[z] })
 map.instance_variable_set(:@events, {
-  1 => event(1, "Arena manager", manager_x, manager_y, "trainer_SUPERNERD", "ArenaDemo.manage_objects"),
-  2 => event(2, "Arena trainer", trainer_x, trainer_y, "trainer_YOUNGSTER", "ArenaDemo.challenge_trainer"),
-  3 => event(3, "Boulder obstacle", boulder_x, boulder_y, "Object boulder"),
-  4 => event(4, "Rock obstacle", rock_x, rock_y, "Object rock"),
-  5 => event(5, "Tree decoration", tree_x, tree_y, "Object tree 1")
+  1 => event(1, "Arena manager", 10, 16, "trainer_SUPERNERD", "ArenaDemo.manage_objects"),
+  2 => event(2, "Arena trainer", 12, 4, "trainer_YOUNGSTER", "ArenaDemo.challenge_trainer"),
+  3 => event(3, "Boulder obstacle", 5, 6, "Object boulder"),
+  4 => event(4, "Rock obstacle", 5, 9, "Object rock"),
+  5 => event(5, "Tree decoration", 5, 12, "Object tree 1"),
+  6 => event(6, "Boulder obstacle 2", 19, 6, "Object boulder"),
+  7 => event(7, "Rock obstacle 2", 19, 9, "Object rock"),
+  8 => event(8, "Tree decoration 2", 19, 12, "Object tree 1")
 })
+events = map.instance_variable_get(:@events)
+# A visible solid perimeter leaves the interior and entrance lane walkable.
+25.times do |x|
+  [0, 18].each do |y|
+    id = events.length + 1
+    events[id] = event(id, "Arena boundary", x, y, "Object boulder")
+  end
+end
+(1...18).each do |y|
+  [0, 24].each do |x|
+    id = events.length + 1
+    events[id] = event(id, "Arena boundary", x, y, "Object boulder")
+  end
+end
 
 map_infos = Marshal.load(File.binread(MAP_INFOS))
 if map_infos.key?(MAP_ID) && map_infos[MAP_ID].instance_variable_get(:@name) != "Arena Demo"
@@ -184,6 +227,6 @@ end
 
 File.binwrite(DEST_MAP, Marshal.dump(map))
 File.binwrite(MAP_INFOS, Marshal.dump(map_infos))
-puts "Built #{DEST_MAP} from walkable Lappet Town map 2; registered map #{MAP_ID}."
-puts "Arena start: #{start[0]},#{start[1]},#{start[2]} (copied from the Player's House exit)."
+puts "Built #{DEST_MAP}: new 25x19 training yard using local passable ground; registered map #{MAP_ID}."
+puts "Arena start: #{start.join(',')}. Trainer: 12,4. Manager: 10,16."
 puts "Added an intro skip choice to #{INTRO_MAP} (or kept the existing choice)."

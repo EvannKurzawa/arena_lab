@@ -1,5 +1,11 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Current snapshot: v2
+
+`v2` contains the enclosed arena, expanded offline customization, local PEMK setup, player battle-request interactions, and the native-runtime click-crash fix. See [CHANGELOG.md](CHANGELOG.md) for the update summary and [SETUP_STATUS.md](SETUP_STATUS.md) for exact versions, commands, results, and limitations.
+
+The arena and customization, GUI account creation, and survival of the click test have been user-confirmed. The final targeted regressions passed **17 tests / 108 assertions**. A complete two-window PvP battle and movement after the runtime switch still need an in-game check. This repository contains source and setup tools; ignored private game assets, runtime binaries, accounts, saves, and credentials are not part of this snapshot. Use the root BAT launchers with the existing local setup; a clean clone requires the private prerequisites described in the setup report.
+
 ## 1. Vision
 
 Build a **personal, non-commercial Pokémon fan game** based on an existing Pokémon RPG engine rather than creating the battle engine, Pokémon data, and core RPG systems from scratch.
@@ -16,6 +22,39 @@ The intended game is an **arena-management game** with a visual and gameplay fee
 This is not intended to be a conventional story-and-badges adventure. The arena-management loop is the core custom feature.
 
 ## Running the local demo
+
+The manager now preserves your position when changing objects or presets. If an edit would place an obstacle on your tile, it asks you to step aside. The user confirmed the new arena and trainer/customization work in-game; this teleport correction has automated regression coverage.
+
+## Local multiplayer (first version)
+
+Runtime fix (0.4.1): use the root BAT launchers. They now select the official mkxp-z Windows build pinned to `37a04d1`, which the user confirmed no longer exits on clicking the game. The original bundled `Game.exe` is retained, but its direct `PlayMMO-*.bat` launchers still use the old crashing runtime. Existing accounts and saves are retained. The replacement runtime and license stay under ignored `tools/runtime/mkxp-official-test/`; its configuration points to the existing private game assets. To restore a missing runtime, run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/install-client-runtime.ps1 -Download`.
+
+Version 0.4.0: face another player in the arena and press **Z/Enter/Space**, then choose **Challenge to battle**. The other player receives PEMK's accept/decline prompt; close their pause menu if it is open. Players on the same tile can also interact. **Arena Demo → Players in arena** (or **Battle Player**) lists players by name and account ID. Escape closes these menus without sending a request or leaving the arena; leaving requires choosing **Leave the arena**. Restart both game clients after installing this update. GUI login is now user-confirmed; full PvP battle completion is still awaiting a playtest.
+
+Account-form timeout fix (0.3.1): PEMK expires unauthenticated sockets after 30 seconds. The ArenaDemo extension now reconnects after you finish typing, immediately before submitting login/registration. Restart the game to load it. The client launcher waits for a real PEMK ping reply before opening the games, and both launchers print their project folder to catch use of an older copy. Server output/crash diagnostics are saved privately in `tools/runtime/pemk-server.log`.
+
+1. Close existing game windows.
+2. Run `Launch-Multiplayer-Server.bat` and leave it running.
+3. Run `Launch-Multiplayer-Clients.bat`. It installs the plugin, rebuilds the arena, and opens the normal and guest clients using PEMK's separate instance settings.
+4. Create **two different accounts**, one in each window. For new accounts, choose the intro skip to enter the arena. Existing accounts use the Arena Demo pause-menu entry.
+5. Walk around the same arena. PEMK provides player presence and its **Battle Player** pause-menu challenge flow. Actual two-window rendering and PvP battle completion still need an in-game check.
+
+Authenticated players use a fixed Sidelines layout with all six objects so their obstacles agree. Personal offline layouts remain saved; online arena editing, friend-owned arena visits, and shared layout persistence are not implemented. The server binds only to `127.0.0.1:9998`; PostgreSQL uses `127.0.0.1:55432`. This version is for two clients on this PC.
+
+The native Windows bcrypt crash was fixed by rebuilding bcrypt/bigdecimal with the matching MSYS2 UCRT compiler. Backend account/login and presence tests now pass, including two authenticated protocol clients entering, moving on, and leaving arena map 100. This is distinct from a two-window GUI playtest. Current details and exact results are in `SETUP_STATUS.md`; older dated setup notes below are historical.
+
+Diagnostics (PowerShell, from this folder):
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/local-multiplayer.ps1 -Action Check
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/local-multiplayer.ps1 -Action Test
+```
+
+`Test` uses the isolated `pemk_test` database; upstream tests clear its account records. Play accounts stay in `pemk`. If native gems need rebuilding, first install the matching compiler with `C:\msys64\usr\bin\pacman.exe -S --needed --noconfirm mingw-w64-ucrt-x86_64-gcc`, then run the script with `-Action RepairGems`. WSL remains unavailable in this environment; these launchers use the existing project-local Windows runtimes and upstream PEMK server without modifying its authentication code.
+
+## Offline demo launcher
+
+The updated demo generates a compact 25x19 enclosed training yard. Speak to the Youngster at the north end to battle. The manager near the south entrance offers six object slots, three arrangements, clear/light/full presets, trainer difficulty, and team healing. Close the game before rebuilding; use a fresh New Game and the intro skip to avoid loading the old village map stored in an existing save. The earlier village demo's object toggles and menu battle were confirmed working by the user.
 
 Double-click [Launch-ArenaDemo.bat](Launch-ArenaDemo.bat). It copies the current plugin into the private game, rebuilds the arena map from the local Essentials data, then launches the client. Start a fresh game and choose **Skip intro and start Arena Demo** to bypass the Essentials story intro. Choose **Play the full intro** to keep the original opening. In gameplay, click the game window to give it keyboard focus (the separate Essentials Output Window is only a log). Arrow keys move, Z/Enter/Space interact or confirm, X/Esc cancel or go back, and Essentials' mapped Action key (A in RGSS, commonly Shift) opens the pause menu. Existing saves can enter through the **Arena Demo** pause-menu item.
 
