@@ -296,7 +296,7 @@ module ArenaDemo
   end
 
   def arena_reception
-    pbMessage("Use Customize arena in the pause menu to arrange this room. The entrance-room attendant handles visits.")
+    pbMessage("Talk to the Arena Guide offline to open Custom mode. The entrance-room attendant handles visits.")
     heal_team if pbConfirmMessage("Would you like me to heal your team?")
   end
 end
@@ -364,9 +364,4 @@ module ArenaDemo::VisitTransfer
 end
 Scene_Map.prepend(ArenaDemo::VisitTransfer)
 
-MenuHandlers.add(:pause_menu, :arena_customize, {
-  "name" => _INTL("Customize arena"), "order" => 89,
-  "condition" => proc { next $player && $game_map && $game_map.map_id == ArenaDemo::MAP_ID && !ArenaDemo.customization_locked? },
-  "effect" => proc { |menu| ArenaDemo.manage_objects; menu.pbRefresh }
-})
 EventHandlers.add(:on_frame_update, :arena_visits_world, proc { ArenaDemo::Visits.update_world })

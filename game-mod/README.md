@@ -1,9 +1,14 @@
 # Arena Demo
 
-Repository snapshot **v3**, plugin **0.7.0**: the user confirmed one successful
-full arena visit using two game windows on the same PC. Two physical computers
-on the same network are the next test. Follow the v3 acceptance steps in
-SETUP_STATUS.md; same-PC success does not establish LAN/firewall traversal.
+Repository snapshot **v5**, plugin **0.8.6 in source**: the previous manual-IP
+arena visit was confirmed between two physical computers. The updated automatic
+discovery flow still needs its two-computer retest. Follow the v4 test guidance
+in `SETUP_STATUS.md`. The first offline custom mode is implemented; the user
+confirmed the trainer recruitment heading displays fully, while the full editor
+loop still needs testing.
+The Bag keeps eight tabs: Mail and Battle Items are merged into Items, with
+Key Items retained before Arena Furniture and Recruited Trainers. Existing Bag
+saves migrate when opened.
 
 Plugin **0.7.0** replaces the previous launcher/profile-switch design. Only
 `Play-Arena.bat` remains at the project root; each launch acquires a different
@@ -14,11 +19,12 @@ Game.set_up_system writes a readiness marker after compilation. Host requests us
 nonce-correlated local files; the game cannot supply shell commands or paths.
 
 Every boot is offline. At the entrance attendant, Host online requests the native
-PEMK backend on all IPv4 interfaces; Join a host connects to a typed IPv4. Same-PC
-players use 127.0.0.1. LAN guests use the host address shown by the game. Joining
-does not start a local backend. PostgreSQL remains loopback-only. Managed servers
-stop after ten idle minutes; Windows Firewall private-network access is a manual
-machine prerequisite. Cross-network internet setup is not automated.
+PEMK backend on all IPv4 interfaces; Find an arena to visit uses LAN discovery
+and a host-approved request. Game traffic uses TCP 9998 and LAN discovery uses
+UDP 9997. Joining does not start a local backend. PostgreSQL remains loopback-only.
+Managed servers stop after ten idle minutes; Windows Firewall private-network
+access is a manual machine prerequisite. Cross-network internet setup is not
+automated.
 
 Online/offline is a live transport change with one persistent local character,
 party, map and save. Historical server blobs/economy are not hydrated; local-world
@@ -31,6 +37,13 @@ tests are replaced by live-connection tests. Same-PC full-visit GUI validation i
 user-confirmed; two-PC validation is pending.
 
 The older sections below are historical and do not describe the current entry point.
+
+Offline arena customization now uses the **Custom mode** option at the Arena
+Guide. It provides tile-by-tile placement with separate Bag pockets for
+furniture and recruited trainers. Map 100 is regenerated during player
+preparation to add reusable placement event slots. This editor is source-only
+until its in-game playtest is completed; online arena visits still use the
+existing fixed multiplayer layout snapshot.
 
 Plugin **0.6.0** adds `007_ConnectionMode.rb` and the normal root
 `Play-Arena.bat` / `tools/play-arena.ps1` entry point. The local backend runs in

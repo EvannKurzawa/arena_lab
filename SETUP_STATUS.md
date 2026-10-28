@@ -1,5 +1,86 @@
 # Setup and implementation status
 
+## v5 - first custom mode (2026-10-28)
+
+Implemented the offline tile-based arena editor in plugin 0.8.6. The Arena
+Guide opens Custom mode and trainer recruitment. Players can edit furniture and
+recruited trainer placements, save or cancel a draft, and challenge placed
+trainers. The Bag has eight tabs: former Mail and Battle Items are routed to
+Items, with Key Items and the two Arena tabs retained. Existing Bag saves
+migrate pocket contents and selection positions. The pause-menu Arena Demo
+entry was removed.
+
+The user opened trainer recruitment in-game and confirmed the heading now
+displays fully after the catalog window height fix. The full placement,
+save/reload, furniture and trainer placement, and battle loop have not all been
+confirmed. This is a partial visual check, not a full custom-mode playtest.
+`git diff --check` passed; no automated tests or RPG Maker launch were run by
+Codex.
+
+## Catalog heading clipping fix
+
+Increased the custom catalog heading window from 48 to 72 pixels. Its border
+left too little content height for the Essentials font's vertical offset,
+clipping “Choose a trainer to recruit.” Plugin version 0.8.6 refreshes installed
+copies. The visual fix needs in-game confirmation.
+
+## Catalog row clipping fix
+
+The catalog now uses 56-pixel rows and draws the full character frame height;
+this addresses both clipped text and the half-visible trainer sprites shown in
+the user's screenshot. Plugin version 0.8.5 refreshes installed copies. The
+visual fix still needs in-game confirmation.
+
+## Trainer selection text alignment
+
+The trainer and furniture catalog renderer now applies the configured
+Essentials text offset, matching the built-in command window and correcting the
+clipped row labels shown in the user's screenshot. Plugin version 0.8.4
+refreshes installed copies. The visual fix still needs in-game confirmation.
+
+## Recruitment message and pause-menu cleanup
+
+Shortened the trainer recruitment confirmation to one line and removed the
+obsolete **Arena Demo** pause-menu handler. The Arena Guide remains the access
+point. Plugin version 0.8.3 refreshes installed copies. This change has not
+been launched in RPG Maker XP or playtested in-game.
+
+## Bag layout consolidation
+
+The Bag now has eight tabs: Items (including former Mail and Battle Items),
+Medicine, Poké Balls, TMs & HMs, Berries, Key Items, Arena Furniture, and
+Recruited Trainers. Existing saves migrate the old pocket contents and cursor
+positions, including saves from the earlier ten-tab Arena Bag. Plugin version
+0.8.2 causes installed copies to refresh during preparation. This source change
+has not been launched in RPG Maker XP or playtested in-game.
+
+## Arena Bag compatibility and customization access fix
+
+The first custom Bag-tab implementation could encounter missing selection
+indices in older saves when Essentials opened a newly added pocket. The plugin
+now extends all pocket arrays, normalizes remembered indices, and also performs
+that migration before `PokemonBag#last_viewed_index`. The obsolete pause-menu
+customization entries have been removed; custom mode is available only through
+the offline Arena Guide. Plugin version is now 0.8.1 to force the installed
+plugin cache to rebuild on preparation.
+
+## Offline arena custom mode - implemented in source, game playtest pending
+
+Added **Custom mode** to the offline Arena Guide. The editor uses an overhead
+tile cursor, previews furniture or trainer sprites in selection lists, edits a
+draft layout, and can save the draft or discard all changes. Arena Furniture
+and Recruited Trainers are separate Bag pockets. A few furniture pieces are
+seeded into the Bag; two trainer profiles can be recruited, placed, challenged,
+removed (kicked back to inventory), and replaced. Validated placements persist
+in the player's save and use reserved runtime event slots in Map 100.
+
+At the time of the initial implementation, the source and map generator had
+not yet been tested in-game. The later partial visual check is recorded under
+v5 above. A normal first launch with no other player window runs preparation
+and rebuilds Map 100 with the new slots. Online visitors continue to use the
+existing fixed multiplayer arena snapshot; this editor and recruitment are
+offline-only. The full custom-mode loop remains to be tested.
+
 ## v4 - simplified LAN visit flow tested in-game (2026-10-28)
 
 Implemented the requested entrance-attendant flow after the user confirmed
@@ -7,8 +88,9 @@ that the previous manual-address/account-invitation visit worked between two
 computers:
 
 - Removed the old "return to previous location" action from Arena Demo entry
-  and removed the pause-menu Connection action. Arena customization remains
-  in the arena menu; connection actions live with the entrance attendant.
+  and removed the pause-menu Connection action. At v4, arena customization was
+  still reachable from the arena menu; the 0.8.1 entry above moves it to the
+  offline Arena Guide.
 - Hosting advertises the private arena over LAN UDP port 9997. Visitors discover
   it automatically, select **Request to visit**, and the host accepts or declines
   at the attendant. No address or account ID is typed or exchanged.

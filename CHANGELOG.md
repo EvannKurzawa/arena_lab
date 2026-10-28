@@ -1,5 +1,66 @@
 # Updates
 
+## v5 - first custom mode (2026-10-28)
+
+- Add an offline tile-based arena editor with furniture and recruited trainers,
+  draft validation/cancellation, persistent placement and trainer challenges.
+- Add Arena Furniture and Recruited Trainers Bag tabs while merging Mail and
+  Battle Items into Items. Migrate existing Bag contents and selections.
+- Remove the obsolete Arena Demo pause-menu entry; the Arena Guide is the
+  entry point for editing and recruitment.
+- Fix catalog text and sprite clipping. The user confirmed the recruitment
+  heading displays fully in-game; the full custom-mode loop still needs testing.
+
+## Catalog heading clipping fix
+
+- Increase the trainer and furniture catalog heading window height to fit the
+  Essentials font and its configured vertical offset. Plugin version 0.8.6
+  refreshes installed copies.
+
+## Catalog row clipping fix
+
+- Give trainer and furniture catalog rows enough height for their contents and
+  draw full-height character frames, fixing clipped labels and trainer sprites.
+  Plugin version 0.8.5 refreshes installed copies.
+
+## Trainer selection text alignment
+
+- Apply Essentials' configured vertical text offset to the trainer and furniture
+  catalog rows so their labels render fully. Plugin version 0.8.4 refreshes
+  installed copies.
+
+## Arena recruitment message and pause menu
+
+- Shorten the trainer recruitment confirmation to one line so it fits cleanly
+  in the in-game message window.
+- Remove the obsolete Arena Demo pause-menu option; the Arena Guide remains
+  the entry point for custom mode and trainer recruitment. Plugin version 0.8.3
+  refreshes installed copies.
+
+## Bag layout consolidation
+
+- Remove the Mail and Battle Items tabs; both item groups now appear in Items.
+- Keep Key Items and add the Arena Furniture and Recruited Trainers tabs, for
+  eight total tabs. Existing saves migrate their pocket contents and cursor
+  positions automatically. Plugin version 0.8.2 refreshes installed copies.
+
+## Bag pocket migration fix and pause-menu cleanup
+
+- Normalize older saves' Bag pocket arrays and remembered selection indices
+  before Essentials reads the added Arena Furniture and Recruited Trainers tabs.
+- Remove arena customization from the pause menu; use the Arena Guide instead.
+
+## Offline arena custom mode - implemented in source, game playtest pending
+
+- Add an overhead tile editor launched by the offline Arena Guide. Place,
+  remove, or replace furniture and recruited trainers; validate to save or
+  cancel to restore the previous arena and inventory.
+- Add Arena Furniture and Recruited Trainers Bag pockets, starter furniture,
+  recruitable trainer profiles, persistent placement, and trainer battles.
+- Regenerate Map 100 with reusable furniture and trainer event slots. The new
+  editor has not yet been tested in-game; online arena layout behavior remains
+  on the existing multiplayer snapshot path.
+
 ## v4 - simplified connection flow (in-game test passed; two-PC retest pending)
 
 - Remove the previous-location choice and the pause-menu Connection entry;

@@ -147,7 +147,6 @@ module ArenaDemo
 
   def open
     actions = []
-    actions << ["Customize arena", proc { manage_objects }] unless customization_locked?
     actions << ["Challenge the sample trainer", proc { challenge_trainer }]
     actions << ["Players in arena", proc { players_menu }]
     actions << ["Return to entrance room", proc { exit_training_room }] if $game_map.map_id == MAP_ID
@@ -295,16 +294,7 @@ class PokemonGlobalMetadata
   attr_accessor :arena_demo_difficulty
 end
 
-MenuHandlers.add(:pause_menu, :arena_demo, {
-  "name"      => _INTL("Arena Demo"),
-  "order"     => 90,
-  "condition" => proc { next $player && $game_map },
-  "effect"    => proc { |menu|
-    pbPlayDecisionSE
-    ArenaDemo.enter
-    menu.pbRefresh
-  }
-})
+MenuHandlers.remove(:pause_menu, :arena_demo)
 
 class Game_Map
   alias arena_demo_setup setup

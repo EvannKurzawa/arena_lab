@@ -1,6 +1,6 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: v3.5 (plugin 0.7.0)
+## Current snapshot: v5 - first custom mode (plugin 0.8.6 in source)
 
 The user has confirmed multiplayer communication between two physical computers
 on the same network: the second computer installed the client from GitHub and
@@ -12,6 +12,15 @@ can host or join from any newly installed computer is a later step. See
 The new automatic LAN discovery, host-approved **Request to visit** flow, and
 attendant connection status have been tested in-game on one computer. Retesting
 this updated flow between two computers is still pending.
+
+The first offline arena custom mode is implemented in source. Talk to the Arena
+Guide to edit arena tiles, place furniture and recruited trainers, and save or
+cancel edits. The Bag has eight tabs: Mail and Battle Items are included in
+Items; Key Items remain, followed by Arena Furniture and Recruited Trainers.
+Existing saves migrate automatically. The user has confirmed in-game that the
+trainer selection heading now displays fully. Full placement, save/reload, and
+trainer battle checks remain to be completed. The next launcher preparation
+rebuilds Map 100 with reusable placement slots.
 
 ## Windows installers
 
@@ -120,16 +129,15 @@ See SETUP_STATUS.md for results and exact manual checks.
 
 ## Arena visits and first catching route (plugin 0.5.0 history)
 
-The next steps are implemented in source: an arena-only **Customize arena** pause
-menu, an entrance-room multiplayer attendant, temporary private visits for one
-invited guest, and an offline catching route with a short keeper story.
-The arena medic now heals and explains the menu instead of editing objects.
+This section records the original 0.5.0 implementation. Arena customization is
+now accessed through the offline Arena Guide's **Custom mode** choice, not from
+the pause menu. The entrance attendant handles multiplayer visits.
 
 Offline: run `Launch-ArenaDemo.bat`, choose offline, New Game and the intro skip.
 Talk to the town keeper for 10 Poke Balls, then the nearby trail scout to enter
 Founders' Path. Catch Rattata, Caterpie or Spearow in the grass and return to the
 keeper for the story reward. The entrance PC uses normal Essentials storage.
-Customize inside the arena before opening it to visitors.
+Talk to the Arena Guide offline to edit furniture and trainers before hosting.
 
 For a local visit, stop the old server console with Ctrl+C and restart
 `Launch-Multiplayer-Server.bat`, then `Launch-Multiplayer-Clients.bat` with two
@@ -164,9 +172,8 @@ Offline quick start now enters Arena Town. Walk into the building immediately
 north of the spawn to reach the entrance room. Its PC opens Essentials' normal
 Pokemon storage; interact with the north door to enter the training arena.
 Walk through the arena's south opening to return, then through the entrance
-room's south opening to reach town. Existing saves outside the demo can enter
-through the Arena Demo pause-menu entry. In town/entrance, that entry offers a
-return to the previous location.
+room's south opening to reach town. Custom mode and trainer recruitment are
+available from the Arena Guide; there is no Arena Demo pause-menu shortcut.
 
 Close the game and run `Launch-ArenaDemo.bat` to install the source changes and
 generate maps 100-102. Keep a backup of private saves before testing. New Game
@@ -251,7 +258,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/local-multiplayer.
 
 The updated demo generates a compact 25x19 enclosed training yard. Speak to the Youngster at the north end to battle. The manager near the south entrance offers six object slots, three arrangements, clear/light/full presets, trainer difficulty, and team healing. Close the game before rebuilding; use a fresh New Game and the intro skip to avoid loading the old village map stored in an existing save. The earlier village demo's object toggles and menu battle were confirmed working by the user.
 
-Double-click [Launch-ArenaDemo.bat](Launch-ArenaDemo.bat). It copies the current plugin into the private game, rebuilds the arena map from the local Essentials data, then launches the client. Start a fresh game and choose **Skip intro and start Arena Demo** to bypass the Essentials story intro. Choose **Play the full intro** to keep the original opening. In gameplay, click the game window to give it keyboard focus (the separate Essentials Output Window is only a log). Arrow keys move, Z/Enter/Space interact or confirm, X/Esc cancel or go back, and Essentials' mapped Action key (A in RGSS, commonly Shift) opens the pause menu. Existing saves can enter through the **Arena Demo** pause-menu item.
+Double-click [Launch-ArenaDemo.bat](Launch-ArenaDemo.bat). It copies the current plugin into the private game, rebuilds the arena map from the local Essentials data, then launches the client. Start a fresh game and choose **Skip intro and start Arena Demo** to bypass the Essentials story intro. Choose **Play the full intro** to keep the original opening. In gameplay, click the game window to give it keyboard focus (the separate Essentials Output Window is only a log). Arrow keys move, Z/Enter/Space interact or confirm, X/Esc cancel or go back, and Essentials' mapped Action key (A in RGSS, commonly Shift) opens the pause menu. Custom mode and trainer recruitment are accessed through the Arena Guide.
 
 ## 2. Chosen starting point
 
@@ -436,4 +443,4 @@ The demo is complete when:
 
 Both upstream repositories are checked out under `upstream/`; the checked versions agree at Essentials v21.1. WSL Debian was inaccessible, so I set up a local Windows Ruby 3.3.12 + PostgreSQL 17.11 environment instead. The PEMK server starts on loopback port 9998. A private v21.1 game package is assembled under the ignored `tools/runtime/essentials-v21.1-base/` folder with PEMK and ArenaDemo installed. Two raw TCP sockets connected, but those were not authenticated game clients. Two non-auth PEMK tests pass; the authentication test crashes inside Windows bcrypt, and the full test suite did not complete. See [SETUP_STATUS.md](SETUP_STATUS.md) for exact commits, commands, test output, and blockers.
 
-The client package includes Essentials maps/assets and the mkxp-z runtime in the ignored local test copy, so it can be launched without installing RPG Maker XP. The Ruby map generator derives Map100 from Essentials' walkable Lappet Town map (map 2), reads the Player's House exit transfer to choose the town spawn, and installs the arena trainer, manager, and three object events. The previous attempt mistakenly used map 3, which is the Player's House, and left the player on a mostly empty area. The pause-menu entry transfers into the demo; the saved object menu toggles fixed object slots and collision. The corrected map still needs in-game movement and battle confirmation. See [game-mod/README.md](game-mod/README.md).
+The client package includes Essentials maps/assets and the mkxp-z runtime in the ignored local test copy, so it can be launched without installing RPG Maker XP. The Ruby map generator derives Map100 from Essentials' walkable Lappet Town map (map 2), reads the Player's House exit transfer to choose the town spawn, and adds reusable furniture/trainer event slots. The offline Arena Guide opens the tile editor, whose validated placements persist in the local save. The editor source has not yet received a game playtest; online visits retain their existing fixed layout snapshot. See [game-mod/README.md](game-mod/README.md) and [SETUP_STATUS.md](SETUP_STATUS.md).

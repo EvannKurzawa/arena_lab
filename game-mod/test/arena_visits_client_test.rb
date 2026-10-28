@@ -107,22 +107,8 @@ class ArenaVisitsClientTest < Minitest::Test
     refute @visits.accept_invitation
   end
 
-  def test_customization_menu_is_hidden_and_difficulty_rechecks_after_its_prompt
-    condition = MenuHandlers.entry(:pause_menu, :arena_customize)['condition']
-    assert condition.call
-    ArenaDemo.stub(:pbMessage, ->(*_args) {
-      @visits.instance_variable_set(:@phase, :opening)
-      2
-    }) { ArenaDemo.choose_difficulty }
-    assert_nil $PokemonGlobal.arena_demo_difficulty
-    refute condition.call
-    @visits.receive(state(:guest))
-    refute condition.call
-    @visits.receive(type: :arena_state, phase: :closed)
-    refute condition.call, 'Return home before allowing personal customization'
-    @visits.update_world
-    $game_map.map_id = ArenaDemo::ENTRANCE_MAP_ID
-    refute condition.call
+  def test_customization_is_not_registered_in_the_pause_menu
+    assert_nil MenuHandlers.entry(:pause_menu, :arena_customize)
   end
 
   def test_closing_a_visit_drops_pending_corrections_from_the_old_room

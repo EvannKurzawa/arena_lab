@@ -165,7 +165,7 @@ map.instance_variable_set(:@width, 25)
 map.instance_variable_set(:@height, 19)
 map.instance_variable_set(:@data, Table.build(25, 19, 3) { |_x, _y, z| ground[z] })
 map.instance_variable_set(:@events, {
-  1 => event(1, "Arena medic", 10, 16, "trainer_SUPERNERD", "ArenaDemo.arena_reception"),
+  1 => event(1, "Arena guide", 10, 16, "trainer_SUPERNERD", "ArenaDemo.arena_reception"),
   2 => event(2, "Arena trainer", 12, 4, "trainer_YOUNGSTER", "ArenaDemo.challenge_trainer"),
   3 => event(3, "Boulder obstacle", 5, 6, "Object boulder"),
   4 => event(4, "Rock obstacle", 5, 9, "Object rock"),
@@ -201,6 +201,18 @@ def touch_portal(id, name, x, y, script)
 end
 exit_id = events.keys.max + 1
 events[exit_id] = touch_portal(exit_id, "Arena exit", 12, 18, "ArenaDemo.exit_training_room")
+
+# Reusable runtime placement slots. The editor saves only inventory item IDs
+# and tile coordinates; these blank events provide render/collision slots
+# without writing user layouts into map binaries or game scripts.
+80.times do |index|
+  id = 200 + index
+  events[id] = event(id, "Arena furniture slot", 1, 1, "")
+end
+16.times do |index|
+  id = 300 + index
+  events[id] = event(id, "Arena trainer slot", 1, 1, "")
+end
 
 # Reuse the local town's artwork, replacing tutorial/story events with a
 # deliberately small offline hub. Locate its real house door and exit spawn.
