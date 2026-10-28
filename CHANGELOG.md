@@ -1,5 +1,10 @@
 # Updates
 
+## v3.3 installer fix - 2026-10-28
+
+- Correct PowerShell condition parsing for checking that the chosen install
+  directory is empty.
+
 ## v3.2 installer fix - 2026-10-28
 
 - Allow Essentials resource packs that contain compiled `Data/Scripts.rxdata`

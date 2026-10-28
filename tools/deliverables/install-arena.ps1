@@ -36,8 +36,11 @@ if (Test-Path -LiteralPath $settings) {
 if (Test-Path -LiteralPath (Join-Path $root 'tools/runtime/essentials-v21.1-base')) {
     throw 'Arena Lab already has a game folder here. Use ArenaLab-Update.exe for an existing installation.'
 }
-if (Test-Path -LiteralPath $root -and (Get-ChildItem -LiteralPath $root -Force | Select-Object -First 1)) {
-    throw 'The install folder is not empty. Choose an empty folder, or use ArenaLab-Update.exe for an existing Arena Lab install.'
+if (Test-Path -LiteralPath $root) {
+    $existingInstallItem = Get-ChildItem -LiteralPath $root -Force | Select-Object -First 1
+    if ($existingInstallItem) {
+        throw 'The install folder is not empty. Choose an empty folder, or use ArenaLab-Update.exe for an existing Arena Lab install.'
+    }
 }
 $work = Join-Path $env:TEMP ('ArenaLab-Setup-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $work -Force | Out-Null
