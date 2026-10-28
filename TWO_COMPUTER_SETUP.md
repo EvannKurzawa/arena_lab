@@ -1,8 +1,10 @@
 # Play together on two computers
 
-This guide describes the tested setup: one prepared host computer and one
-GitHub-installed client on the same home network. The client installer does not
-yet install the host's PostgreSQL/Ruby server stack.
+Two-computer communication was previously confirmed with one prepared host and
+one GitHub-installed client using the old manual-address/invitation flow. The
+updated automatic-discovery/request flow works in-game on one computer, but has
+not yet been retested between two computers. The client installer does not
+install the host's PostgreSQL/Ruby server stack.
 
 ## Second computer: install the client
 
@@ -13,18 +15,24 @@ yet install the host's PostgreSQL/Ruby server stack.
 
 ## Connect to the host
 
-1. On the host computer, open `Play-Arena.bat`, talk to the arena entrance attendant, and choose **Host online**. Leave that game running and note the address shown as **Other PC on your network**.
-2. On the second computer, talk to its entrance attendant and choose **Join a host**. Enter the host's displayed network IP, such as `192.168.1.127`. Do not enter `127.0.0.1`; that address only refers to the same computer.
-3. Log in or create a different account on the second computer. The host can invite that account ID; accept the invitation at the second computer's attendant.
+1. On the host computer, open `Play-Arena.bat`, talk to the arena entrance attendant, and choose **Host online**. Leave that game running.
+2. On the second computer, talk to its entrance attendant and choose **Find an arena to visit**. Select the discovered host and choose **Request to visit**.
+3. Log in or create a separate account on the second computer. The host receives the request and accepts it at their entrance attendant. No IP address or account ID needs to be typed or exchanged.
 
 Both computers must be on the same local network. If the client cannot connect,
-allow the host's Ruby service through Windows Firewall on private networks, TCP
-port `9998`. The database stays private on the host computer.
+allow the host's Ruby service through Windows Firewall on private networks, UDP
+port `9997` for discovery and TCP port `9998` for the game connection. The
+database stays private on the host computer.
+
+For this updated flow, both Arena Lab installs need the latest source files from
+GitHub. Close the games and run `ArenaLab-Update.exe` on each existing install
+before the playtest.
 
 ## What this test establishes
 
 The user confirmed that the GitHub-installed second-computer client communicated
-with the prepared host over the local network. The current installer prepares a
-client to play offline or join. Installing the host backend on any clean
-computer, and using either computer as host or client without extra preparation,
-is a later milestone.
+with the prepared host over the local network using the previous address/invite
+flow. The updated discovery and request flow has only been tested on one
+computer so far. The current installer prepares a client to play offline or
+join. Installing the host backend on any clean computer, and using either
+computer as host or client without extra preparation, is a later milestone.

@@ -1,5 +1,33 @@
 # Setup and implementation status
 
+## v4 - simplified LAN visit flow tested in-game (2026-10-28)
+
+Implemented the requested entrance-attendant flow after the user confirmed
+that the previous manual-address/account-invitation visit worked between two
+computers:
+
+- Removed the old "return to previous location" action from Arena Demo entry
+  and removed the pause-menu Connection action. Arena customization remains
+  in the arena menu; connection actions live with the entrance attendant.
+- Hosting advertises the private arena over LAN UDP port 9997. Visitors discover
+  it automatically, select **Request to visit**, and the host accepts or declines
+  at the attendant. No address or account ID is typed or exchanged.
+- The attendant displays Offline, Hosting, Connected, or Visiting and offers a
+  Disconnect action. Customization stays locked while an arena is open or a
+  visit request is pending. Visitors remain restricted to the entrance and arena.
+- The visit protocol readiness marker is now version 2 so the managed launcher
+  can detect and replace an older idle local service; active services are not
+  replaced. Game traffic remains TCP port 9998.
+
+The user reports that the updated flow works in-game on one computer. A repeat
+test between two physical computers has **not** yet been performed, so LAN
+discovery and request delivery across machines remain unverified. Update both
+Arena Lab installations from the same source before that test. On Windows,
+allow the host's Ruby service through the private-network firewall for UDP 9997
+(discovery) and TCP 9998 (game traffic). If discovery fails, inspect
+`tools/runtime/desktop-server.log` and verify both computers are on the same LAN.
+The clean installer still does not provision a server backend on a fresh host.
+
 ## v3.5 - first GitHub client connected from a second computer (2026-10-28)
 
 The user confirmed that multiplayer communication worked between two physical

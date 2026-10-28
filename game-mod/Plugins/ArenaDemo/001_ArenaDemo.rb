@@ -60,13 +60,9 @@ module ArenaDemo
   def enter
     return open if $game_map.map_id == MAP_ID
     if [TOWN_MAP_ID, ENTRANCE_MAP_ID].include?($game_map.map_id)
-      choice = pbMessage("Walk through the arena building's entrance to reach the training room.",
-                         ["Return to previous location", "Close"], -1)
-      leave if choice == 0
+      pbMessage("Walk through the arena building's entrance to reach the training room.")
       return
     end
-    $PokemonGlobal.arena_demo_return = [$game_map.map_id, $game_player.x,
-                                        $game_player.y, $game_player.direction]
     enter_town
   end
 
@@ -79,7 +75,6 @@ module ArenaDemo
         $player.party << Pokemon.new(species, level, $player)
       end
     end
-    $PokemonGlobal.arena_demo_return = [3, 25, 6, 2] if $PokemonGlobal
     enter_town
     pbMessage("Welcome to Arena Town! The building just north of you is your arena. Inside, the attendant handles visits and the PC opens Pokemon storage.")
   end
@@ -117,19 +112,6 @@ module ArenaDemo
 
   def storage_pc
     pbPokeCenterPC
-  end
-
-  def leave
-    if defined?(Visits) && Visits.locked?
-      pbMessage("End the visit with the entrance-room attendant before leaving.")
-      return
-    end
-    point = $PokemonGlobal.arena_demo_return
-    unless point && point.length == 4 && point[0] != MAP_ID
-      pbMessage("No return point is saved for this arena visit.")
-      return
-    end
-    transfer_to(point[0], point[1], point[2], point[3])
   end
 
   def transfer_to(map_id, x, y, direction)
@@ -309,7 +291,6 @@ EventHandlers.add(:on_frame_update, :arena_demo_session_layout, proc {
 
 class PokemonGlobalMetadata
   attr_accessor :arena_demo_objects
-  attr_accessor :arena_demo_return
   attr_accessor :arena_demo_layout
   attr_accessor :arena_demo_difficulty
 end

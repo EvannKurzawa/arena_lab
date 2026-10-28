@@ -9,10 +9,13 @@ module ArenaVisitsServer
     [[8, 6], [16, 8], [8, 10], [16, 12], [8, 14], [16, 14]],
     [[9, 7], [12, 7], [15, 7], [9, 11], [12, 11], [15, 11]]
   ].freeze
-  TYPES = %i[arena_hello arena_open arena_invite arena_accept arena_decline arena_close].freeze
+  TYPES = %i[
+    arena_hello arena_open arena_invite arena_accept arena_decline arena_close
+    arena_visit_request arena_visit_accept arena_visit_decline
+  ].freeze
 
   def dispatch_frame(conn, env, type, authed, body)
-    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 1, arena_bind: @config.bind) if type == :ping
+    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 2, arena_bind: @config.bind) if type == :ping
     if conn.data[:arena_local_world] && type == :save
       return reply(conn, type: :save_err, seq: env[:seq], reason: 'local_world')
     end
@@ -23,7 +26,7 @@ module ArenaVisitsServer
       arena_detach_zone(conn)
       conn.data[:arena_cap] = true
       conn.data[:arena_local_world] ||= env[:local_world] == true
-      return reply(conn, type: :arena_ready, version: 1)
+      return reply(conn, type: :arena_ready, version: 2)
     end
     return arena_error(conn, 'Restart the updated client') unless conn.data[:arena_cap]
     case type
@@ -32,6 +35,9 @@ module ArenaVisitsServer
     when :arena_accept then arena_accept(conn, env)
     when :arena_decline then arena_decline(conn, env)
     when :arena_close then arena_close(conn)
+    when :arena_visit_request then arena_visit_request(conn)
+    when :arena_visit_accept then arena_visit_decision(conn, env, true)
+    when :arena_visit_decline then arena_visit_decision(conn, env, false)
     end
   end
 
@@ -112,10 +118,97 @@ module ArenaVisitsServer
     reply(conn, type: :arena_invitation_cancelled, room: room[:token])
   end
 
+  # A visitor is identified by their authenticated socket; no account ID is
+  # exposed to either player or typed by hand. Each host with one open arena
+  # receives an accept/decline prompt. A single request may be pending per room.
+  def arena_visit_request(conn)
+    return arena_error(conn, 'Request a visit from your entrance room') unless conn.data[:map_id] == 102
+    return arena_error(conn, 'You are already in an arena session') if arena_room(conn) || conn.data[:arena_visit_request]
+    rooms = @online.values.uniq.filter_map do |candidate|
+      room = arena_room(candidate)
+      room if room && room[:host].equal?(candidate) && !candidate.closing
+    end.uniq
+    return arena_error(conn, 'No one is hosting an arena right now') if rooms.empty?
+    return arena_error(conn, 'More than one arena is open on this host. Ask one host to close theirs.') unless rooms.length == 1
+    room = rooms.first
+    return arena_error(conn, 'The host already has a visitor or pending request') if room[:guest] || room[:visit_request]
+    request = {
+      :token => SecureRandom.hex(12), :room => room, :guest => conn,
+      :deadline => Process.clock_gettime(Process::CLOCK_MONOTONIC) + 60
+    }
+    room[:visit_request] = request
+    conn.data[:arena_visit_request] = request
+    reply(room[:host], type: :arena_visit_request, request: request[:token])
+    reply(conn, type: :arena_visit_pending)
+  end
+
+  def arena_visit_decision(host, env, accept)
+    room = arena_room(host)
+    request = room && room[:visit_request]
+    valid = room && room[:host].equal?(host) && request &&
+            env[:request].is_a?(String) && env[:request] == request[:token] &&
+            request[:deadline] > Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    return arena_error(host, 'That visit request expired or was cancelled') unless valid
+    guest = request[:guest]
+    valid_guest = !guest.closing && @online[guest.data[:account_id]].equal?(guest) &&
+                  guest.data[:map_id] == 102 && !arena_room(guest)
+    unless valid_guest
+      room.delete(:visit_request)
+      guest.data.delete(:arena_visit_request)
+      return arena_error(host, 'The visitor is no longer available')
+    end
+    room.delete(:visit_request)
+    guest.data.delete(:arena_visit_request)
+    unless accept
+      reply(guest, type: :arena_visit_declined)
+      reply(host, type: :arena_notice, text: 'Visit request declined.')
+      return
+    end
+    room[:guest] = guest
+    guest.data[:arena_room] = room
+    guest.data[:arena_arriving] = true
+    arena_state(host)
+    arena_state(guest)
+  end
+
+  def arena_cancel_visit_request(conn)
+    request = conn.data.delete(:arena_visit_request)
+    return unless request
+    room = request[:room]
+    return unless room && room[:visit_request].equal?(request)
+    room.delete(:visit_request)
+    host = room[:host]
+    reply(host, type: :arena_visit_cancelled) if host && !host.closing
+  end
+
+  def arena_cancel_pending_visit(room, reason)
+    request = room.delete(:visit_request)
+    return unless request
+    guest = request[:guest]
+    guest.data.delete(:arena_visit_request)
+    reply(guest, type: reason) if guest && !guest.closing
+  end
+
+  def expire_visit_requests
+    now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    @online.values.uniq.each do |host|
+      room = arena_room(host)
+      next unless room && room[:host].equal?(host)
+      request = room[:visit_request]
+      next unless request && request[:deadline] <= now
+      room.delete(:visit_request)
+      guest = request[:guest]
+      guest.data.delete(:arena_visit_request)
+      reply(guest, type: :arena_visit_expired) if guest && !guest.closing
+      reply(host, type: :arena_visit_expired) unless host.closing
+    end
+  end
+
   def arena_close(conn)
     room = arena_room(conn)
     return arena_state(conn) unless room
     if room[:host].equal?(conn)
+      arena_cancel_pending_visit(room, :arena_visit_cancelled)
       if (invited = @online[room[:invited]])
         reply(invited, type: :arena_invitation_cancelled, room: room[:token])
       end
@@ -231,12 +324,14 @@ module ArenaVisitsServer
   end
 
   def on_close(conn)
+    arena_cancel_visit_request(conn)
     arena_close(conn) if arena_room(conn)
     super
   end
 
   def on_tick
     super
+    expire_visit_requests
     return unless ENV['ARENA_MANAGED_SERVICE'] == '1'
     now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     if @online.empty?

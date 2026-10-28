@@ -5,6 +5,7 @@ module ArenaDemo
     def local_world?; true; end
     def offline?; @mode != :online; end
     def authenticating?; !!@authenticating; end
+    def host_mode?; !!@host_mode; end
     def base_save; @base_save ||= SaveData::FILE_PATH; end
     def offline_save
       path = base_save
@@ -45,6 +46,8 @@ module ArenaDemo
       end
       Visits.reset
       PEMK::Remotes.clear_all
+      @host = nil
+      @host_mode = false
       @mode = :offline
     end
     def choose_at_title
@@ -94,7 +97,7 @@ module ArenaDemo
       pbMessage("Could not request hosting: #{error.message}")
       false
     end
-    def connect(host)
+    def connect(host, host_mode = false)
       unless $game_map && $game_map.map_id == ENTRANCE_MAP_ID && !Visits.locked? && !$game_temp.in_battle
         pbMessage("Connect from the arena entrance after closing any active visit.")
         return false
@@ -107,6 +110,7 @@ module ArenaDemo
       stop_connection
       select_mode(:online)
       @host = host
+      @host_mode = host_mode
       PEMK.instance_variable_set(:@settings, PEMK.settings.merge(:host => host, :port => 9998, :email => nil, :password => nil))
       @authenticating = true
       PEMK::Auth.login_blocking
@@ -131,13 +135,13 @@ module ArenaDemo
         return false
       end
       PEMK::Presence.emit_now(:pos) if defined?(PEMK::Presence)
-      pbMessage("Connected to #{host}:9998. Account ##{PEMK.self_id}. Your character and progress stay on this device.")
+      pbMessage("Connected to the arena service. Your character and progress stay on this device.")
       true
     ensure
       @authenticating = false
     end
     def disconnect
-      if Visits.locked? && ArenaDemo.connected?
+      if Visits.locked? && !Visits.request_pending? && ArenaDemo.connected?
         return false unless Visits.close_arena
         deadline = Visits.now + 5
         while Visits.locked? && !Visits.instance_variable_get(:@return_home) && ArenaDemo.connected? && Visits.now < deadline
@@ -155,11 +159,35 @@ module ArenaDemo
       true
     end
     def status
-      return "Offline" if offline? || !PEMK::Auth.logged_in?
-      return "Connection lost" unless ArenaDemo.connected?
-      return "Visiting an arena" if Visits.guest?
-      return "Arena open / visit pending" if Visits.locked?
-      "Connected - arena closed"
+      return "Offline" if offline? || !PEMK::Auth.logged_in? || !ArenaDemo.connected?
+      return "Visiting" if Visits.guest?
+      return "Hosting" if Visits.hosting?
+      "Connected"
+    end
+
+    def find_arena_to_visit
+      pbMessage("Searching for arenas on your local network...")
+      hosts = ArenaDemo::LanDiscovery.discover
+      if hosts.empty?
+        pbMessage("No arena was found. Make sure the host has chosen Host online and both computers are on the same network.")
+        return false
+      end
+      host = if hosts.length == 1
+               hosts.first
+             else
+               choices = hosts.map { |entry| "Arena on #{entry[:name]}" } + ["Cancel"]
+               selected = pbMessage("Choose an arena on your network.", choices, -1)
+               return false unless selected && selected >= 0 && selected < hosts.length
+               hosts[selected]
+             end
+      choice = pbMessage("Arena found on #{host[:name]}.", ["Request to visit", "Cancel"], -1)
+      return false unless choice == 0
+      return false unless connect(host[:address], false)
+      Visits.request_visit
+      true
+    rescue SystemCallError, IOError => error
+      pbMessage("Could not find arenas on the local network: #{error.message}")
+      false
     end
     def attendant
       unless $game_map && $game_map.map_id == ENTRANCE_MAP_ID
@@ -168,28 +196,20 @@ module ArenaDemo
       end
       ArenaDemo.with_player_dialog do
         if offline? || !PEMK::Auth.logged_in?
-          choice = pbMessage("Offline. Connecting keeps your world and character.", ["Host online", "Join a host", "Back"], -1)
+          choice = pbMessage("Status: Offline. Connecting keeps your world and character.", ["Host online", "Find an arena to visit", "Back"], -1)
           if choice == 0
-            if request_host && connect('127.0.0.1')
-              pbMessage(@host_information) if @host_information && !@host_information.empty?
+            if request_host && connect('127.0.0.1', true)
               Visits.open_arena
             end
           elsif choice == 1
-            host = pbMessageFreeText("Host IPv4 address. Use 127.0.0.1 for another window on this PC.", "127.0.0.1", false, 15)
-            if host && !host.empty?
-              valid_host?(host) ? connect(host) : pbMessage("Enter a valid IPv4 address, such as 127.0.0.1 or 192.168.1.10.")
-            end
+            find_arena_to_visit
           end
         else
-          choice = pbMessage("#{status}\nAccount ##{PEMK.self_id}", ["Invites and arena visits", "Go offline", "Back"], -1)
+          choice = pbMessage("Status: #{status}", ["Arena visits", "Disconnect", "Back"], -1)
           Visits.attendant if choice == 0
           disconnect if choice == 1
         end
       end
-      false
-    end
-    def switch_menu(_menu)
-      attendant
       false
     end
     def credential_file(path)
@@ -254,9 +274,3 @@ if defined?(PEMK::Auth) && defined?(SaveData)
   end
   Game.singleton_class.prepend(ArenaDemo::DesktopReady)
 end
-
-MenuHandlers.add(:pause_menu, :arena_connection, {
-  "name" => _INTL("Connection"), "order" => 88,
-  "condition" => proc { next $player && defined?(PEMK::Auth) },
-  "effect" => proc { |menu| next ArenaDemo::ConnectionMode.switch_menu(menu) }
-})

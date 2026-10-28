@@ -20,8 +20,10 @@ end
 begin
   require 'pemk'
   require_relative '../game-mod/server/arena_visits'
+  require_relative '../game-mod/Plugins/ArenaDemo/008_LanDiscovery'
+  ArenaDemo::LanDiscovery.start_responder(logger)
   logger.call("launcher: root=#{File.expand_path('..', __dir__)} ruby=#{RUBY_DESCRIPTION}")
-  logger.call('launcher: private arena visits v1 enabled (one invited guest)')
+  logger.call('launcher: private arena visits and LAN discovery enabled')
   PEMK::Server.new(logger: logger).run
 rescue Interrupt
   logger.call('launcher: server stopped')

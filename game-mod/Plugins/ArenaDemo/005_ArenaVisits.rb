@@ -7,6 +7,8 @@ module ArenaDemo
     def ready?; @ready == true; end
     def locked?; !!(@return_home || @arrival || (@phase && @phase != :closed)); end
     def guest?; @role == :guest; end
+    def hosting?; @role == :host && locked?; end
+    def request_pending?; @request_pending == true || @phase == :requesting; end
     def snapshot; @snapshot; end
     def scope; @room || (defined?(PEMK) && PEMK.self_id); end
     def transfer_pending?; !!@arrival; end
@@ -17,6 +19,7 @@ module ArenaDemo
       @hello_at = nil
       @phase = :closed
       @role = @room = @snapshot = @invitation = @arrival = nil
+      @visit_request = @request_pending = nil
       @notice = nil
       @refresh = true
     end
@@ -70,6 +73,39 @@ module ArenaDemo
       true
     end
 
+    def request_visit
+      return false if locked? || !ready? || $game_map.map_id != ENTRANCE_MAP_ID
+      @phase = :requesting
+      @request_pending = true
+      unless send_request(:arena_visit_request)
+        @phase = :closed
+        @request_pending = nil
+        pbMessage("The visit request could not be sent. Check your connection.")
+        return false
+      end
+      true
+    end
+
+    def accept_visit_request
+      return false unless @visit_request && @phase == :hosting
+      unless send_request(:arena_visit_accept, :request => @visit_request)
+        pbMessage("The accept action could not be sent. Check your connection.")
+        return false
+      end
+      @visit_request = nil
+      true
+    end
+
+    def decline_visit_request
+      return false unless @visit_request && @phase == :hosting
+      unless send_request(:arena_visit_decline, :request => @visit_request)
+        pbMessage("The decline action could not be sent. Check your connection.")
+        return false
+      end
+      @visit_request = nil
+      true
+    end
+
     def accept_invitation
       return false if locked? || !@invitation || $game_map.map_id != ENTRANCE_MAP_ID
       @phase = :joining
@@ -83,7 +119,7 @@ module ArenaDemo
     def receive(message)
       case message[:type]
       when :arena_ready
-        return unless message[:version] == 1
+        return unless message[:version] == 2
         @ready = true
         @phase ||= :closed
         @refresh = true
@@ -93,6 +129,7 @@ module ArenaDemo
           @return_home = true if guest? || @arrival
           @phase = :closed
           @role = @room = @snapshot = @arrival = nil
+          @visit_request = nil
         elsif message[:phase] == :open
           ids, layout, difficulty = message.values_at(:objects, :layout, :difficulty)
           return unless [:host, :guest].include?(message[:role]) &&
@@ -108,6 +145,8 @@ module ArenaDemo
                         :layout => LAYOUTS.keys[layout], :difficulty => difficulty }.freeze
           @arrival = true if joining
           @invitation = nil
+          @request_pending = nil
+          @visit_request = nil if @role == :guest
         end
         @refresh = true
         clear_remotes(true)
@@ -117,8 +156,37 @@ module ArenaDemo
         @notice = "Account ##{message[:host]} invited you to their arena. Talk to the entrance-room attendant within 60 seconds to accept."
       when :arena_invitation_cancelled
         @invitation = nil if @invitation && @invitation[:room] == message[:room]
+      when :arena_visit_request
+        token = message[:request]
+        return unless token.is_a?(String) && token.match?(/\A[0-9a-f]{24}\z/)
+        @visit_request = token
+        @notice = "Someone is requesting to visit your arena. Talk to the attendant to accept or decline."
+      when :arena_visit_pending
+        @request_pending = true
+        @notice = "Visit request sent. Waiting for the host to accept."
+      when :arena_visit_declined, :arena_visit_expired
+        if @visit_request
+          @visit_request = nil
+          @notice = "The visit request expired."
+        else
+          @request_pending = nil
+          @phase = :closed if @phase == :requesting
+          @notice = message[:type] == :arena_visit_declined ? "The host declined the visit request." : "The visit request expired."
+        end
+      when :arena_visit_cancelled
+        if @visit_request
+          @visit_request = nil
+          @notice = "The visit request was cancelled."
+        elsif @request_pending
+          @request_pending = nil
+          @phase = :closed if @phase == :requesting
+          @notice = "The host is no longer available."
+        end
       when :arena_error
-        @phase = :closed if [:opening, :joining].include?(@phase)
+        if [:opening, :joining, :requesting].include?(@phase)
+          @phase = :closed
+          @request_pending = nil
+        end
         @notice = PEMK.plain_text(message[:reason], 200) || "Arena request refused."
       when :arena_notice
         @notice = PEMK.plain_text(message[:text], 200)
@@ -161,36 +229,44 @@ module ArenaDemo
 
     def attendant
       if !ArenaDemo.connected?
-        pbMessage("Use Play-Arena.bat, then ask the entrance attendant to Host online or Join a host. Each window needs a different network account.")
+        pbMessage("Use Play-Arena.bat, then ask the entrance attendant to Host online or Find an arena to visit. Each player signs in with their own account.")
         return
       end
       unless ready?
-        pbMessage("Waiting for the arena service. If this continues, restart the server with the updated root launcher and restart both clients.")
+        pbMessage("Waiting for the current arena service. Restart the host game and both clients with the latest Arena Lab files.")
         return
       end
       @invitation = nil if @invitation && now > @invitation[:expires]
       actions = []
-      if locked?
-        actions << [guest? ? "Leave this visit" : "Close arena to visitors", proc { close_arena }]
-        if @phase == :hosting
-          actions << ["Invite a friend", proc {
-            id = pbMessageFreeText("Enter your friend's account ID (shown by their attendant).", "", false, 10)
-            send_request(:arena_invite, :to => id.to_i) if id && id.match?(/\A[1-9][0-9]{0,9}\z/)
-          }]
+      if guest?
+        actions << ["Leave this visit", proc { close_arena }]
+      elsif @role == :host && @phase == :hosting
+        actions << ["Close arena to visitors", proc { close_arena }]
+        if @visit_request
+          actions << ["Accept visit request", proc { accept_visit_request }]
+          actions << ["Decline visit request", proc { decline_visit_request }]
         end
-      else
-        actions << ["Open arena to visitors", proc { open_arena }]
-        if @invitation
-          actions << ["Visit account ##{@invitation[:host]}'s arena", proc { accept_invitation }]
-          actions << ["Decline invitation", proc {
-            send_request(:arena_decline, :host => @invitation[:host], :room => @invitation[:room])
-            @invitation = nil
-          }]
+      elsif !locked?
+        if !defined?(ConnectionMode) || ConnectionMode.host_mode?
+          actions << ["Open arena to visitors", proc { open_arena }]
+        else
+          actions << ["Request to visit", proc { request_visit }]
         end
       end
       labels = actions.map(&:first) + ["Back"]
-      status = locked? ? "Customization is locked until the arena visit closes." : "Your arena is closed to visitors."
-      choice = pbMessage("Your account ID: ##{PEMK.self_id}\n#{status}", labels, -1)
+      status = if defined?(ConnectionMode)
+                 ConnectionMode.status
+               else
+                 locked? ? "Hosting or visiting" : "Connected"
+               end
+      detail = if @request_pending
+                 "Visit request pending. Waiting for the host."
+               elsif locked?
+                 "Arena customization is locked until the visit closes."
+               else
+                 "Your arena is closed to visitors."
+               end
+      choice = pbMessage("Status: #{status}\n#{detail}", labels, -1)
       actions[choice][1].call if choice && choice >= 0 && choice < actions.length
     end
   end
@@ -230,7 +306,8 @@ if defined?(PEMK::Dispatch)
     def handle(message)
       if message.is_a?(Hash)
         if [:arena_ready, :arena_state, :arena_invitation, :arena_invitation_cancelled,
-            :arena_error, :arena_notice].include?(message[:type])
+            :arena_visit_request, :arena_visit_pending, :arena_visit_declined,
+            :arena_visit_expired, :arena_visit_cancelled, :arena_error, :arena_notice].include?(message[:type])
           return ArenaDemo::Visits.receive(message)
         end
         if [:pos, :step, :spawn, :dir].include?(message[:type]) && ArenaDemo::Visits.ready? &&

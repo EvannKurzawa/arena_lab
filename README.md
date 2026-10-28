@@ -9,6 +9,10 @@ does **not** mean the clean installer can host by itself. The one-app setup that
 can host or join from any newly installed computer is a later step. See
 [TWO_COMPUTER_SETUP.md](TWO_COMPUTER_SETUP.md) for the tested setup.
 
+The new automatic LAN discovery, host-approved **Request to visit** flow, and
+attendant connection status have been tested in-game on one computer. Retesting
+this updated flow between two computers is still pending.
+
 ## Windows installers
 
 The Windows build has two self-extracting EXE packages available from the
@@ -44,17 +48,19 @@ Up to eight local players are supported. No separate server window is needed.
 
 At the arena entrance, talk to the attendant:
 - **Host online:** starts/reuses the internal PEMK service, connects this player
-  and opens their arena. The game shows join addresses.
-- **Join a host:** enter `127.0.0.1` for another window on this PC, or the host's
-  displayed network IPv4 address for another computer. Use different accounts.
-- Once connected, talk again for **Invites and arena visits** or **Go offline**.
-  The host invites the guest's account ID; the guest accepts at their attendant.
+  and opens their arena.
+- **Find an arena to visit:** discovers hosts on the local network automatically.
+  Choose **Request to visit**; the host accepts at their attendant. No account ID
+  or host address needs to be exchanged or typed.
+- The attendant shows **Offline**, **Hosting**, **Connected**, or **Visiting**.
+  Choose **Disconnect** there to return offline; an active visit closes first.
 
 Two windows on one PC: open **the same Play-Arena.bat twice**, Host online in the
-first, Join a host -> `127.0.0.1` in the second, then invite/accept.
-Two PCs on the same network: use the same launcher on each; Host on one and Join
-its displayed IPv4 on the other. Windows Firewall must permit the host's Ruby
-service on the private network, TCP 9998. The database stays loopback-only.
+first, Find an arena to visit in the second, choose **Request to visit**, then
+accept at the first window's attendant.
+Two PCs on the same network: use the same launcher on each and the same flow.
+Windows Firewall must permit the host's Ruby service on the private network,
+UDP 9997 for discovery and TCP 9998 for the game connection. The database stays loopback-only.
 Internet/NAT setup across different networks is not automated by this update.
 
 Connecting/disconnecting happens **in place with the same character, Pokemon,

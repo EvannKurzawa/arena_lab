@@ -1,5 +1,16 @@
 # Updates
 
+## v4 - simplified connection flow (in-game test passed; two-PC retest pending)
+
+- Remove the previous-location choice and the pause-menu Connection entry;
+  the entrance attendant owns connection actions.
+- Discover hosting games over the local network, then send a socket-bound visit
+  request for the host to accept or decline. No IP or account ID is typed.
+- Show Offline, Hosting, Connected or Visiting at the attendant, with Disconnect.
+- User reports the updated flow works in-game on one computer. The updated
+  two-computer discovery/request flow still needs a physical two-PC retest.
+- LAN discovery uses UDP 9997; PEMK continues to use TCP 9998.
+
 ## v3.5 - 2026-10-28
 
 - User confirmed multiplayer communication between a prepared host and a second

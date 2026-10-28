@@ -12,7 +12,7 @@ class ArenaVisitsClientTest < Minitest::Test
     ArenaCustomizationTest.new('fixture').setup
     @visits = ArenaDemo::Visits
     PEMK::Auth.logged_in = true
-    @visits.receive(type: :arena_ready, version: 1)
+    @visits.receive(type: :arena_ready, version: 2)
   end
   def state(role = :host)
     { type: :arena_state, phase: :open, room: 'room-one', role: role,
