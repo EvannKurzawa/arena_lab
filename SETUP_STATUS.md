@@ -19,6 +19,9 @@ commit `24b2d04cd3d822abba2a77a04b373fb7c728288f`):
 
 These checks validate script parsing and EXE construction, not a full install or
 update run. Neither EXE has been run against a recipient's game folder yet.
+Both assets were uploaded to the public GitHub release
+`https://github.com/EvannKurzawa/arena_lab/releases/tag/v3.1` after an initial
+publisher header collision was fixed and the upload was resumed successfully.
 
 The clean setup pins Arena Lab to the source commit embedded by the builder,
 downloads the PEMK source ZIP and portable Ruby with SHA-256 checks, downloads

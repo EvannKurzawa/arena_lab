@@ -30,31 +30,33 @@ $credentialText = $null; $password = $null; $pair = $null
 $api = "https://api.github.com/repos/$repo"
 try {
     $existing = Invoke-RestMethod -Method Get -Uri "$api/releases/tags/$Tag" -Headers $headers -ErrorAction Stop
-    throw "Release $Tag already exists at $($existing.html_url); choose another new tag."
+    $release = $existing
 } catch {
     if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw }
-}
-$releaseBody = @'
+    $releaseBody = @'
 Windows client bootstrap and source updater for Arena Lab v3.
 
 ArenaLab-Setup.exe installs the client from pinned public source/runtime dependencies and asks for the player's own Essentials v21.1 game folder. It does not contain Pokémon-derived assets or provision a fresh PostgreSQL host.
 
 ArenaLab-Update.exe updates Arena Lab source files from GitHub main while preserving local game data. Close game windows before running it.
 '@
-$payload = @{
-    tag_name = $Tag
-    target_commitish = 'main'
-    name = "$Tag - Windows setup and updater"
-    body = $releaseBody
-    draft = $false
-    prerelease = $false
-} | ConvertTo-Json
-$release = Invoke-RestMethod -Method Post -Uri "$api/releases" -Headers $headers -ContentType 'application/json' -Body $payload
+    $payload = @{
+        tag_name = $Tag
+        target_commitish = 'main'
+        name = "$Tag - Windows setup and updater"
+        body = $releaseBody
+        draft = $false
+        prerelease = $false
+    } | ConvertTo-Json
+    $release = Invoke-RestMethod -Method Post -Uri "$api/releases" -Headers $headers -ContentType 'application/json' -Body $payload
+}
 try {
     foreach ($asset in $assets) {
-        $name = [Uri]::EscapeDataString((Split-Path $asset -Leaf))
+        $assetName = Split-Path $asset -Leaf
+        if (@($release.assets | Where-Object name -eq $assetName).Count) { Write-Host "Already uploaded: $assetName"; continue }
+        $name = [Uri]::EscapeDataString($assetName)
         $uploadUri = $release.upload_url -replace '\{.*\}$', ''
-        $response = Invoke-RestMethod -Method Post -Uri "$uploadUri`?name=$name" -Headers ($headers + @{ Accept='application/vnd.github+json' }) -ContentType 'application/octet-stream' -InFile $asset
+        $response = Invoke-RestMethod -Method Post -Uri "$uploadUri`?name=$name" -Headers $headers -ContentType 'application/octet-stream' -InFile $asset
         Write-Host ("Uploaded {0}: {1:N0} bytes, SHA256 {2}" -f (Split-Path $asset -Leaf), (Get-Item $asset).Length, (Get-FileHash $asset -Algorithm SHA256).Hash)
     }
     Write-Host "Release published: $($release.html_url)"
