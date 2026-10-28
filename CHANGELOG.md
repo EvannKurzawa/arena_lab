@@ -1,5 +1,11 @@
 # Updates
 
+## v3.2 installer fix - 2026-10-28
+
+- Allow Essentials resource packs that contain compiled `Data/Scripts.rxdata`
+  without the optional extracted `Data/Scripts/001_Settings.rb` source file.
+- Keep the v21.1 check when that extracted settings script is present.
+
 ## Windows packaging - 2026-10-28
 
 - Add `ArenaLab-Setup.exe` bootstrap for a clean client and `ArenaLab-Update.exe`

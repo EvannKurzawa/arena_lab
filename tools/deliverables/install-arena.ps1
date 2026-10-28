@@ -23,8 +23,15 @@ foreach ($required in @('Game.ini','Data/Scripts.rxdata','Graphics')) {
     if (!(Test-Path -LiteralPath (Join-Path $sourceGame $required))) { throw "Selected folder is missing $required. Select the complete Essentials v21.1 game folder." }
 }
 $settings = Join-Path $sourceGame 'Data/Scripts/001_Settings.rb'
-if (Test-Path -LiteralPath $settings -and (Get-Content -LiteralPath $settings -Raw) -notmatch 'VERSION\s*=\s*["'']21\.1["'']') {
-    throw 'The selected extracted Essentials scripts do not identify version 21.1. Use the v21.1 base required by PEMK.'
+if (Test-Path -LiteralPath $settings) {
+    $settingsSource = Get-Content -LiteralPath $settings -Raw
+    if ($settingsSource -notmatch 'VERSION\s*=\s*["'']21\.1["'']') {
+        throw 'The selected extracted Essentials scripts do not identify version 21.1. Use the v21.1 base required by PEMK.'
+    }
+} else {
+    # Resource packs may ship compiled Scripts.rxdata without extracted Ruby
+    # sources. The required v21.1 scripts.rxdata and user-selected base remain.
+    Write-Host 'No extracted 001_Settings.rb found; keeping the supplied compiled Essentials scripts.'
 }
 if (Test-Path -LiteralPath (Join-Path $root 'tools/runtime/essentials-v21.1-base')) {
     throw 'Arena Lab already has a game folder here. Use ArenaLab-Update.exe for an existing installation.'
