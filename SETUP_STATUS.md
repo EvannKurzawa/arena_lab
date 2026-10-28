@@ -2,6 +2,25 @@
 
 ## Windows installer work - 2026-10-28
 
+### v3.2 PE21 folder-selection fix
+
+The user tried the v3.1 setup with the downloaded `PE21` folder and reported
+that `Data/Scripts/001_Settings.rb` was absent. The v3.1 bootstrap incorrectly
+read that optional extracted source file even though a compiled Essentials pack
+may provide `Data/Scripts.rxdata` without extracted sources. v3.2 now checks the
+version only when `001_Settings.rb` exists; it still requires `Game.ini`,
+`Data/Scripts.rxdata`, and `Graphics`. The user has not yet retried v3.2, so a
+successful install is not claimed.
+
+The rebuilt packages pin Arena Lab commit
+`f3f46f10dc4b4bcaa976dd0749aedd26849b0da1` and are published at
+`https://github.com/EvannKurzawa/arena_lab/releases/tag/v3.2`:
+
+- `ArenaLab-Setup.exe`: 36,352 bytes, SHA-256
+  `77FA8A28E4EB8D937E6F1E8227EAED38BB9C3330977C32385CC68EFE6963821A`.
+- `ArenaLab-Update.exe`: 25,600 bytes, SHA-256
+  `990D5E6547C595151D6552F99397938875CDCF632FFE775294504F6B27D11C25`.
+
 Added two self-extracting EXE build targets using a .NET Framework wrapper
 with an embedded PowerShell bootstrap, plus their PowerShell
 bootstrap scripts: `ArenaLab-Setup.exe` for a clean client and
