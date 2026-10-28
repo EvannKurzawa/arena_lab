@@ -2,6 +2,22 @@
 
 ## Windows installer work - 2026-10-28
 
+### v3.3 install-folder PowerShell fix
+
+The user retried v3.2 and hit PowerShell treating `-and` as a `Test-Path`
+parameter in the empty-destination check. Rewrote that check as an outer
+`Test-Path` followed by a separate child-item check. The installer build's
+embedded-script parser and .NET wrapper compilation passed. Published the
+v3.3 rebuild at `https://github.com/EvannKurzawa/arena_lab/releases/tag/v3.3`
+(source commit `8de45e8af0245fb24414448ea84331ec358966a6`):
+
+- `ArenaLab-Setup.exe`: 36,864 bytes, SHA-256
+  `9DFE0FF2413D4F80EED8C4553109D723D758F5CED373531CF38927B3572FE516`.
+- `ArenaLab-Update.exe`: 25,600 bytes, SHA-256
+  `D8D8F15AC10E637DDC611E1BA565ACDEED4C6DBDD5F359D7D715C63E9283D3F3`.
+
+The user has not yet retried v3.3; successful setup remains unverified.
+
 ### v3.2 PE21 folder-selection fix
 
 The user tried the v3.1 setup with the downloaded `PE21` folder and reported
