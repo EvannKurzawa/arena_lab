@@ -19,7 +19,9 @@ logger = lambda do |message|
 end
 begin
   require 'pemk'
+  require_relative '../game-mod/server/arena_visits'
   logger.call("launcher: root=#{File.expand_path('..', __dir__)} ruby=#{RUBY_DESCRIPTION}")
+  logger.call('launcher: private arena visits v1 enabled (one invited guest)')
   PEMK::Server.new(logger: logger).run
 rescue Interrupt
   logger.call('launcher: server stopped')

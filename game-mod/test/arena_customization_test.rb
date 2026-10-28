@@ -3,7 +3,8 @@ require 'minitest/autorun'
 
 # Menu edit regression checks without starting RGSS.
 module MenuHandlers
-  def self.add(*); end
+  def self.add(menu, key, entry); (@entries ||= {})[[menu, key]] = entry; end
+  def self.entry(menu, key); @entries[[menu, key]]; end
 end
 module EventHandlers
   def self.add(event, key, handler); (@handlers ||= {})[[event, key]] = handler; end
@@ -62,6 +63,9 @@ def ArenaDemo.transfer_to(*point); $arena_transfers << point; end
 
 class ArenaCustomizationTest < Minitest::Test
   def setup
+    if defined?(ArenaDemo::Visits)
+      ArenaDemo::Visits.instance_variables.each { |variable| ArenaDemo::Visits.remove_instance_variable(variable) }
+    end
     PEMK::Auth.logged_in = false
     $PokemonGlobal = PokemonGlobalMetadata.new
     $PokemonGlobal.arena_demo_objects = ArenaDemo::OBJECTS.first(3)
@@ -135,7 +139,7 @@ class ArenaCustomizationTest < Minitest::Test
     ArenaDemo.choose_preset
     ArenaDemo.remove_object
     assert_equal before, ArenaDemo.objects
-    assert_match(/fixed/, $arena_messages.last)
+    assert_match(/visitors/, $arena_messages.last)
   end
 
   def test_online_obstacles_match_for_different_personal_saves
@@ -165,7 +169,20 @@ class ArenaCustomizationTest < Minitest::Test
     end
     $arena_choices = [3]
     ArenaDemo.open
-    assert_equal [[3, 25, 6, 2]], $arena_transfers
+    assert_equal [[ArenaDemo::ENTRANCE_MAP_ID, 7, 3, 2]], $arena_transfers
+  end
+
+  def test_offline_room_path_and_online_exit
+    ArenaDemo.enter_entrance
+    ArenaDemo.enter_training_room
+    ArenaDemo.exit_training_room
+    assert_equal [ArenaDemo::ENTRANCE_MAP_ID, 7, 10, 8], $arena_transfers[0]
+    assert_equal ArenaDemo::MAP_ID, $arena_transfers[1][0]
+    assert_equal [ArenaDemo::ENTRANCE_MAP_ID, 7, 3, 2], $arena_transfers[2]
+    $PokemonGlobal.arena_demo_return = [3, 25, 6, 2]
+    PEMK::Auth.logged_in = true
+    ArenaDemo.exit_training_room
+    assert_equal [ArenaDemo::ENTRANCE_MAP_ID, 7, 3, 2], $arena_transfers.last
   end
 
   def test_escape_in_all_customization_menus_has_no_effect

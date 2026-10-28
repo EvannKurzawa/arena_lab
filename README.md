@@ -1,5 +1,149 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Current snapshot: v3 (plugin 0.7.0)
+
+The user completed one full arena visit successfully using two game windows on
+the same computer. **The next acceptance test is two physical computers on the
+same network.** This confirmation supersedes the earlier pending same-PC GUI
+checks in the historical notes below; it does not establish two-PC connectivity.
+
+**`Play-Arena.bat` is the only root BAT file.** Every launch opens another player
+window with its own local profile, initially offline. The first uses the primary
+profile, the second the guest profile; profiles are reused when windows close.
+Up to eight local players are supported. No separate server window is needed.
+
+At the arena entrance, talk to the attendant:
+- **Host online:** starts/reuses the internal PEMK service, connects this player
+  and opens their arena. The game shows join addresses.
+- **Join a host:** enter `127.0.0.1` for another window on this PC, or the host's
+  displayed network IPv4 address for another computer. Use different accounts.
+- Once connected, talk again for **Invites and arena visits** or **Go offline**.
+  The host invites the guest's account ID; the guest accepts at their attendant.
+
+Two windows on one PC: open **the same Play-Arena.bat twice**, Host online in the
+first, Join a host -> `127.0.0.1` in the second, then invite/accept.
+Two PCs on the same network: use the same launcher on each; Host on one and Join
+its displayed IPv4 on the other. Windows Firewall must permit the host's Ruby
+service on the private network, TCP 9998. The database stays loopback-only.
+Internet/NAT setup across different networks is not automated by this update.
+
+Connecting/disconnecting happens **in place with the same character, Pokemon,
+arena and local save**. No title/profile switch or cloud-world replacement.
+Accounts identify players; progression stays local. Existing `_offline` saves
+continue to be used. Historical server saves are preserved but not loaded or
+overwritten. Visitors still access only the entrance room and arena.
+
+Only the first launch prepares shared files; later launches wait for compilation
+and skip rebuilding. Merely launching starts neither a server nor a database;
+hosting is requested in-game. Internal PowerShell/Ruby helpers are not additional
+player launchers. Managed servers stop after ten minutes without logged-in users.
+
+Host online automatically replaces an older idle background server after checking
+that it belongs to this exact project and has no connected players. It refuses
+to stop an unrelated process or an active host, so no manual hidden-server cleanup
+is needed for a verified idle project service.
+
+Validation: **56 Ruby tests / 398 assertions and 24 PowerShell checks passed**.
+Includes real wildcard-bound reactor sockets with loopback clients, local save
+protection and multi-instance leases. Same-PC full-visit success is user-reported;
+Codex did not operate those game windows. Two-PC connectivity/firewall traversal
+remain pending. See SETUP_STATUS.md for the next manual playtest.
+
+If an older Offline/Online chooser was still visible, close all game windows
+and relaunch this BAT. Preparation now explicitly synchronizes ArenaDemo's
+compiled plugin-cache entry, preserving the other plugins and a backup of the
+old cache. The preparation log records version 0.7.0 and its source checksum.
+
+## Previous launcher design (0.6.0 history; superseded)
+
+Close existing game windows, then use **`Play-Arena.bat`**. It prepares the game,
+opens one player window and starts/reuses the local development server in the
+background. A running game is detected before rebuilding. Backend startup failure
+leaves offline play available. The other BAT files are developer tools, including
+the two-window multiplayer test; they are no longer the normal entry point.
+
+The game asks **Offline / Online** before any stored-token login. Offline keeps
+the network disconnected, even if the local server is running. In the pause menu,
+choose **Connection -> Go online / Go offline** to save and switch at the title
+screen inside the same application. Close an active arena visit before switching.
+Online switches wait for the current server save acknowledgment when connected.
+The menu also shows connection/hosting/visiting status.
+
+This version uses separate offline and online profiles. Online loads the server
+account; offline uses `Game_offline.rxdata` (or `Game_guest_offline.rxdata` for
+the test guest). On first mode selection, any legacy local save is copied to the
+offline slot without overwriting either an existing offline slot or the original.
+Offline catches are not automatically merged into an online account. Failed or
+cancelled online login explicitly falls back to the offline slot.
+
+48 automated tests / 324 assertions passed, including profile/save-switch tests.
+The new launcher and actual in-game switching still need a GUI playtest: this
+execution environment cannot read the private game data reliably. This remains
+the development desktop runtime, not a newly packaged standalone executable.
+See SETUP_STATUS.md for results and exact manual checks.
+
+## Arena visits and first catching route (plugin 0.5.0 history)
+
+The next steps are implemented in source: an arena-only **Customize arena** pause
+menu, an entrance-room multiplayer attendant, temporary private visits for one
+invited guest, and an offline catching route with a short keeper story.
+The arena medic now heals and explains the menu instead of editing objects.
+
+Offline: run `Launch-ArenaDemo.bat`, choose offline, New Game and the intro skip.
+Talk to the town keeper for 10 Poke Balls, then the nearby trail scout to enter
+Founders' Path. Catch Rattata, Caterpie or Spearow in the grass and return to the
+keeper for the story reward. The entrance PC uses normal Essentials storage.
+Customize inside the arena before opening it to visitors.
+
+For a local visit, stop the old server console with Ctrl+C and restart
+`Launch-Multiplayer-Server.bat`, then `Launch-Multiplayer-Clients.bat` with two
+different accounts. Both players now enter their own town and walk to their
+entrance-room attendant. The attendant shows each account ID. The host chooses
+**Open arena to visitors**, then **Invite a friend** and enters the guest's ID.
+The guest talks to their attendant and accepts within 60 seconds. The guest
+arrives in the host's entrance room and can access that room and arena only.
+Both clients use the host's frozen object selection, arrangement and trainer
+difficulty. Each player keeps their own party and PC storage.
+
+Customization locks before the open request is sent and stays locked while open,
+invited, visiting or awaiting a close reply. Leaving guests return to their own
+entrance room. Hosts remain open until they explicitly close the arena; closing
+or disconnecting the host ends the visit. Offline layouts remain saved locally.
+Readiness now detects an old server that lacks the visit extension.
+
+This is still loopback development for two accounts on this PC. Online arena
+storage, public hosting, remote internet setup and arbitrary furniture placement
+are outside this update. Founders' Path encounters and story rewards are offline.
+The generated foyer still uses temporary rock boundaries.
+
+Validation: 41 tests / 291 assertions passed, including real loopback protocol
+tests through PEMK's reactor and synthetic map generation. Protocol test account
+identities were injected; production login, private-map installation/rendering,
+actual captures and two-window battles were not retested. Private game-data
+access still stalls here. Details and manual playtest steps are in SETUP_STATUS.md.
+
+## Initial world step (historical, superseded by 0.5.0)
+
+Offline quick start now enters Arena Town. Walk into the building immediately
+north of the spawn to reach the entrance room. Its PC opens Essentials' normal
+Pokemon storage; interact with the north door to enter the training arena.
+Walk through the arena's south opening to return, then through the entrance
+room's south opening to reach town. Existing saves outside the demo can enter
+through the Arena Demo pause-menu entry. In town/entrance, that entry offers a
+return to the previous location.
+
+Close the game and run `Launch-ArenaDemo.bat` to install the source changes and
+generate maps 100-102. Keep a backup of private saves before testing. New Game
+with the intro skip is recommended because existing saves can retain old maps.
+The town reuses local Lappet Town artwork and one existing building as an arena
+placeholder; story, catching routes and a final visual design come later.
+
+Authenticated quick start still enters the tested shared arena directly.
+Invitations, visitor restrictions and custom-layout synchronization are pending.
+This update passed 24 automated tests / 130 assertions, including map generation
+against synthetic fixtures. Real private-map generation and GUI playtesting
+could not be completed here; see SETUP_STATUS.md.
+
 ## Current snapshot: v2.1
 
 If the multiplayer launcher times out despite a server “listening” message, press

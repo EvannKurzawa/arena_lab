@@ -1,5 +1,521 @@
 # Setup and implementation status
 
+## v3 - 2026-10-28: same-PC full visit verified by the user
+
+The user reported: "i have completed one full visit and it worked." This was the
+two-window, same-computer flow described immediately before the report. Record
+it as a successful user-run full arena visit, not a Codex-operated GUI test or a
+two-computer connection. It supersedes the earlier pending same-PC visit checks
+below. The user explicitly identified **two computers as the remaining test**.
+
+v3 includes the town/entrance/arena path and storage PC; arena pause-menu
+customization and session locks; private invited visits with frozen host layouts;
+offline Founders' Path and keeper story; one repeatable Play-Arena.bat launcher;
+independent local player profiles; live host/join/offline changes preserving the
+local character; guarded replacement of an old idle background server; and
+explicit plugin-cache synchronization. ArenaDemo metadata remains 0.7.0; v3 is
+the repository snapshot/commit name, not an upstream version change.
+
+Upstream versions/compatibility/licensing and runtime pins are unchanged from
+the integration reports below: Essentials v21.1 at
+8c5911e4a4b07b07e832e4bb0d5d8859e88b4a9b, PEMK at
+9a24034bca241c095b81ea8069607f6cdfa6a57d. No upstream assets, native binaries,
+database contents, credentials, save files or generated maps belong in v3.
+The ignored private setup is still required; this is not a self-contained game
+installer or an internet-hosting deployment.
+
+Release validation: 56 Ruby tests / 398 assertions, plus 24 PowerShell checks
+(13 launcher/profile/IPC and 11 server-replacement checks). These cover source
+behavior, temporary/synthetic maps and caches, real socket reactor/relay behavior
+with injected account identities, and mocked live-connection engine interactions.
+No authenticated DB integration suite or two-PC GUI test is claimed. The user's
+full-visit confirmation supplies the separate same-PC GUI result.
+
+Next manual acceptance test:
+1. Keep the host PC and second PC on the same private network, each with the
+   prepared private game/runtime prerequisites and the v3 source installed.
+2. Open Play-Arena.bat on each. At the entrance attendant, Host online on the host;
+   Join a host on the second PC, entering the host's displayed LAN IPv4 address
+   (192.168.1.127 was shown in the user's latest session; use the current address).
+   127.0.0.1 is only for windows on the same PC.
+3. Use different accounts on the same host service. Host invites the guest's
+   displayed account ID; guest accepts through Invites and arena visits.
+4. Verify host layout/collisions and visitor room restrictions, complete a battle,
+   leave/go offline, and confirm the guest's personal layout/party/save remain.
+5. If the join fails, check Windows Firewall private-network permission for the
+   host Ruby executable on TCP 9998. PostgreSQL stays loopback-only. Record the
+   exact error and both private launcher/server logs; no two-PC success yet.
+
+README, CHANGELOG and game-mod README now identify v3 and distinguish user GUI
+verification from automated tests and the pending physical two-PC test. Earlier
+setup problems and superseded launcher designs remain historical records.
+
+
+## Old background host replacement - 2026-10-28
+
+User received the old/loopback-service message without manually opening a server.
+Read-only inspection found PID 8156 listening on 127.0.0.1:9998. Sandbox CIM
+inspection was denied; approved inspection confirmed this workspace's bundled
+Ruby executable running tools/run-local-server.rb with this workspace's server
+and log paths (created 11:24:28 local time). No established clients were found.
+After source tests, an approved invocation of Stop-ArenaLegacyService verified
+ownership/creation time and zero connected players again, then stopped that one
+process successfully. No game process or PostgreSQL service was stopped.
+
+Host online now replaces an older idle service automatically only if the listener
+belongs to the exact expected executable, wrapper, server root and log arguments.
+It refuses unknown executables/scripts/workspaces, extra arguments, multiple
+listeners, changed process identities or established clients. Identity/TCP state
+are re-read immediately before stopping. Native process start time is checked
+with one-microsecond tolerance for CIM timestamp precision. Existing active hosts
+and unrelated port owners are not automatically stopped. Probe messages now
+describe verification rather than instructing players to manage a hidden server.
+
+Changed tools/desktop-session.ps1, tools/play-arena.ps1, tools/ping_multiplayer.rb;
+added game-mod/test/server_replacement_test.ps1. Replacement policy: 11 checks
+passed with injected process/connection records and no real process stopped by
+the tests. Existing 13 launcher checks passed. PowerShell parsing/whitespace
+checks passed. The real verified legacy-process stop is separate from these
+tests and did execute; a replacement production server/GUI playtest is not claimed.
+Player can retry Host online in the still-running game; the now-free port allows
+its supervisor to start the current service without relaunching the game.
+
+
+## Startup screen follow-up - 2026-10-28
+
+While testing, the user saw the old Offline/Online chooser and then closed that
+window. That indicates old behavior was still running; the exact cause (already
+open window, stale cache, or another copy) was not established. Attempts to inspect
+private launcher logs and installed plugin/cache files stalled both inside and
+outside the sandbox; those sessions were cancelled. No successful private read,
+installation, game launch or GUI repair is claimed by the agent.
+
+Added `tools/sync-plugin-cache.rb`, called by Prepare after map generation. It
+rebuilds only the Arena Demo entry in an existing trusted local compiled cache
+from installed Ruby files and metadata, independently of source/cache mtimes.
+Other plugin entries are retained; original cache bytes are backed up once per
+version and the replacement is atomic. It logs version, script count and checksum
+to `tools/runtime/desktop-prepare-<PID>.log`. Missing first-install caches are left
+to the native debug compilation path. It runs only during first-window preparation,
+not while another leased game is using shared files.
+
+New `game-mod/test/plugin_cache_test.rb`: **3 tests / 18 assertions passed** for
+a future-dated 0.6 cache becoming 0.7, unchanged upstream plugin contents, binary
+backup/idempotence, malformed-format refusal and missing-cache handling. Initial
+fixture run failed to find scripts; using Dir.glob with an explicit base directory
+fixed enumeration and the rerun passed. PowerShell parsing passed.
+Total validated suites: **56 Ruby tests / 398 assertions plus 13 PS checks**.
+Other results below are unchanged. User should reopen the exact root Play-Arena.bat
+with all older windows closed; the new game starts offline without that chooser.
+
+
+## One repeatable launcher, live host/join - 2026-10-28
+
+Implemented the user's corrected model in source as plugin **0.7.0**. There is
+exactly one root BAT, `Play-Arena.bat`. Removed the three older Launch-*.bat files.
+The same BAT can be opened twice on one PC, or on two prepared PCs. Every game
+starts offline; the entrance attendant offers Host online / Join a host / Go
+offline. This supersedes 0.6's single-instance guard, title switch and separate
+offline/online progression profiles.
+
+Upstream versions remain Essentials v21.1 commit
+`8c5911e4a4b07b07e832e4bb0d5d8859e88b4a9b`
+(https://github.com/Maruno17/pokemon-essentials), and PEMK commit
+`9a24034bca241c095b81ea8069607f6cdfa6a57d`
+(https://github.com/SamDreamsMaker/pokemon-essentials-mmo-kit).
+Runtime remains the previously pinned mkxp-z build. No dependencies, engine
+mechanics, third-party assets, upstream files or credentials were added/changed.
+Existing license findings and private asset exclusions still apply.
+
+Launcher implementation:
+- `tools/play-arena.ps1` stays resident, hidden, while its game runs. The shared
+  `desktop-session.ps1` helper leases primary/guest/player3-8 profiles, each with
+  separate existing PEMK save/config/login conventions. Profiles are reused after
+  their clients close. Exclusive file handles plus PID/start-time/executable
+  records protect against both simultaneous launches and orphaned live clients.
+- A workspace-specific startup mutex serializes preparation/compilation. Only
+  when no other game is active are maps/plugins/runtime configuration rebuilt.
+  The first game signals readiness after Compiler.main and Game.set_up_system;
+  later launches do not write shared game files while another client uses them.
+- A per-profile nonce-only file request asks the supervisor to start/reuse the
+  native PEMK backend. No game-provided executable, shell command or path is
+  accepted. The game pumps frames while waiting. Responses correlate the nonce.
+  Hosting requests are serialized with a service mutex. Merely launching the app
+  starts neither PostgreSQL nor the server; joining starts neither locally.
+- Host requests use `local-multiplayer.ps1 -Action Server -ListenAddress 0.0.0.0
+  -Managed`, hidden. PostgreSQL stays on 127.0.0.1:55432; PEMK listens on TCP 9998.
+  The supervisor displays local IPv4 join addresses, and 127.0.0.1 for same-PC
+  clients. Capability/bind probes reject an old loopback-only service instead of
+  killing an unknown process. Managed services stop after 600 seconds with no
+  logged-in accounts. Existing unauthenticated/account rate limits remain.
+
+Live game behavior:
+- Boot loads the same per-player local `_offline` save used by 0.6, preserving
+  existing offline progress. Legacy local files are forked once in exclusive
+  binary mode; original cache files and historical cloud saves are untouched.
+- Connecting saves locally, authenticates on the selected host and handshakes
+  the arena service without Game.load, title transition or character-ID stamping.
+  Current character, party (including offline catches), arena and map remain.
+  Network account ID is distinct from the persistent trainer ID.
+- Historical server blobs are stripped before native Auth.apply_login can
+  deserialize them; server economy/inventory restoration is not applied. Native
+  MMO progression sync/flush/blob upload is disabled for this local-world mode.
+  Checkpoints can still write the current local file. The server latches the
+  local-world flag at arena hello and refuses account-save uploads on that link.
+  No automatic offline/cloud merge is claimed or attempted.
+- Native authentication/token storage, private-room validation, invitation
+  consent, battle relay and peer-body checks remain. Progression gates are reset
+  after login/relogin while preserving the advertised peer validation mode.
+  Remote endpoint credentials are separated by player and IPv4 address.
+- Host online connects locally then opens the arena. Join a host only connects;
+  invitation/acceptance still selects the host's arena. Go offline closes the
+  visit, saves locally, drops identity/transport/reconnect state, and continues
+  in the same world. Guest return remains safely deferred by the visit layer.
+  Outside the entrance, Connection directs the player to its attendant.
+
+Files changed this turn: Play-Arena.bat; removed Launch-ArenaDemo.bat,
+Launch-Multiplayer-Clients.bat, Launch-Multiplayer-Server.bat;
+tools/{play-arena,desktop-session,launch-client,local-multiplayer}.ps1;
+tools/ping_multiplayer.rb; game-mod/Plugins/ArenaDemo/{005_ArenaVisits,
+007_ConnectionMode}.rb and meta.txt; game-mod/server/arena_visits.rb;
+game-mod/test/{live_connection_test.rb,desktop_launcher_test.ps1,
+arena_visits_server_test.rb}; removed superseded connection_mode_test.rb;
+README, game-mod README, CHANGELOG and this report.
+
+Validation: **53 Ruby tests / 380 assertions passed**, plus **13 PowerShell
+launcher checks passed**. Ruby breakdown: live mode 10/66; combined customization,
+visit client/server, route and synthetic maps 37/297; multiplayer fixes 5/16;
+readiness 1/1. Syntax compilation and PowerShell parsing passed; whitespace check
+passed. No dependencies were installed for tests.
+
+Live-mode tests use engine/PEMK doubles: verify actor/party/map/save identity,
+offline boot, binary legacy preservation, rejected login/service/address/location,
+no cloud restoration/upload, retained peer validation, remote credential isolation,
+Host vs Join actions, request correlation, deferred closing and readiness signal.
+PowerShell tests execute real profile lease/file operations in a bounded temporary
+directory: two identical launches receive separate profiles; an existing guest
+blocks primary rebuilds; orphaned live clients remain protected; exhausted slots
+are rejected; IPC cannot carry commands; only one root BAT remains. No GUI or
+backend is launched by these tests.
+
+Socket tests start the actual upstream reactor on **0.0.0.0 with an ephemeral
+port**, and connect through loopback. Native wire/frame/zone/guarded-battle-relay
+methods execute with injected account identities, not password login or DB setup.
+The tests additionally verify advertised bind address, refused local-world save
+uploads, and managed idle-stop logic. Wildcard binding is executed; a packet from
+a second physical computer and Windows Firewall traversal are NOT tested.
+
+Exact new test commands (PowerShell, C:/arena-lab):
+
+```powershell
+$arenaRuby = 'C:/arena-lab/tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe'
+$arenaMinitest = 'C:/arena-lab/tools/runtime/bundle/ruby/3.3.0/gems/minitest-5.27.0/lib'
+& $arenaRuby --disable-gems -I $arenaMinitest -e 'eval(File.read(%q{C:/arena-lab/game-mod/test/live_connection_test.rb}), TOPLEVEL_BINDING, %q{C:/arena-lab/game-mod/test/live_connection_test.rb})'
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File game-mod/test/desktop_launcher_test.ps1
+```
+
+Reran the previously documented combined source/socket suite, multiplayer-fixes
+and readiness commands. Ruby syntax used RubyVM::InstructionSequence.compile on
+the changed production files; PowerShell Language.Parser.ParseFile checked all
+four changed PS scripts. `git -c safe.directory=C:/arena-lab diff --check` passed.
+
+Execution limits: no actual game/production backend/DB was started or configured
+by Codex in this turn, no runtime asset/map installation or actual save migration
+was executed, and no authenticated two-window battle or two-PC GUI session is
+claimed. The earlier private game-data access issue remains unresolved in this
+agent environment; tests use temporary/synthetic files. Windows denied direct
+replacement/deletion of some generated source files; approved file-copy/cleanup
+operations completed. Temporary staging source was removed.
+
+Manual acceptance test:
+1. Close older game windows and any old manual/0.6 background server once. Run
+   Play-Arena.bat twice. Confirm both start offline with independent local saves,
+   and that the second launch waits until the first finishes compilation.
+2. In window one, walk to the entrance attendant -> Host online. Log in/create an
+   account. Confirm the service becomes ready, the same character stays in place,
+   join addresses appear, and the arena opens without a separate BAT/console.
+3. In window two, attendant -> Join a host -> 127.0.0.1. Use a different account.
+   Read its account ID. Host: Invites and arena visits -> Invite a friend -> that
+   ID. Guest: talk again -> Invites and arena visits -> accept within 60 seconds.
+4. Verify identical host objects/difficulty and room-only access; complete PvP.
+   Go offline at the attendant. Verify local party/layout/progress remain and
+   customization unlocks after closing/returning. Save/reopen and verify persistence.
+5. On a second prepared PC, run the SAME BAT, Join the host's displayed LAN IPv4
+   with a different account, then repeat invite/accept. Permit the host Ruby
+   executable on Windows Firewall's private network for TCP 9998 if required.
+   Do not expose PostgreSQL. Firewall rules were not automatically changed.
+
+The same-network client/host path is implemented; two-PC operation is pending
+that manual test. Different-network internet routing/NAT discovery/relay and a
+redistributable installer are not implemented. Prerequisite private Essentials
+assets and native runtimes are still needed on both PCs. Public production
+hosting, matchmaking and persistent online arena storage remain outside scope.
+
+
+## One launcher and explicit connection modes - 2026-10-28
+
+User requested one app with offline/online selection. Plugin **0.6.0** adds
+`Play-Arena.bat`, `tools/play-arena.ps1`,
+`game-mod/Plugins/ArenaDemo/007_ConnectionMode.rb` and
+`game-mod/test/connection_mode_test.rb`. Metadata, README, game-mod README,
+CHANGELOG and this report updated. Upstream versions, licenses, dependencies and
+the pinned runtime remain unchanged from the preceding report.
+
+Implemented behavior:
+- One normal launcher prepares the client, detects an existing game process,
+  probes PEMK arena capability and starts a hidden local server helper if needed.
+  It opens one primary player window. Backend startup failure leaves offline play
+  available. Private service logs: `tools/runtime/desktop-server-<launcher PID>.*.log`.
+  The backend may stay running for later launches or developer test guests.
+  Old BATs remain developer/test helpers; none were removed.
+- Offline/Online selection precedes load-screen initialization and stored-token
+  login. Offline blocks automatic transport startup and clears identity, sync,
+  checkpoint and reconnect state. A running server does not make the window online.
+- Connection pause menu reports current status and offers Go online/offline.
+  Switching saves the current profile and uses the existing title/load flow in
+  the same process. Active visits must close first. Save failure cancels switching.
+  When connected online, the exact outgoing save must be acknowledged within a
+  five-second frame-pumped wait; otherwise the current session stays open.
+- Profiles remain separate because PEMK loads authoritative account saves.
+  Offline inserts `_offline` in the current per-instance filename. Legacy local
+  data is copied once with exclusive binary creation before either mode can
+  overwrite its cache. Existing offline and original files are preserved. Offline
+  catches are not merged into an online account. Failed/cancelled online login
+  announces fallback and refreshes the offline slot instead of the preloaded cache.
+
+Validation: **48 tests / 324 assertions passed**. New profile tests: 7 / 33;
+existing source/map/socket tests: 35 / 274; multiplayer fixes: 5 / 16;
+real-reactor readiness: 1 / 1. New tests cover no offline token/transport activity,
+independent slots, legacy binary preservation (including online-first selection),
+failed-login fallback, failed saves/unconfirmed acknowledgments, confirmed
+same-process switching, visit guards and cancellation. Profile tests use engine/
+PEMK doubles; socket tests keep the earlier injected-identity limitation.
+Ruby syntax, PowerShell parsing and `git diff --check` passed.
+
+New test command (other regression commands are in the preceding report):
+
+```powershell
+& 'C:/arena-lab/tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe' --disable-gems -I C:/arena-lab/tools/runtime/bundle/ruby/3.3.0/gems/minitest-5.27.0/lib -e 'eval(File.read(%q{C:/arena-lab/game-mod/test/connection_mode_test.rb}), TOPLEVEL_BINDING, %q{C:/arena-lab/game-mod/test/connection_mode_test.rb})'
+```
+
+Reviewed actual upstream Session, Auth, PersistHooks, Sync, NetStatus, Checkpoint,
+SaveData, load-screen initialization and Scene_Map title behavior. This is a
+controlled title/profile switch, not a live account merge. Normal launch still
+uses the existing debug-capable development runtime so changed plugins compile;
+it is not a newly packaged executable.
+
+No production app/server was launched, no real save migrated and no private
+client installation executed this turn. The private game-data access limitation
+recorded below is unresolved and prevents GUI verification. No production
+credentials, accounts or assets changed. The new launcher is source-implemented
+and statically checked, not claimed as user-tested.
+
+Manual checks:
+1. Close current clients; run Play-Arena.bat. Confirm one player window opens and
+   no manual server console is needed. The game must offer Offline/Online even
+   when account credentials were previously saved.
+2. Choose Offline while the server runs. Connection should say Offline and no
+   invitations should arrive. Continue, catch a Pokemon and save the offline game.
+3. Connection -> Go online: confirm save/title transition in the same app, then
+   verify the correct online account loads. Close active visits before switching
+   back; confirm the offline Pokemon/progress returns.
+4. Cancel/fail an online login: verify explicit fallback to the offline slot.
+5. Open Play-Arena again while playing: it should avoid rebuilding/opening another
+   primary window. The old two-client helper remains available for developer tests.
+
+
+## Arena menu, private visits and Founders' Path - 2026-10-28
+
+Implemented proposed source steps 2-5, plugin **0.5.0**. Essentials remains v21.1
+at `8c5911e4a4b07b07e832e4bb0d5d8859e88b4a9b`
+(https://github.com/Maruno17/pokemon-essentials); PEMK remains at
+`9a24034bca241c095b81ea8069607f6cdfa6a57d`
+(https://github.com/SamDreamsMaker/pokemon-essentials-mmo-kit).
+Existing compatibility/license findings and private asset exclusions still apply.
+No upstream files, dependencies, production accounts, saves or databases changed.
+
+Behavior:
+- An arena-only Customize arena pause command replaces NPC customization. It is
+  hidden while opening, hosting, visiting, closing or returning home. Every edit
+  also checks permissions, including after blocking prompts. The manager is now
+  a medic. Personal closed arenas can be edited while connected to the service.
+- The entrance attendant shows the account ID, opens/closes hosting, invites one
+  online account by ID and accepts/declines invitations. Opening locks before the
+  send; closing unlocks after acknowledgment. Invitations expire in 60 seconds;
+  the host stays open and locked until explicitly closed.
+- Temporary one-guest rooms belong to PEMK's reactor. Server-created tokens scope
+  presence and existing addressed relay messages. Validated primitive snapshots
+  contain selected object slots, arrangement and trainer difficulty. Both clients
+  use local map data with the host snapshot; no remote binaries are loaded.
+  Guest personal layouts/saves are untouched; PCs use each player's own storage.
+- Server presence checks and a Scene_Map transfer extension restrict active visits
+  to maps 100/102. Town/route presence is private per updated account. Room position
+  checks use the frozen layout plus fixed NPC/PC blocks and boundaries, replacing
+  upstream static position checks only during a visit. Other maps retain upstream
+  behavior. Local peer blocking includes the foyer. Simultaneous movement still
+  has no server tile reservation guarantee.
+- Disconnects, replaced connections and host closure end visits. Guest returns
+  wait until menus/events/battles finish; old position-correction queues are
+  cleared on room changes. A departing guest leaves the host open and locked.
+- Offline Founders' Path (103) uses local terrain-tag-2 grass and Essentials Land
+  encounters: Rattata 3-5, Caterpie 3-4, Spearow 4-6. A keeper gives 10 Poke Balls
+  once and rewards ownership of a route species with 3 Great Balls once. Full
+  bags preserve unclaimed grants. The scout leads to the route. Route entry,
+  encounters and rewards are offline only. Town entry sets the foyer as the
+  normal healing return point. No battle/capture mechanics were recreated.
+- Root server wrapper loads our adapter after PEMK. Ping advertises arena service
+  v1; readiness and server reuse reject an old healthy server with a restart
+  instruction instead of binding a duplicate server.
+
+Changed/added files for this step:
+`game-mod/Plugins/ArenaDemo/{001_ArenaDemo,003_PlayerInteraction,
+004_MultiplayerFixes,005_ArenaVisits,006_FoundersPath}.rb`, `meta.txt`;
+`game-mod/server/arena_visits.rb`; `game-mod/tools/build_arena_map.rb`;
+customization/multiplayer-fixes tests and new client/server visit, route and
+synthetic-map tests; `tools/{run-local-server.rb,ping_multiplayer.rb,
+local-multiplayer.ps1}`; README, game-mod README, CHANGELOG and this report.
+Generator changes include the medic/attendant, reachable keeper/scout placement,
+local grass route, explicit PC housing collision, map 103 registration, and
+preservation of native Tone/Color payloads when rewriting the intro.
+
+Validation with Ruby 3.3.12: **41 tests / 291 assertions passed**.
+- Combined source/map/protocol tests: 35 tests / 274 assertions.
+- Existing multiplayer-fixes tests: 5 / 16, including foyer peer collision.
+- Upstream-reactor readiness test: 1 / 1.
+- Syntax compilation of all nine changed production Ruby files, PowerShell
+  parsing of the launcher and `git diff --check`: passed (line-ending notices only).
+
+Real TCP tests use upstream reactor, wire codec, frame gate, zones and guarded
+challenge/accept/battle-choice relay. Account identities are injected by the test
+harness; password login and DB startup are not exercised. Tests cover matching
+snapshots, outsider isolation, rejected town access/obstacle positions, consent,
+decline, expiry/replay, two isolated hosts, explicit close and disconnect cleanup.
+This is not two-window GUI verification or a new battle-completion result.
+Synthetic map generation ran twice against temporary Marshal fixtures, checking
+connections, grass, stable object IDs, conflicting map IDs, original intro Tone
+bytes and exactly one skip choice. Source tests cover lock timing, failed sends,
+menu visibility, post-prompt permission checks, personal layout restoration,
+deferred returns, stale corrections and one-time story rewards.
+
+Exact successful PowerShell test commands, from `C:/arena-lab`:
+
+```powershell
+$arenaRuby = 'C:/arena-lab/tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe'
+$arenaMinitest = 'C:/arena-lab/tools/runtime/bundle/ruby/3.3.0/gems/minitest-5.27.0/lib'
+& $arenaRuby --disable-gems -I $arenaMinitest -e 'ARGV.each { |path| require path }' C:/arena-lab/game-mod/test/arena_visits_client_test.rb C:/arena-lab/game-mod/test/founders_path_test.rb C:/arena-lab/game-mod/test/world_maps_test.rb C:/arena-lab/game-mod/test/arena_visits_server_test.rb
+& $arenaRuby --disable-gems -I $arenaMinitest -e 'eval(File.read(%q{C:/arena-lab/game-mod/test/multiplayer_fixes_test.rb}), TOPLEVEL_BINDING, %q{C:/arena-lab/game-mod/test/multiplayer_fixes_test.rb})'
+& $arenaRuby --disable-gems -I $arenaMinitest -e 'eval(File.read(%q{C:/arena-lab/tools/test_readiness.rb}), TOPLEVEL_BINDING, %q{C:/arena-lab/tools/test_readiness.rb})'
+```
+
+Syntax used the same executable with `--disable-gems -e 'ARGV.each { |path|
+RubyVM::InstructionSequence.compile(File.read(path)); puts path }'` and the nine
+changed Ruby paths. PowerShell check used `Language.Parser.ParseFile` on
+`tools/local-multiplayer.ps1`. Whitespace: `git -c safe.directory=C:/arena-lab diff --check`.
+
+Execution limitations: normal Ruby startup still stalls here unless RubyGems is
+disabled and minitest explicitly supplied. A direct `--disable-gems -e` file-size
+query of private `tools/runtime/essentials-v21.1-base/Data/Map002.rxdata` again
+stalled without output inside and outside the sandbox; both sessions were
+cancelled. Windows initially refused creating `game-mod/server`; approved
+directory creation succeeded but did not resolve private game-data access.
+No successful real-map build/plugin installation, production server startup,
+GUI launch, capture or two-client GUI test was executed this turn. Full upstream
+and DB/auth integration suites were not rerun. Prior user confirmation below
+applies to v2.1, not the new visit flow.
+
+Manual validation with the user's private setup:
+1. Close clients; stop the old server console with Ctrl+C. Restart the root server
+   launcher and confirm `private arena visits v1 enabled` in its log. Run the
+   two-client launcher to install plugin 0.5.0 and build maps 100-103. Resolve any
+   private-data access failure before playing.
+2. Offline New Game + skip: keeper supplies, scout -> route, walk in grass and
+   catch a species using Essentials' battle UI. Return south, collect the keeper
+   reward once, use the entrance PC. Inspect artwork, doors and collisions.
+3. Customize from the arena pause menu; check medic healing and trainer battle.
+   Return to the entrance before opening hosting.
+4. Log in with different accounts in two windows; walk to both attendants. Read
+   guest ID, host opens/invites, guest accepts within 60 seconds. Check matching
+   host objects/difficulty, both rooms, room-only access, hidden customization,
+   player collisions and one completed PvP battle.
+5. Guest leaves: their personal layout returns and host remains open/locked.
+   Host closes: customization returns. Repeat with host disconnect; guest must
+   return home after any active battle/menu finishes.
+
+Still loopback-only development. No internet setup/public hosting, persistent
+online arena storage, arbitrary placement or expanded trainer-roster syncing.
+The foyer keeps temporary rock boundaries. Layout synchronization covers the
+existing six slots, three arrangements and trainer difficulty only.
+
+
+## Offline town / arena entrance step - 2026-10-28
+
+Implemented step 1 of the proposed world organization in source. No upstream
+engine/server changes or dependency/version changes were made. Essentials stays
+at `8c5911e4a4b07b07e832e4bb0d5d8859e88b4a9b` (v21.1); PEMK stays at
+`9a24034bca241c095b81ea8069607f6cdfa6a57d`. Repository URLs, compatibility and
+license evidence remain in the original integration report below.
+
+Changes:
+- `game-mod/tools/build_arena_map.rb`: generates offline Arena Town (101), using
+  the private town artwork and original house entrance, and Arena Entrance (102),
+  using private indoor floor and PC artwork. Removes upstream tutorial events
+  from the new town; connects town -> entrance -> existing arena (100), with
+  return exits. Retains arena object IDs. Rejects conflicting map IDs and keeps
+  source maps 2/3/9 intact. Writes `Data/ArenaDemoTownStart.txt` locally.
+- `game-mod/Plugins/ArenaDemo/001_ArenaDemo.rb`: offline quick start and external
+  pause-menu entry now enter town. Entrance PC calls Essentials' `pbPokeCenterPC`
+  (reviewed in upstream `016_UI/019_UI_PC.rb`), including normal box storage and
+  last-able-Pokemon safeguards. Existing authenticated quick start/entry stays
+  on shared map 100; online exit retains the saved return destination.
+- `game-mod/test/arena_customization_test.rb`, new `world_maps_test.rb`, root
+  README and game-mod README updated. No assets, saves, accounts or secrets added.
+
+Executed checks with local Ruby 3.3.12:
+- Customization/interaction tests: **17 tests / 94 assertions, pass**.
+- Existing multiplayer fixes: **5 tests / 15 assertions, pass**.
+- Synthetic-map generator tests: **2 tests / 21 assertions, pass**. The generator
+  actually ran twice against temporary Marshal fixtures; connected script events,
+  original-map preservation, stable object IDs and map-ID conflict refusal passed.
+- RubyVM syntax compilation of both changed production Ruby files: **pass**.
+
+Normal Ruby script startup stalled without output. Disabling RubyGems and using
+the explicit local minitest library allowed source tests to run. Exact successful
+PowerShell test pattern (replace TEST with each of the three filenames above):
+
+```powershell
+& 'C:\arena-lab\tools\runtime\ruby-portable\rubyinstaller-3.3.12-1-x64\bin\ruby.exe' --disable-gems -I C:/arena-lab/tools/runtime/bundle/ruby/3.3.0/gems/minitest-5.27.0/lib -e 'eval(File.read(%q{C:/arena-lab/game-mod/test/TEST}), TOPLEVEL_BINDING, %q{C:/arena-lab/game-mod/test/TEST})'
+```
+
+Syntax command: same Ruby executable with `--disable-gems -e
+'ARGV.each { |p| RubyVM::InstructionSequence.compile(File.read(p)); puts p }'`
+and the two production source paths as arguments.
+
+Attempted `ruby game-mod/tools/build_arena_map.rb
+tools/runtime/essentials-v21.1-base`, then retries with RubyGems disabled,
+explicit paths and approved execution outside the sandbox. Private game-data
+access still stalled without output; even a direct file-size query for private
+Map002 did not finish. Stalled command sessions were cancelled. No successful
+real-map generation, plugin installation, server start, client launch or
+two-client test is claimed for this change. Exact cause is unresolved. Prior
+user-confirmed multiplayer results below apply to v2.1, not this new map path.
+
+Manual validation required:
+1. Close clients, back up private saves, run `Launch-ArenaDemo.bat` from this folder.
+   Confirm output says maps 101 and 102 were built; launch failure requires checking
+   local private-data accessibility before proceeding.
+2. Choose offline, New Game, intro skip. Walk into the building immediately north
+   of spawn. Check the foyer PC opens storage, inspect boxes/party, cancel out.
+3. Enter the north door, test movement/trainer/customization, then walk through
+   the south opening back into the foyer and out to town. Inspect artwork and
+   collisions; the foyer currently uses placeholder rock boundaries.
+4. Run the existing multiplayer launchers with two different accounts. Confirm
+   direct arena entry, identical fixed obstacles, presence and a complete battle.
+
+Next scope remains moving customization into the arena menu, multiplayer NPC and
+session lock, then actual private visits/layout synchronization, then a catching
+route/story. The welcome NPC is explanatory only; it has no fake invite controls.
+
+
 ## v2.1 - 2026-10-28: user verification
 
 The user verified multiplayer launch, full text rendering, battle synchronization

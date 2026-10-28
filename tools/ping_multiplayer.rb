@@ -27,6 +27,14 @@ loop do
       raise 'Incomplete server reply' unless payload && payload.bytesize == length
       reply = PEMK::Wire.decode_envelope(payload, false).fetch(:env)
       raise 'Server did not answer the PEMK ping' unless reply[:type] == :pong && reply[:t] == 123
+      if ARGV.include?('arena') && reply[:arena_visits] != 1
+        warn 'An older PEMK service is running. Host online will verify whether it can safely replace it.'
+        exit 2
+      end
+      if ARGV.include?('lan') && reply[:arena_bind] != '0.0.0.0'
+        warn 'A loopback-only PEMK service is running. Host online will verify whether it can safely replace it.'
+        exit 3
+      end
     end
     puts 'PEMK server READY at 127.0.0.1:9998.'
     exit 0
@@ -40,7 +48,7 @@ loop do
 end
 unless ARGV[1] == 'quiet'
   warn "PEMK server is not responding at 127.0.0.1:9998 (#{last_error})."
-  warn 'Start Launch-Multiplayer-Server.bat from this same project folder and leave its window open.'
+  warn 'Start Play-Arena.bat and choose Host online at the arena attendant.'
   if stage != 'connect'
     warn 'TCP connected, but the PEMK exchange failed. If the server console has selected text, press Esc there and retry.'
   end

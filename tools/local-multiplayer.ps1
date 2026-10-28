@@ -1,6 +1,8 @@
 param(
     [ValidateSet('Check', 'Server', 'Test', 'Prepare', 'Ready', 'RepairGems')]
-    [string]$Action = 'Check'
+    [string]$Action = 'Check',
+    [ValidateSet('127.0.0.1', '0.0.0.0')][string]$ListenAddress = '127.0.0.1',
+    [switch]$Managed
 )
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
@@ -13,7 +15,8 @@ $pgData = Join-Path $runtimeRoot 'pgdata'
 $env:GEM_HOME = Join-Path $runtimeRoot 'bundle/ruby/3.3.0'
 $env:GEM_PATH = $env:GEM_HOME
 $env:PATH = "$(Split-Path $rubyExe);$pgBin;$env:PATH"
-$env:PEMK_BIND = '127.0.0.1'
+$env:PEMK_BIND = $ListenAddress
+if ($Managed) { $env:ARENA_MANAGED_SERVICE = '1' } else { Remove-Item Env:ARENA_MANAGED_SERVICE -ErrorAction SilentlyContinue }
 $env:PEMK_PORT = '9998'
 $env:DATABASE_URL = 'postgres://postgres@127.0.0.1:55432/pemk'
 
@@ -62,6 +65,7 @@ function Prepare-Clients {
     }
     & "$PSScriptRoot/install-client-runtime.ps1"
     Invoke-Ruby @("$projectRoot/game-mod/tools/build_arena_map.rb", $gameRoot)
+    Invoke-Ruby @("$PSScriptRoot/sync-plugin-cache.rb", $gameRoot)
     Write-Host 'Clients prepared. Use a different account in each game window; existing accounts are retained.'
 }
 
@@ -69,13 +73,14 @@ if (!(Test-Path -LiteralPath $rubyExe)) { throw 'Bundled Ruby is missing.' }
 if (!(Test-Path -LiteralPath "$serverRoot/bin/pemk_server.rb")) { throw 'The local PEMK server workspace is missing.' }
 Write-Host "Arena Lab folder: $projectRoot"
 if ($Action -eq 'Ready') {
-    & $rubyExe "$PSScriptRoot/ping_multiplayer.rb"
+    & $rubyExe "$PSScriptRoot/ping_multiplayer.rb" 15 arena
     if ($LASTEXITCODE -eq 0) { exit 0 }
+    if ($LASTEXITCODE -eq 2) { exit 2 }
     Write-Host 'TCP entries for port 9998 (last column is the process ID):'
     $portEntries = @(netstat -ano -p tcp | Select-String ':9998\s')
     if ($portEntries.Count) { $portEntries | ForEach-Object { Write-Host $_.Line } }
     else { Write-Host 'No port 9998 TCP entry is visible in this session.' }
-    Write-Host 'In the server window, press Esc to clear console text selection, then retry the clients.'
+    Write-Host 'Use Host online at the arena attendant in Play-Arena.bat.'
     Write-Host 'If it still fails, retain this output and the latest server log; do not start duplicate servers.'
     exit 1
 }
@@ -102,12 +107,15 @@ if ($Action -eq 'Test') {
 # Reuse a responding PEMK instance; do not migrate or bind a second server.
 & $rubyExe "$PSScriptRoot/ping_multiplayer.rb" 0 quiet
 if ($LASTEXITCODE -eq 0) {
-    Write-Host 'The local PEMK server is already running. Use Launch-Multiplayer-Clients.bat.'
+    if ($ListenAddress -eq '0.0.0.0') { & $rubyExe "$PSScriptRoot/ping_multiplayer.rb" 0 arena lan }
+    else { & $rubyExe "$PSScriptRoot/ping_multiplayer.rb" 0 arena }
+    if ($LASTEXITCODE -ne 0) { exit 1 }
+    Write-Host 'The PEMK service is already running. Join from the arena attendant.'
     exit 0
 }
 Invoke-Ruby @("$PSScriptRoot/check_multiplayer.rb")
 Invoke-Ruby @("$PSScriptRoot/migrate-local.rb", $serverRoot)
-Write-Host 'PEMK local server: 127.0.0.1:9998. Press Ctrl+C to stop.'
+Write-Host "PEMK service: ${ListenAddress}:9998. PostgreSQL remains loopback-only."
 Write-Host "Server log: $runtimeRoot/pemk-server.log"
 Push-Location $serverRoot
 try { Invoke-Ruby @("$PSScriptRoot/run-local-server.rb", $serverRoot, "$runtimeRoot/pemk-server.log") } finally { Pop-Location }

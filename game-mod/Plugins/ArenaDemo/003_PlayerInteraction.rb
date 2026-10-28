@@ -12,6 +12,13 @@ module ArenaDemo
     end.sort_by { |peer| peer.player_id }
   end
 
+  def room_peers
+    return [] unless connected? && [MAP_ID, ENTRANCE_MAP_ID].include?($game_map.map_id)
+    PEMK::Remotes.players.values.select do |peer|
+      peer.player_id != PEMK.self_id && peer.map.map_id == $game_map.map_id
+    end
+  end
+
   def peer_label(peer)
     name = PEMK.plain_name(peer.player_name)
     name = "Player" if !name || name.empty?

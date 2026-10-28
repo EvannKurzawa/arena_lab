@@ -42,6 +42,8 @@ class MultiplayerFixesTest < Minitest::Test
     player = Game_Player.new
     refute player.passable?(4, 5, 6)
     assert player.passable?(5, 5, 6)
+    $game_map.map_id = 102
+    refute player.passable?(4, 5, 6)
     $game_map.map_id = 2
     assert player.passable?(4, 5, 6)
   end

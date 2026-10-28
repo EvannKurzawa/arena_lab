@@ -4,6 +4,8 @@
 
 module ArenaDemo
   MAP_ID = 100
+  TOWN_MAP_ID = 101
+  ENTRANCE_MAP_ID = 102
   MAX_OBJECTS = 6
   OBJECTS = ["Boulder", "Rock", "Tree", "Boulder 2", "Rock 2", "Tree 2"].freeze
   OBJECT_EVENTS = Hash[OBJECTS.each_with_index.map { |name, i| [name, i + 3] }].freeze
@@ -23,6 +25,23 @@ module ArenaDemo
     return defined?(PEMK::Auth) && PEMK::Auth.logged_in?
   end
 
+  # Fallbacks also keep this plugin usable without the optional PEMK extension.
+  def customization_locked?
+    multiplayer?
+  end
+
+  def customization_allowed?
+    return true if $game_map && $game_map.map_id == MAP_ID && !customization_locked?
+    pbMessage("Customize from the arena menu while it is closed to visitors.")
+    false
+  end
+
+  def effective_layout
+    return { :objects => OBJECTS, :layout => "Sidelines", :difficulty => 1 } if multiplayer?
+    { :objects => objects, :layout => $PokemonGlobal.arena_demo_layout || "Sidelines",
+      :difficulty => $PokemonGlobal.arena_demo_difficulty || 1 }
+  end
+
   def objects
     return [] if !$PokemonGlobal
     if !$PokemonGlobal.arena_demo_objects.is_a?(Array)
@@ -40,11 +59,15 @@ module ArenaDemo
 
   def enter
     return open if $game_map.map_id == MAP_ID
+    if [TOWN_MAP_ID, ENTRANCE_MAP_ID].include?($game_map.map_id)
+      choice = pbMessage("Walk through the arena building's entrance to reach the training room.",
+                         ["Return to previous location", "Close"], -1)
+      leave if choice == 0
+      return
+    end
     $PokemonGlobal.arena_demo_return = [$game_map.map_id, $game_player.x,
                                         $game_player.y, $game_player.direction]
-    transfer_to(MAP_ID, *map_start)
-    refresh_objects
-    open
+    enter_town
   end
 
   # Used by the optional New Game intro shortcut. Keep this small team local to
@@ -57,10 +80,50 @@ module ArenaDemo
       end
     end
     $PokemonGlobal.arena_demo_return = [3, 25, 6, 2] if $PokemonGlobal
+    enter_town
+    pbMessage("Welcome to Arena Town! The building just north of you is your arena. Inside, the attendant handles visits and the PC opens Pokemon storage.")
+  end
+
+  def enter_town
+    if defined?(Visits) && Visits.locked?
+      if Visits.guest?
+        Visits.close_arena if pbConfirmMessage("Leave this visit and return to your own entrance room?")
+      else
+        pbMessage("Close your arena with the attendant before returning to town.")
+      end
+      return
+    end
+    point = File.read(File.join("Data", "ArenaDemoTownStart.txt")).split(",").map(&:to_i)
+    if $PokemonGlobal.respond_to?(:pokecenterMapId=)
+      $PokemonGlobal.pokecenterMapId = ENTRANCE_MAP_ID
+      $PokemonGlobal.pokecenterX, $PokemonGlobal.pokecenterY = 7, 10
+      $PokemonGlobal.pokecenterDirection = 8
+    end
+    transfer_to(TOWN_MAP_ID, *point)
+  end
+
+  def enter_entrance
+    transfer_to(ENTRANCE_MAP_ID, 7, 10, 8)
+  end
+
+  def enter_training_room
     transfer_to(MAP_ID, *map_start)
   end
 
+  def exit_training_room
+    # Shared multiplayer continues to use its existing return behavior.
+    transfer_to(ENTRANCE_MAP_ID, 7, 3, 2)
+  end
+
+  def storage_pc
+    pbPokeCenterPC
+  end
+
   def leave
+    if defined?(Visits) && Visits.locked?
+      pbMessage("End the visit with the entrance-room attendant before leaving.")
+      return
+    end
     point = $PokemonGlobal.arena_demo_return
     unless point && point.length == 4 && point[0] != MAP_ID
       pbMessage("No return point is saved for this arena visit.")
@@ -70,6 +133,7 @@ module ArenaDemo
   end
 
   def transfer_to(map_id, x, y, direction)
+    return if defined?(Visits) && !Visits.allow_travel?(map_id)
     pbFadeOutIn do
       $game_temp.player_new_map_id = map_id
       $game_temp.player_new_x = x
@@ -84,15 +148,14 @@ module ArenaDemo
 
   def refresh_objects
     return if !$game_map || $game_map.map_id != MAP_ID
-    # A shared map needs identical obstacles on both clients. Keep personal
-    # offline layouts saved, but use one fixed layout for authenticated sessions.
-    selected = multiplayer? ? OBJECTS : objects
+    # A visit uses the host's frozen snapshot; personal saves stay untouched.
+    settings = effective_layout
+    selected = settings[:objects]
     OBJECT_EVENTS.each do |name, event_id|
       event = $game_map.events[event_id]
       next if !event
       visible = selected.include?(name)
-      positions = multiplayer? ? LAYOUTS["Sidelines"] :
-                    (LAYOUTS[$PokemonGlobal.arena_demo_layout] || LAYOUTS["Sidelines"])
+      positions = LAYOUTS[settings[:layout]] || LAYOUTS["Sidelines"]
       x, y = positions[event_id - 3]
       event.moveto(x, y)
       event.transparent = !visible
@@ -101,26 +164,25 @@ module ArenaDemo
   end
 
   def open
-    choices = ["Manage arena objects", "Challenge the sample trainer", "Players in arena"]
-    choices << "Leave the arena" if $game_map.map_id == MAP_ID
-    choices << "Close"
-    choice = pbMessage("Arena Demo", choices, -1)
-    case choice
-    when 0 then manage_objects
-    when 1 then challenge_trainer
-    when 2 then players_menu
-    when 3 then leave if $game_map.map_id == MAP_ID
-    end
+    actions = []
+    actions << ["Customize arena", proc { manage_objects }] unless customization_locked?
+    actions << ["Challenge the sample trainer", proc { challenge_trainer }]
+    actions << ["Players in arena", proc { players_menu }]
+    actions << ["Return to entrance room", proc { exit_training_room }] if $game_map.map_id == MAP_ID
+    choice = pbMessage("Arena", actions.map(&:first) + ["Close"], -1)
+    actions[choice][1].call if choice && choice >= 0 && choice < actions.length
   end
 
   def manage_objects
-    if multiplayer?
-      choice = pbMessage("This shared arena uses a fixed layout. Personal customization is available offline.",
+    if customization_locked?
+      choice = pbMessage("Customization is locked while the arena is open to visitors or an online request is pending.",
                          ["Heal my team", "Back"], -1)
       heal_team if choice == 0
       return
     end
+    return unless customization_allowed?
     loop do
+      break unless customization_allowed?
       placed = objects
       summary = placed.empty? ? "No objects selected." : "Selected: #{placed.join(', ')}"
       choices = ["Add an object", "Remove an object", "Obstacle arrangement",
@@ -147,6 +209,7 @@ module ArenaDemo
   end
 
   def choose_layout
+    return unless customization_allowed?
     names = LAYOUTS.keys
     choice = pbMessage("Choose an obstacle arrangement.", names + ["Cancel"], -1)
     return if choice < 0 || choice >= names.length
@@ -156,6 +219,7 @@ module ArenaDemo
   end
 
   def choose_preset
+    return unless customization_allowed?
     names = ["Clear floor", "Light training", "Full obstacle course", "Cancel"]
     choice = pbMessage("Choose a layout preset.", names, -1)
     return if choice < 0 || choice >= 3
@@ -167,11 +231,7 @@ module ArenaDemo
 
   # Reject an overlapping edit rather than unexpectedly moving the player.
   def placement_clear?(selected, layout = nil)
-    if multiplayer?
-      pbMessage("The shared arena's obstacle layout is fixed. Customize your personal arena offline.")
-      return false
-    end
-    return true if $game_map.map_id != MAP_ID
+    return false unless customization_allowed?
     positions = LAYOUTS[layout || $PokemonGlobal.arena_demo_layout] || LAYOUTS["Sidelines"]
     blocked = selected.any? do |name|
       index = OBJECTS.index(name)
@@ -184,13 +244,16 @@ module ArenaDemo
   end
 
   def choose_difficulty
+    return unless customization_allowed?
     names = ["Beginner (levels 5-6)", "Standard (levels 8-9)", "Advanced (levels 12-13)", "Cancel"]
     choice = pbMessage("Choose the arena trainer's team level.", names, -1)
     return if choice < 0 || choice >= 3
+    return unless customization_allowed?
     $PokemonGlobal.arena_demo_difficulty = choice
   end
 
   def add_object
+    return unless customization_allowed?
     placed = objects
     if placed.length >= MAX_OBJECTS
       pbMessage("The demo supports up to #{MAX_OBJECTS} objects.")
@@ -215,6 +278,7 @@ module ArenaDemo
     end
     choice = pbMessage("Choose an object to remove.", placed + ["Cancel"], -1)
     return if choice < 0 || choice >= placed.length
+    return unless placement_clear?([])
     removed = placed.delete_at(choice)
     refresh_objects
     pbMessage("#{removed} removed from your arena layout.")
@@ -227,7 +291,7 @@ module ArenaDemo
     end
     return unless pbConfirmMessage("I'm the arena trainee. Ready for a practice battle?")
     foe = NPCTrainer.new(TRAINER_NAME, TRAINER_TYPE)
-    offset = [-3, 0, 4][$PokemonGlobal.arena_demo_difficulty || 1] || 0
+    offset = [-3, 0, 4][effective_layout[:difficulty]] || 0
     foe.party = TRAINER_TEAM.map { |species, level| Pokemon.new(species, level + offset, foe) }
     TrainerBattle.start(foe)
   end

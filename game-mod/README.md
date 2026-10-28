@@ -1,5 +1,105 @@
 # Arena Demo
 
+Repository snapshot **v3**, plugin **0.7.0**: the user confirmed one successful
+full arena visit using two game windows on the same PC. Two physical computers
+on the same network are the next test. Follow the v3 acceptance steps in
+SETUP_STATUS.md; same-PC success does not establish LAN/firewall traversal.
+
+Plugin **0.7.0** replaces the previous launcher/profile-switch design. Only
+`Play-Arena.bat` remains at the project root; each launch acquires a different
+profile lease (primary, guest, player3-8). The resident hidden supervisor holds
+the lease until its game exits, protects orphaned live processes with PID/start
+records, serializes compilation/startup, and skips shared writes for later games.
+Game.set_up_system writes a readiness marker after compilation. Host requests use
+nonce-correlated local files; the game cannot supply shell commands or paths.
+
+Every boot is offline. At the entrance attendant, Host online requests the native
+PEMK backend on all IPv4 interfaces; Join a host connects to a typed IPv4. Same-PC
+players use 127.0.0.1. LAN guests use the host address shown by the game. Joining
+does not start a local backend. PostgreSQL remains loopback-only. Managed servers
+stop after ten idle minutes; Windows Firewall private-network access is a manual
+machine prerequisite. Cross-network internet setup is not automated.
+
+Online/offline is a live transport change with one persistent local character,
+party, map and save. Historical server blobs/economy are not hydrated; local-world
+progression syncing is disabled and the server rejects account-save uploads from
+these connections. Existing local saves/old server data are preserved. Upstream
+account authentication, peer-body validation, room isolation and battle consent
+remain; reconnect resets progression gates while retaining peer validation mode.
+Credentials are separated by player and remote endpoint. Old 0.6 title-switch
+tests are replaced by live-connection tests. Same-PC full-visit GUI validation is
+user-confirmed; two-PC validation is pending.
+
+The older sections below are historical and do not describe the current entry point.
+
+Plugin **0.6.0** adds `007_ConnectionMode.rb` and the normal root
+`Play-Arena.bat` / `tools/play-arena.ps1` entry point. The local backend runs in
+the background; the game asks Offline/Online before token login. The Connection
+pause command saves and switches via the existing title/load flow without
+relaunching the process. Active visits must close before switching.
+
+Offline uses a separate `_offline` filename per instance. Legacy local data is
+forked once with exclusive binary creation before either mode overwrites its
+cache. Online retains authoritative account loading. Cancelled/failed login
+refreshes the offline slot, so a preloaded online cache cannot become the offline
+world. Logout clears identity, transport, reconnect, sync and checkpoint state.
+Connected switches await acknowledgment of the specific outgoing online save.
+
+The old BATs remain developer/test helpers. Offline and online progression are
+separate profiles; this is stated in the switching dialog. GUI testing is pending.
+
+Plugin **0.5.0** adds `005_ArenaVisits.rb`, `006_FoundersPath.rb`, and the external
+server adapter `game-mod/server/arena_visits.rb`. The root server wrapper loads
+the adapter after upstream PEMK; the client preparation launcher installs the
+plugin files and generates maps 100-103. Restart the server and both clients.
+The readiness probe refuses an old server instead of launching incompatible clients.
+
+Customization lives in the arena pause menu and is guarded at every mutation,
+including after blocking selection prompts. The former manager is a medic.
+The entrance attendant opens/closes a room, invites one online account by ID,
+and accepts/declines a pending invitation. Opening locks immediately; closing
+unlocks only after server confirmation. Invite expiration does not close the host.
+
+Room state is temporary and belongs to PEMK's reactor. A server-created token
+isolates presence and addressed battle/trade frames. Snapshots allow only the six
+existing object slots, three existing arrangements and trainer difficulty; they
+contain primitives and never load remote map binaries. Guests reuse local maps
+100/102 with the host snapshot and retain their own saved layout. Both the server
+and engine transfer hook restrict active visits to these rooms. Disconnects and
+replaced connections close visits. Transfers wait for a safe overworld frame;
+obsolete position corrections are cleared when the room changes.
+
+Offline map 103, Founders' Path, uses local tall-grass artwork and the normal
+Essentials `PokemonEncounters` Land table. The town keeper gives one supply grant
+and one completion reward; the trail scout leads to the route. No battle or
+capture mechanics were recreated. Entering town sets the entrance as the healing
+return point. Online route entry/encounters/rewards are disabled for this slice.
+
+Automated checks cover source menus/locks, guest layout restoration, real socket
+room behavior using injected authenticated identities, existing battle fixes,
+readiness and synthetic map generation. Real assets/rendering, authenticated
+server startup and GUI captures/two-window battles still need the playtest in
+SETUP_STATUS.md because private game-data access stalls in this session.
+
+The notes below are historical snapshots.
+
+2026-10-28 world-path step: generator map 101 is an offline town using local
+Lappet Town tiles with tutorial events removed. Its original house doorway
+leads to a new compact entrance room (102), containing an Essentials storage PC
+and a north door into the existing arena (100). South exits lead back through
+the entrance room to town. The foyer uses local indoor floor/PC artwork with
+temporary rock boundaries. Quick start enters town offline and retains direct
+arena entry online. Management remains in the arena's existing menu/NPC for now.
+
+Use the root launcher with the game closed to install and generate the maps.
+New Game plus intro skip avoids cached maps in existing saves. The generation
+test uses synthetic Marshal fixtures, checks reruns, transitions, preserved
+object IDs, and refusal to overwrite unrelated map IDs. This does not establish
+real map rendering, navigation, PC UI or two-window gameplay. Those require a
+local playtest; private game-data access stalled in this execution session.
+Friend invitations, visitor permissions, layout sharing and catching routes
+remain subsequent steps.
+
 Project snapshot v2.1 / plugin 0.4.2: the user verified multiplayer launch, full
 text rendering, battle synchronization/completion and player collisions. The new
 `004_MultiplayerFixes.rb` adds arena peer blocking, mirrored win/loss and singles

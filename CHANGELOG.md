@@ -1,5 +1,63 @@
 # Updates
 
+## v3 - 2026-10-28
+
+- User confirmed one successful full arena visit with two windows on the same PC.
+  Two physical computers on the same network are the next acceptance test.
+- One Play-Arena.bat for every player, offline by default; entrance attendant
+  handles hosting, joining, invitations and going offline in the same world.
+- Independent local profiles, private host layouts/collisions and customization
+  locks, storage PC, and the first offline catching route/story.
+- Serialize startup, synchronize the plugin cache and safely replace only a
+  verified idle legacy project server; keep accounts and progress private/local.
+- Release checks: 56 Ruby tests / 398 assertions and 24 PowerShell checks passed.
+  Plugin remains 0.7.0; upstream versions and runtime pins are unchanged.
+- Private assets, runtimes, saves, credentials, generated maps and database files
+  are excluded. No two-PC or internet-hosting success is claimed.
+
+## ArenaDemo 0.7.0 - 2026-10-28 (source update; GUI verification pending)
+
+- Keep only Play-Arena.bat. Repeated launches allocate independent player profiles;
+  serialize compilation and avoid rebuilding files while another game runs.
+- All games start offline. Entrance attendant hosts or joins using the same app;
+  same-PC joins use 127.0.0.1, LAN joins use the host's displayed IPv4 address.
+- Host service/database start only when requested in-game, in hidden helpers.
+  Database stays loopback-only; idle managed game servers stop after ten minutes.
+- Connect/disconnect in place with one local character and save. No title switch,
+  cloud-world restoration or local progression upload. Preserve historical saves.
+- Retain native authentication/PvP/peer validation and existing room restrictions.
+- 53 Ruby tests / 380 assertions plus 13 PowerShell checks passed. Actual GUI
+  launch, authenticated play and two-PC/network-firewall verification remain pending.
+
+## ArenaDemo 0.6.0 - 2026-10-28 (source update; GUI verification pending)
+
+- One normal Play-Arena launcher, with background local server and one game window.
+- Explicit Offline/Online choice before token login; Connection pause menu saves
+  and switches profiles through the title screen in the same process.
+- Offline blocks automatic connections. Separate offline saves preserve legacy
+  data; failed login reloads the correct offline slot. Online switches wait for
+  save acknowledgment; visits must close first.
+- 48 tests / 324 assertions passed. Real launcher/UI switching remains untested
+  because private game-data access still stalls in this execution environment.
+
+## ArenaDemo 0.5.0 - 2026-10-28 (source update; GUI verification pending)
+
+- Added the arena customization pause entry and replaced the object-manager NPC
+  with a medic. All edits enforce room and session restrictions.
+- Added an entrance attendant, account-ID invitations, one-guest temporary rooms,
+  frozen host layouts/difficulty, private presence and room-only visitor access.
+- Lock before opening; unlock after confirmed close. Handle declined/expired
+  invitations, disconnects, replaced connections and deferred guest returns.
+- Preserve personal saves and existing PEMK battle consent/relay. Extend local
+  player collision checks to the entrance room; simultaneous movement still has
+  no server tile reservations.
+- Added offline Founders' Path with normal Essentials grass encounters, capture
+  supplies, a keeper story and a one-time completion reward.
+- Root server launcher loads the isolated adapter; readiness rejects old servers.
+- 41 tests / 291 assertions passed. Real socket tests use injected account
+  identities, not production authentication. Actual private maps and GUI gameplay
+  could not be checked because private game-data access stalled.
+
 ## v2.1 - 2026-10-28
 
 - Fixed clipped text using rendered font heights in the pinned mkxp-z runtime.

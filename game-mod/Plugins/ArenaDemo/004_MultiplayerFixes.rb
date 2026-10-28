@@ -3,9 +3,10 @@ module ArenaDemo
   module PeerCollision
     def passable?(x, y, direction, strict = false)
       delta = { 2 => [0, 1], 4 => [-1, 0], 6 => [1, 0], 8 => [0, -1] }[direction]
-      if delta && ArenaDemo.connected? && $game_map.map_id == ArenaDemo::MAP_ID && !@through
+      if delta && ArenaDemo.connected? && [100, 102].include?($game_map.map_id) && !@through
         nx, ny = x + delta[0], y + delta[1]
-        return false if ArenaDemo.arena_peers.any? { |peer| peer.x == nx && peer.y == ny }
+        peers = ArenaDemo.respond_to?(:room_peers) ? ArenaDemo.room_peers : ArenaDemo.arena_peers
+        return false if peers.any? { |peer| peer.x == nx && peer.y == ny }
       end
       super
     end
