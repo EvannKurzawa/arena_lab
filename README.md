@@ -4,7 +4,9 @@
 
 ## Windows installers
 
-The Windows build has two self-extracting EXE packages. `ArenaLab-Setup.exe`
+The Windows build has two self-extracting EXE packages available from the
+[latest GitHub release](https://github.com/EvannKurzawa/arena_lab/releases/latest).
+`ArenaLab-Setup.exe`
 sets up a clean client, and `ArenaLab-Update.exe` replaces Arena Lab source files
 from GitHub `main` in an existing install. Build them with
 `powershell -NoProfile -ExecutionPolicy Bypass -File tools/package-deliverables.ps1`;

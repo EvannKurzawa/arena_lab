@@ -7,8 +7,18 @@ with an embedded PowerShell bootstrap, plus their PowerShell
 bootstrap scripts: `ArenaLab-Setup.exe` for a clean client and
 `ArenaLab-Update.exe` for updating Arena Lab source from GitHub `main`. The
 builder is `tools/package-deliverables.ps1`; generated EXEs belong in `dist/`
-and are gitignored. Installer artifacts are not yet validated until the build
-and package inspection recorded below are complete.
+and are gitignored. Build completed with Windows PowerShell and the .NET
+Framework 4 C# compiler. The builder parsed both embedded PowerShell scripts,
+compiled both wrappers, and recorded these package checksums (installer source
+commit `24b2d04cd3d822abba2a77a04b373fb7c728288f`):
+
+- `ArenaLab-Setup.exe`: 34,816 bytes, SHA-256
+  `1254D7990BCA895F4FBF244107642605A9D04F0BF97AFE9F32AC7FFF4676CCDA`.
+- `ArenaLab-Update.exe`: 25,600 bytes, SHA-256
+  `0B7F3D8DACAE89CB2BE8C571180D163E32B161C66DA365576AA7562340EE91F2`.
+
+These checks validate script parsing and EXE construction, not a full install or
+update run. Neither EXE has been run against a recipient's game folder yet.
 
 The clean setup pins Arena Lab to the source commit embedded by the builder,
 downloads the PEMK source ZIP and portable Ruby with SHA-256 checks, downloads
