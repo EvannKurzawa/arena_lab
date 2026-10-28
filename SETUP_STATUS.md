@@ -1,5 +1,17 @@
 # Setup and implementation status
 
+## Optional Following Pokemon EX dependency (v6.2.1)
+
+The user reported a friend could no longer start Play-Arena after updating from
+v3 because the launcher stopped on a missing Following Pokemon EX RAR archive.
+That plugin provides follower sprites, but it is not required for core play or
+multiplayer, and its third-party archive cannot be redistributed. Preparation
+now skips follower installation when the archive and local plugin are both
+absent, and the plugin-cache sync removes any stale compiled entry in that case.
+If a player supplies the compatible Essentials 21.1 archive, the existing safe
+install path remains available. A conflicting installed plugin still reports
+an error instead of being silently replaced.
+
 ## New Arena Village and separated map exits (plugin 0.9.21)
 
 ### v6.2 status and next work

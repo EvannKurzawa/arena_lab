@@ -14,7 +14,11 @@ if (!(Test-Path -LiteralPath $ArchivePath)) {
         Write-Host 'Following Pokemon EX 2.5.1 is already installed in the local Essentials project.'
         return
     }
-    throw "Place the Essentials 21.1 Following Pokemon EX archive at '$ArchivePath'. Download the v21.1 RAR from https://eeveeexpo.com/resources/516/ (MediaFire link supplied by the project owner); it is not redistributed with Arena Lab."
+    if (!(Test-Path -LiteralPath $pluginTarget)) {
+        Write-Host 'Optional Following Pokemon EX archive not found; continuing without follower visuals. Arena Lab and multiplayer remain available.'
+        return
+    }
+    throw "An incompatible Following Pokemon plugin is installed, but no replacement archive was provided. To enable followers, supply the Essentials 21.1 archive at '$ArchivePath' (https://eeveeexpo.com/resources/516/)."
 }
 if (!(Test-Path -LiteralPath $rubyExe)) { throw 'Bundled Ruby is missing; run the Arena Lab installer first.' }
 

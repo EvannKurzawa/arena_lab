@@ -1,6 +1,6 @@
 # Arena Demo
 
-Repository snapshot **v6.2**, plugin **0.9.21 in source**: the previous manual-IP
+Repository snapshot **v6.2.1**, plugin **0.9.22 in source**: the previous manual-IP
 arena visit was confirmed between two physical computers. The updated automatic
 discovery flow still needs its two-computer retest. Follow the v4 test guidance
 in `SETUP_STATUS.md`. The first offline custom mode is implemented; the user
@@ -26,7 +26,7 @@ Plugin 0.9.8 writes live map/tile-renderer data to
 work but direct loads of an arena save are black. Plugin 0.9.9 reloads Map 100
 from generated data on save load while preserving position and saved edits.
 Plugin 0.9.10 restores the centered 25x25 floor and void outside it.
-## Current world generation (plugin 0.9.21)
+## Current world generation (plugin 0.9.22)
 
 `Play-Arena.bat` generates three connected playable maps: Arena Village
 (101), Arena Entrance (102), and Arena (100). The current generated 32x24
@@ -156,9 +156,11 @@ foyer. The arena's south return tile displays a visible door sprite copied from
 the foyer door. Plugin 0.9.17 integrates Following Pokemon EX 2.5.1 for Essentials
 21.1: the first able party Pokémon walks behind the player, and multiplayer
 presence relays its appearance so visitors resolve the matching sprite locally.
-Place the separately downloaded `Following Pokemon EX.rar` at the repo root;
-the launcher installs its plugin, sprites and safely merged animations into the
-private Essentials project. The third-party archive is excluded from GitHub.
+Following Pokemon EX is an optional third-party add-on. With its separately
+downloaded `Following Pokemon EX.rar` at the repo root, the launcher installs
+its plugin, sprites and safely merged animations into the private Essentials
+project. Without the archive, startup continues and follower visuals are simply
+disabled; the archive is excluded from GitHub.
 
 Use the root launcher with the game closed to install and generate the maps.
 New Game plus intro skip avoids cached maps in existing saves. The generation

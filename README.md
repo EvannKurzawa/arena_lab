@@ -1,6 +1,6 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: v6.2 — village prototype and packaging update (plugin 0.9.21 in source)
+## Current snapshot: v6.2.1 — optional follower plugin (plugin 0.9.22 in source)
 
 The generated Arena Village is currently an **ugly functional placeholder**:
 it has a central stadium, houses, residents and an offline grass patch, but its
@@ -22,15 +22,14 @@ and excluded from Git.
 
 The generated Arena Village has an interactable sign marking the arena building.
 The arena's south exit is now a visible door that returns to the entrance room.
-The lead able Pokémon now follows the player using Following Pokemon EX's
-walking sprites. Visitors receive a validated species/form descriptor and
-resolve the same sprite from their own local game assets. The required v21.1
-Following Pokemon EX RAR is third-party content and is not bundled or committed.
-Put the archive named `Following Pokemon EX.rar` at the project root before
-running `Play-Arena.bat` on a computer that has not prepared the plugin yet. The
-launcher installs the plugin and matching sprite assets into the private local
-Essentials project, and merges its animations without replacing the Essentials
-animation table. See `SETUP_STATUS.md` for the resource source and details.
+When installed, Following Pokemon EX makes the lead able Pokémon follow using
+walking sprites and multiplayer shares the matching appearance. That third-party
+plugin archive is optional and is not bundled. If the archive is absent, Arena
+Lab skips follower visuals and continues launching; multiplayer remains
+available. To enable followers, place the Essentials 21.1 archive named
+`Following Pokemon EX.rar` at the project root before running `Play-Arena.bat`.
+The launcher installs it and merges animations without replacing Essentials'
+animation table. See `SETUP_STATUS.md` for details.
 
 The user has confirmed multiplayer communication between two physical computers
 on the same network: the second computer installed the client from GitHub and
@@ -242,7 +241,8 @@ the stadium frontage; house interactions remain local. The generated map 103
 catching route has been retired and its grass patch now sits inside the village.
 The first able Pokémon follows with its species, form, gender, shiny and shadow
 appearance. Configure a second computer with the same plugin archive before
-joining; the archive is deliberately excluded from GitHub.
+joining; Following Pokemon EX is optional and follower visuals are disabled on
+machines that do not have its separately distributed archive.
 
 Authenticated quick start still enters the tested shared arena directly.
 Invitations, visitor restrictions and custom-layout synchronization are pending.

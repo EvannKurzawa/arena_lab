@@ -22,8 +22,17 @@ targets = [
   ['Following Pokemon EX', File.join(project, 'Plugins', 'Following Pokemon EX')]
 ]
 targets.each do |name, plugin_dir|
-  next unless File.file?(File.join(plugin_dir, 'meta.txt'))
-  version = File.read(File.join(plugin_dir, 'meta.txt'))[/^Version\s*=\s*(\S+)/i, 1]
+  metadata = File.join(plugin_dir, 'meta.txt')
+  unless File.file?(metadata)
+    stale_count = entries.count { |entry| entry.is_a?(Array) && entry[0] == name }
+    if stale_count > 0
+      entries.delete_if { |entry| entry.is_a?(Array) && entry[0] == name }
+      changed = true
+      puts "Removed stale #{name} entry because its optional plugin is not installed."
+    end
+    next
+  end
+  version = File.read(metadata)[/^Version\s*=\s*(\S+)/i, 1]
   abort "Missing #{name} version" unless version
   files = Dir.glob('**/*.rb', base: plugin_dir).sort
   abort "No installed #{name} scripts" if files.empty?
@@ -61,5 +70,5 @@ if changed
     File.delete(temporary) if File.file?(temporary)
   end
 else
-  puts 'Arena Demo and Following Pokemon EX compiled plugin cache entries are current.'
+  puts 'Installed Arena Lab plugin cache entries are current.'
 end

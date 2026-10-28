@@ -1,5 +1,5 @@
 Name = Arena Demo
-Version = 0.9.21
+Version = 0.9.22
 Optional = PEMK, 0.1.0
 Essentials = 21.1
 Credits = Arena Lab

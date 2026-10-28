@@ -1,5 +1,13 @@
 # Updates
 
+## v6.2.1 (2026-10-29)
+
+- Make Following Pokemon EX optional during game preparation. An installation
+  without the third-party archive can still launch and use multiplayer; only
+  follower visuals are skipped.
+- Remove stale compiled plugin-cache entries when the optional follower plugin
+  is absent, and refresh the setup/updater release assets.
+
 ## v6.2 (2026-10-29)
 
 - Mark the generated Arena Village honestly as an ugly functional placeholder;

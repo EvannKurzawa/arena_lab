@@ -1,4 +1,4 @@
-param([string]$Tag = 'v6.2')
+param([string]$Tag = 'v6.2.1')
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $repo = 'EvannKurzawa/arena_lab'
@@ -7,7 +7,7 @@ $assets = @(
     (Join-Path (Split-Path $PSScriptRoot -Parent) 'dist/ArenaLab-Update.exe')
 )
 foreach ($asset in $assets) { if (!(Test-Path -LiteralPath $asset)) { throw "Build package missing: $asset. Run tools/package-deliverables.ps1 first." } }
-if ($Tag -notmatch '^v[0-9]+\.[0-9]+(?:\.[0-9]+)?$') { throw 'Use a semantic version tag such as v6.2.' }
+if ($Tag -notmatch '^v[0-9]+\.[0-9]+(?:\.[0-9]+)?$') { throw 'Use a semantic version tag such as v6.2.1.' }
 
 # Reuse the user's existing Git credential without displaying or writing it.
 $credentialText = "protocol=https`nhost=github.com`n`n" | & git credential fill
@@ -34,11 +34,11 @@ try {
 } catch {
     if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw }
     $releaseBody = @'
-Windows client bootstrap and source updater for Arena Lab v6.2.
+Windows client bootstrap and source updater for Arena Lab v6.2.1.
 
 ArenaLab-Setup.exe installs the client from pinned public source/runtime dependencies and asks for the player's own Essentials v21.1 game folder. It does not contain Pokémon-derived assets or provision a fresh PostgreSQL host.
 
-ArenaLab-Update.exe updates Arena Lab source files from GitHub main while preserving local game data. Close game windows before running it. The generated Arena Village is a rough placeholder scheduled for manual RPG Maker XP redesign; an open world with routes and wild PokÃ©mon is later work.
+ArenaLab-Update.exe updates Arena Lab source files from GitHub main while preserving local game data. Close game windows before running it. Following Pokemon EX is optional; without its separately supplied archive the game and multiplayer still work, but follower visuals are disabled. The generated village remains a rough placeholder for manual RPG Maker XP redesign, and open-world routes and encounters are planned later.
 '@
     $payload = @{
         tag_name = $Tag
