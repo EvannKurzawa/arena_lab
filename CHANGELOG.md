@@ -1,5 +1,14 @@
 # Updates
 
+## v3.5 - 2026-10-28
+
+- User confirmed multiplayer communication between a prepared host and a second
+  computer running the GitHub-downloaded Arena Lab client on the same network.
+- Add `TWO_COMPUTER_SETUP.md` with the Essentials v21.1 download, hotfix,
+  installer, host IP and invitation steps.
+- Record that the current installer is client-ready; clean host setup remains a
+  later milestone.
+
 ## v3.3 installer fix - 2026-10-28
 
 - Correct PowerShell condition parsing for checking that the chosen install

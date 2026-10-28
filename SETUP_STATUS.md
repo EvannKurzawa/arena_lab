@@ -1,5 +1,24 @@
 # Setup and implementation status
 
+## v3.5 - first GitHub client connected from a second computer (2026-10-28)
+
+The user confirmed that multiplayer communication worked between two physical
+computers on the same local network. The second computer used ArenaLab Setup
+downloaded from GitHub and its own Essentials v21.1 PE21 folder; it joined the
+host running on the first, already prepared computer using that host's LAN IP.
+Record this as a user-run two-machine communication check. Do not imply Codex
+operated the clients or that every visit/battle flow was separately verified.
+
+This validates the first milestone: a GitHub-installed client can communicate
+with a prepared host on another computer. The clean install is still client-only;
+provisioning PostgreSQL and native Ruby server dependencies so either fresh
+computer can host is later work. Internet/NAT hosting is also not tested.
+
+Added `TWO_COMPUTER_SETUP.md` with the Essentials v21.1 download and hotfix
+links, client setup, LAN IP, and invitation steps. The tested steps use
+`Play-Arena.bat` on each machine; the second computer enters the address shown
+by the host as **Other PC on your network**, not `127.0.0.1`.
+
 ## Windows installer work - 2026-10-28
 
 ### v3.3 install-folder PowerShell fix
@@ -16,7 +35,9 @@ v3.3 rebuild at `https://github.com/EvannKurzawa/arena_lab/releases/tag/v3.3`
 - `ArenaLab-Update.exe`: 25,600 bytes, SHA-256
   `D8D8F15AC10E637DDC611E1BA565ACDEED4C6DBDD5F359D7D715C63E9283D3F3`.
 
-The user has not yet retried v3.3; successful setup remains unverified.
+At the time of this entry, the user had not retried v3.3. The later v3.5 update
+below records that Arena Lab was subsequently installed from GitHub and used to
+join from a second computer.
 
 ### v3.2 PE21 folder-selection fix
 

@@ -1,6 +1,13 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: v3 (plugin 0.7.0)
+## Current snapshot: v3.5 (plugin 0.7.0)
+
+The user has confirmed multiplayer communication between two physical computers
+on the same network: the second computer installed the client from GitHub and
+joined a host on the first computer. This is the first two-machine check; it
+does **not** mean the clean installer can host by itself. The one-app setup that
+can host or join from any newly installed computer is a later step. See
+[TWO_COMPUTER_SETUP.md](TWO_COMPUTER_SETUP.md) for the tested setup.
 
 ## Windows installers
 
@@ -26,9 +33,9 @@ credentials and local server data during source updates. See `SETUP_STATUS.md`
 for the package checks and limitations.
 
 The user completed one full arena visit successfully using two game windows on
-the same computer. **The next acceptance test is two physical computers on the
-same network.** This confirmation supersedes the earlier pending same-PC GUI
-checks in the historical notes below; it does not establish two-PC connectivity.
+the same computer, and has since confirmed communication between a GitHub-
+installed client on a second physical computer and the prepared host on the same
+network. A clean install that can also host remains future work.
 
 **`Play-Arena.bat` is the only root BAT file.** Every launch opens another player
 window with its own local profile, initially offline. The first uses the primary
@@ -68,9 +75,9 @@ is needed for a verified idle project service.
 
 Validation: **56 Ruby tests / 398 assertions and 24 PowerShell checks passed**.
 Includes real wildcard-bound reactor sockets with loopback clients, local save
-protection and multi-instance leases. Same-PC full-visit success is user-reported;
-Codex did not operate those game windows. Two-PC connectivity/firewall traversal
-remain pending. See SETUP_STATUS.md for the next manual playtest.
+protection and multi-instance leases. Same-PC full visit and two-PC multiplayer
+communication are user-reported; Codex did not operate those game windows.
+Internet/NAT connectivity remains untested. See SETUP_STATUS.md for details.
 
 If an older Offline/Online chooser was still visible, close all game windows
 and relaunch this BAT. Preparation now explicitly synchronizes ArenaDemo's
