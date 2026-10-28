@@ -11,7 +11,9 @@ sets up a clean client, and `ArenaLab-Update.exe` replaces Arena Lab source file
 from GitHub `main` in an existing install. Build them with
 `powershell -NoProfile -ExecutionPolicy Bypass -File tools/package-deliverables.ps1`;
 the self-extracting EXEs are written to ignored `dist/` and are intended to be
-attached to a GitHub release, not committed to source history.
+attached to a GitHub release, not committed to source history. After pushing the
+source changes, publish both with
+`powershell -NoProfile -ExecutionPolicy Bypass -File tools/publish-installers.ps1`.
 
 Setup downloads pinned Arena Lab/PEMK source plus Ruby and mkxp-z, and asks the
 player to select their own complete Essentials v21.1 game folder. The Essentials
