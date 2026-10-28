@@ -41,6 +41,14 @@ function Start-LocalDatabase {
 function Prepare-Clients {
     $pluginTarget = Join-Path $gameRoot 'Plugins/ArenaDemo'
     New-Item -ItemType Directory -Path $pluginTarget -Force | Out-Null
+    # A clean client bootstrap obtains the pinned PEMK source independently of
+    # the Essentials base (whose plugins are intentionally excluded upstream).
+    $pemkSource = Join-Path $runtimeRoot 'pemk-workspace/Plugins/PEMK'
+    $pemkTarget = Join-Path $gameRoot 'Plugins/PEMK'
+    if (!(Test-Path -LiteralPath $pemkTarget)) {
+        if (!(Test-Path -LiteralPath $pemkSource)) { throw 'The pinned PEMK client plugin is missing from tools/runtime/pemk-workspace. Run the full installer again.' }
+        Copy-Item -LiteralPath $pemkSource -Destination $pemkTarget -Recurse
+    }
     $legacyFix = Join-Path $pluginTarget '000_RuntimeInputFix.rb'
     if (Test-Path -LiteralPath $legacyFix) {
         if ((Get-FileHash -LiteralPath $legacyFix -Algorithm SHA256).Hash -ne '7BF737189495BEC3151427C019C8E44B724EAC0D876E0D1D1C0D373F19463DCE') { throw 'The temporary input fix was modified locally; preserve and inspect it before removing it.' }

@@ -1,5 +1,16 @@
 # Updates
 
+## Windows packaging - 2026-10-28
+
+- Add `ArenaLab-Setup.exe` bootstrap for a clean client and `ArenaLab-Update.exe`
+  for source updates from GitHub `main`; build with `tools/package-deliverables.ps1`.
+- Setup obtains pinned public source/runtime dependencies and uses the player's
+  own Essentials v21.1 folder. It does not redistribute Pokémon-derived assets
+  or configure the PostgreSQL/native-gem host service on a new computer.
+- Updates back up only changed source files; private runtime, game assets, saves,
+  account configuration and database data are not copied into the backup or
+  overwritten.
+
 ## v3 - 2026-10-28
 
 - User confirmed one successful full arena visit with two windows on the same PC.

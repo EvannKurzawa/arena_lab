@@ -1,5 +1,31 @@
 # Setup and implementation status
 
+## Windows installer work - 2026-10-28
+
+Added two self-extracting EXE build targets using a .NET Framework wrapper
+with an embedded PowerShell bootstrap, plus their PowerShell
+bootstrap scripts: `ArenaLab-Setup.exe` for a clean client and
+`ArenaLab-Update.exe` for updating Arena Lab source from GitHub `main`. The
+builder is `tools/package-deliverables.ps1`; generated EXEs belong in `dist/`
+and are gitignored. Installer artifacts are not yet validated until the build
+and package inspection recorded below are complete.
+
+The clean setup pins Arena Lab to the source commit embedded by the builder,
+downloads the PEMK source ZIP and portable Ruby with SHA-256 checks, downloads
+the official mkxp-z client through the existing checksum-pinned installer, and
+copies a user-selected Essentials v21.1 game folder into the local install. The
+update EXE applies only files included in the GitHub source archive and backs up
+the exact files it replaces; it does not traverse `tools/runtime`. It refuses
+to update while a game process for that install is open.
+
+**Distribution limit:** this is not a legally redistributable, all-in-one game
+with Pokémon graphics/audio/data. Essentials v21.1 must be obtained separately
+by the player, consistent with its README; PEMK asks that builds containing
+Nintendo-derived assets remain private tests. Also, fresh setup currently
+prepares an offline/join client but does not provision the PostgreSQL/native
+Ruby server stack needed to host from that new computer. The existing prepared
+host/update path remains available. See the packaging notes in `README.md`.
+
 ## v3 - 2026-10-28: same-PC full visit verified by the user
 
 The user reported: "i have completed one full visit and it worked." This was the

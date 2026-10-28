@@ -2,6 +2,25 @@
 
 ## Current snapshot: v3 (plugin 0.7.0)
 
+## Windows installers
+
+The Windows build has two self-extracting EXE packages. `ArenaLab-Setup.exe`
+sets up a clean client, and `ArenaLab-Update.exe` replaces Arena Lab source files
+from GitHub `main` in an existing install. Build them with
+`powershell -NoProfile -ExecutionPolicy Bypass -File tools/package-deliverables.ps1`;
+the self-extracting EXEs are written to ignored `dist/` and are intended to be
+attached to a GitHub release, not committed to source history.
+
+Setup downloads pinned Arena Lab/PEMK source plus Ruby and mkxp-z, and asks the
+player to select their own complete Essentials v21.1 game folder. The Essentials
+README does not provide a public download, and PEMK says game builds containing
+Nintendo-derived assets are for private tests, so these assets are never bundled
+in the installer. The first installer prepares the offline/join client; it does
+not provision PostgreSQL and the native server dependencies required for a new
+computer to host. Existing installations keep their assets, runtime, saves,
+credentials and local server data during source updates. See `SETUP_STATUS.md`
+for the package checks and limitations.
+
 The user completed one full arena visit successfully using two game windows on
 the same computer. **The next acceptance test is two physical computers on the
 same network.** This confirmation supersedes the earlier pending same-PC GUI
