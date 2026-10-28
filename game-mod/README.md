@@ -1,11 +1,31 @@
 # Arena Demo
 
-Repository snapshot **v5**, plugin **0.8.6 in source**: the previous manual-IP
+Repository snapshot **v6 - custom update**, plugin **0.9.14 in source**: the previous manual-IP
 arena visit was confirmed between two physical computers. The updated automatic
 discovery flow still needs its two-computer retest. Follow the v4 test guidance
 in `SETUP_STATUS.md`. The first offline custom mode is implemented; the user
-confirmed the trainer recruitment heading displays fully, while the full editor
-loop still needs testing.
+confirmed the trainer recruitment heading displays fully, and the full editor
+loop works in-game. Plugin 0.9.13 adds separate ground, trainer, and
+furniture modes: choose a surface or owned item once, then apply it to successive
+tiles with Enter; X exits the active mode. The map generator now builds a 100x100 arena with a
+centered 25x25 walkable floor, editable void/field tiles, terrain painting, three U-key zoom
+levels and persistent per-player surface edits. The user reported several zoom,
+overview, dialog, tile-layout and ground-editing issues in the first playtest;
+plugin 0.9.2 included initial corrections, but the second playtest still found
+the walkable field, collision and saved tile edits out of sync. Plugin 0.9.3
+adds older-map recovery, stale-start correction and a third coordinate
+migration. Plugin 0.9.4 reapplies the generated arena floor after loading saves,
+when Essentials may reuse old serialized map data. Plugin 0.9.5 handles old
+all-void edit data, looks for the generated floor in both runtime and plugin
+data paths, and avoids applying an empty floor. The user confirmed that version
+still rendered black. Plugin 0.9.6 created a full walkable floor. Plugin 0.9.7
+rejects Essentials' blank tile IDs and verifies the saved tile stack. The
+generated center ID is 401, so that was not the user's black-screen cause.
+Plugin 0.9.8 writes live map/tile-renderer data to
+`Data/ArenaFloorDiagnostic.txt`. The user confirmed that fresh arena transfers
+work but direct loads of an arena save are black. Plugin 0.9.9 reloads Map 100
+from generated data on save load while preserving position and saved edits.
+Plugin 0.9.10 restores the centered 25x25 floor and void outside it.
 The Bag keeps eight tabs: Mail and Battle Items are merged into Items, with
 Key Items retained before Arena Furniture and Recruited Trainers. Existing Bag
 saves migrate when opened.

@@ -1,5 +1,153 @@
 # Updates
 
+## v6 - custom update (2026-10-28)
+
+- Confirm the mode-based arena editor works in-game, including immediate ice
+  preview, dialogs above the farthest-zoom map, and selecting all furniture and
+  trainer entries.
+- Ship the full-map cursor and ground/trainer/furniture painting and placement
+  workflow in Arena Demo plugin 0.9.14.
+
+## Editor text layering and catalog navigation (plugin 0.9.14)
+
+- Draw the global overview below Essentials' message windows so prompts remain
+  readable in the farthest zoom.
+- Let Essentials' command window handle directional navigation exactly once;
+  this fixes skipped furniture rows and the trainer selector wrapping back to
+  its first entry.
+- Confirmed working in-game by the user.
+
+## Mode-based arena editor (plugin 0.9.13)
+
+- Make ice previews use the in-progress editor draft, so painted ice appears
+  immediately instead of retaining the saved grass tile until leaving custom mode.
+- Keep the editor overview visible behind tile dialogs when using the farthest
+  zoom, preserving the same map view while choosing tools and confirming edits.
+- Organize editing into ground, trainer, and furniture modes. Select a surface or
+  owned item once, then press Enter on each tile to apply it repeatedly.
+- Add matching trainer/furniture removal tools and per-tile replace/remove
+  choices while preserving inventory refunds and cancel rollback.
+- Confirmed working in-game by the user with plugin 0.9.14.
+
+## Visible cursor in the full-map overview (plugin 0.9.12)
+
+- Add a dedicated tile-sized overview cursor with a dark edge and bright inner
+  frame. Its outline stays several screen pixels thick at the farthest zoom.
+- Keep the normal cursor for the closer views; hide/show the matching cursor as
+  U cycles between map and overview modes, and update it on every arrow move.
+
+## Auto-continue existing local saves (plugin 0.9.11)
+
+- `Play-Arena.bat` now opens an existing save directly, removing the extra title
+  screen confirmation presses after launch.
+- If no save exists, the normal New Game/title flow remains available.
+- This addresses the user's request for zero Enter presses after launching
+  their existing game.
+
+## Restore the centered arena footprint (plugin 0.9.10)
+
+- The user confirmed the save reload now displays grass, but the previous 0.9.6
+  full-map fallback made the entire 100x100 arena look endless.
+- Restore the intended 25x25 centered default floor and void outside it in both
+  generated map data and runtime recovery. Explicitly edited tiles remain saved.
+- Keep the 0.9.9 save-load rebuild so a direct arena save gets fresh map data.
+
+## Rebuild serialized arena maps on save load (plugin 0.9.9)
+
+- Re-run `Game_Map#setup(100)` when a save loads while already on Map 100. This
+  replaces stale serialized map/table data with generated `Data/Map100.rxdata`.
+- Preserve the player's position/direction and saved PokemonGlobal arena edits;
+  then reapply the edits, placements and camera position.
+- This specifically targets the user's confirmed difference: entering Map 100
+  through a door works, while loading a save already on Map 100 is black.
+
+## Runtime floor diagnostics (plugin 0.9.8)
+
+- Record the actual RGSS map dimensions, tileset, center tile stack, count of
+  renderable map cells and resolved ground-file locations on arena load.
+- Record the first nonblank tile as seen by Essentials' live renderer, including
+  its bitmap and source rectangle. This distinguishes bad map data from a
+  tileset/rendering failure instead of guessing from the generated file.
+
+## Renderable arena floor IDs (plugin 0.9.7)
+
+- Essentials treats tile IDs 0-47 as blank; the old passability check allowed
+  those IDs and could therefore choose an invisible floor that left the map
+  black even though its tiles were technically walkable.
+- Require a renderable tile ID in the generated base floor and runtime fallback.
+- Verify the serialized Map 100 center tile stack during preparation and print
+  the selected IDs, making a bad generated floor fail with a concrete error.
+
+## Full arena floor by default (plugin 0.9.6)
+
+- The user confirmed plugin 0.9.5 still showed a black/void arena. The earlier
+  design left 75% of the 100x100 map void by default, so rebuild Map 100 and
+  runtime recovery now paint the whole map with the validated passable floor.
+- Unedited tiles now default to normal field in collision and the overview;
+  only tiles explicitly marked void are void. The center remains the spawn and
+  original arena footprint.
+- In-game rendering still requires a fresh launch/save check.
+
+## Persistent void recovery (plugin 0.9.5)
+
+- Recover the generated floor when the game resolves data paths from its plugin
+  folder as well as from the game root.
+- Clear the identifiable legacy save corruption where at least 100 saved tile
+  edits are 90% or more void, while preserving normal and small void layouts.
+- Never replace a missing/invalid ground tile with `[0,0,0]`, which is empty
+  space. Keep the last valid map intact until a real floor can be recovered.
+- In-game confirmation is still pending.
+
+## Saved map and overview recovery (plugin 0.9.4)
+
+- Save the generated base-ground tile stack in `Data/ArenaDemoGround.txt`.
+- Rebuild the centered field and placements after Essentials loads a save, even
+  when it reuses a serialized `Game_Map` without calling `setup`.
+- Ignore an all-zero cached ground stack and recover it from the generated
+  floor file, preventing older saves from restoring a void arena.
+- Simplify the global overview with solid terrain colors, light ten-tile guides,
+  a clear starting-footprint outline and separate placement marks.
+
+## Centered field recovery (plugin 0.9.3)
+
+- Recover a passable base-ground tile from older top-left Map 100 copies before
+  rebuilding the centered field at runtime.
+- Move legacy fixed events, stale start coordinates and old tile-edit records
+  into the centered 25x25 field. Track a third migration version so edits made
+  at stale coordinates after the earlier migration are repaired too.
+- Refresh saved object placements after migration and move a player saved on
+  void to an available walkable field tile.
+- Replace the noisy overview pattern with high-contrast terrain colors, subtle
+  ten-tile guides, a highlighted starting footprint and clear placement marks.
+- Replace the noisy overview pattern with high-contrast terrain colors, subtle
+  ten-tile guides, a highlighted starting footprint and clear placement marks.
+
+## Custom editor usability fixes (plugin 0.9.2)
+
+- Center the starting 25x25 arena field and its fixed events within Map 100;
+  shift old saved placements and terrain edits into the centered field once.
+- Improve the full-map overview with crisp per-tile surface patterns and markers.
+- Remove the persistent zoom/help banner and hide editor overlays while menus
+  are displayed, keeping choice text in front.
+- Put ground editing first on occupied tiles and render ice with a dedicated
+  blue ice tile while retaining Essentials' ice terrain movement.
+- Refresh the tile renderer after terrain edits and zoom changes.
+
+## Zoom renderer constant fix (plugin 0.9.1)
+
+- Qualify Essentials' tile size and zoom constants in the custom zoom renderer.
+  Plugin 0.9.0 raised `NameError` when the renderer first refreshed tiles.
+
+## 100x100 arena editor upgrade (plugin 0.9.0)
+
+- Expand Map 100 to 100x100, with a 25x25 starting field and blocked void
+  outside it. Let custom mode turn any selectable tile into field or void.
+- Add per-tile plain/concrete, grass, desert/sand, rock and ice painting.
+  Persist edits and restore them on map load; use Essentials' built-in ice
+  terrain tag for sliding.
+- Add three U-key zoom levels, including an overview of the full 100x100 map.
+- Keep placements in player saves and protect essential arena event tiles.
+
 ## v5 - first custom mode (2026-10-28)
 
 - Add an offline tile-based arena editor with furniture and recruited trainers,

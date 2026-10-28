@@ -1,6 +1,6 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: v5 - first custom mode (plugin 0.8.6 in source)
+## Current snapshot: v6 - custom update (plugin 0.9.14 in source)
 
 The user has confirmed multiplayer communication between two physical computers
 on the same network: the second computer installed the client from GitHub and
@@ -13,14 +13,40 @@ The new automatic LAN discovery, host-approved **Request to visit** flow, and
 attendant connection status have been tested in-game on one computer. Retesting
 this updated flow between two computers is still pending.
 
-The first offline arena custom mode is implemented in source. Talk to the Arena
-Guide to edit arena tiles, place furniture and recruited trainers, and save or
-cancel edits. The Bag has eight tabs: Mail and Battle Items are included in
-Items; Key Items remain, followed by Arena Furniture and Recruited Trainers.
-Existing saves migrate automatically. The user has confirmed in-game that the
-trainer selection heading now displays fully. Full placement, save/reload, and
-trainer battle checks remain to be completed. The next launcher preparation
-rebuilds Map 100 with reusable placement slots.
+The offline custom arena is generated as a 100x100 tile map with a centered
+25x25 walkable floor; the rest is void unless opened in custom mode. Custom mode
+can convert tiles between field and void, paint concrete/plain, grass, sand,
+rock, or ice, and place
+furniture and recruited trainers. Press **U** to cycle normal, zoomed-out, and
+global overview views. Ice uses Essentials' terrain-tag movement and slides
+until the player reaches a non-ice tile. Tile and object edits save in the
+player's game. The first map-editor playtest confirmed ice sliding but exposed
+zoom, overview, dialog, layout and ground-menu issues. Plugin 0.9.2 addresses
+those reports. The second playtest still exposed a mismatch between the centered
+field, collision and saved edits. Plugin 0.9.4 reapplies the arena after loading
+older saves and stores its base floor separately. Plugin 0.9.5 added void-save
+recovery and 0.9.6 made all 10,000 tiles walkable by default, but the map still
+rendered black. Plugin 0.9.7 rejects blank tile IDs and validates the serialized
+floor. Preparation reports tile ID 401 and a present tileset, so that did not
+explain the screen. Plugin 0.9.8 writes live RGSS map and renderer details to
+`Data/ArenaFloorDiagnostic.txt` on the next arena load. The user confirmed that
+fresh transfers work but saves already on Map 100 load black. Plugin 0.9.9
+rebuilds Map 100 on save load, preserving player position and saved edits.
+Plugin 0.9.10 restores the intended centered 25x25 starting floor with void
+around it.
+Plugin 0.9.11 makes `Play-Arena.bat` resume an existing save automatically;
+fresh profiles still show the New Game menu.
+Plugin 0.9.12 adds a clearly visible selected-tile frame to the full-map editor
+overview.
+Plugin 0.9.13 makes draft ice visible immediately, keeps editor dialogs at the
+current zoom, and reorganizes editing into ground, trainer, and furniture modes.
+Choose a type once, then press Enter on each tile to paint/place it; choose a
+removal tool to remove matching placed items. The user has confirmed the editor
+workflow and rendering work in-game.
+Plugin 0.9.14 moves overview graphics below Essentials' message windows and
+fixes catalog navigation, which had moved the cursor twice per keypress. The
+user has confirmed the editor, text layering, and furniture/trainer selection
+all work in-game.
 
 ## Windows installers
 
@@ -443,4 +469,4 @@ The demo is complete when:
 
 Both upstream repositories are checked out under `upstream/`; the checked versions agree at Essentials v21.1. WSL Debian was inaccessible, so I set up a local Windows Ruby 3.3.12 + PostgreSQL 17.11 environment instead. The PEMK server starts on loopback port 9998. A private v21.1 game package is assembled under the ignored `tools/runtime/essentials-v21.1-base/` folder with PEMK and ArenaDemo installed. Two raw TCP sockets connected, but those were not authenticated game clients. Two non-auth PEMK tests pass; the authentication test crashes inside Windows bcrypt, and the full test suite did not complete. See [SETUP_STATUS.md](SETUP_STATUS.md) for exact commits, commands, test output, and blockers.
 
-The client package includes Essentials maps/assets and the mkxp-z runtime in the ignored local test copy, so it can be launched without installing RPG Maker XP. The Ruby map generator derives Map100 from Essentials' walkable Lappet Town map (map 2), reads the Player's House exit transfer to choose the town spawn, and adds reusable furniture/trainer event slots. The offline Arena Guide opens the tile editor, whose validated placements persist in the local save. The editor source has not yet received a game playtest; online visits retain their existing fixed layout snapshot. See [game-mod/README.md](game-mod/README.md) and [SETUP_STATUS.md](SETUP_STATUS.md).
+The client package includes Essentials maps/assets and the mkxp-z runtime in the ignored local test copy, so it can be launched without installing RPG Maker XP. The Ruby map generator derives Map100 from Essentials' walkable Lappet Town map (map 2), reads the Player's House exit transfer to choose the town spawn, and adds reusable furniture/trainer event slots. The offline Arena Guide opens the tile editor, whose validated placements persist in the local save; the user has confirmed the latest custom editor workflow in-game. Online visits retain their existing fixed layout snapshot. See [game-mod/README.md](game-mod/README.md) and [SETUP_STATUS.md](SETUP_STATUS.md).

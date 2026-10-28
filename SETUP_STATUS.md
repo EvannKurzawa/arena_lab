@@ -1,5 +1,188 @@
 # Setup and implementation status
 
+## Editor text layering and catalog navigation (plugin 0.9.14)
+
+Lowered the full-map overview below Essentials' message layer (z=99999), so
+prompts should now render above it. Removed duplicate up/down handling from the
+sprite catalog loop: `Window_CommandPokemon#update` already moves the selection,
+and the extra adjustment caused skipped or stuck entries. Ruby syntax and
+`git diff --check` passed. The user tested the game and confirmed text layering,
+furniture selection, trainer selection, and the complete editor workflow work.
+
+## Mode-based arena editor (plugin 0.9.13)
+
+Implemented ground, trainer, and furniture editing modes. Select a surface or
+owned Bag item once and apply it to multiple tiles with Enter. Placement modes
+include matching-item removal, occupied tiles offer replacement or removal, and
+inventory changes continue to roll back on cancel. The tile renderer now reads
+the editor's draft surface records, so ice previews as ice immediately. At the
+farthest zoom, dialogs leave the overview visible behind them instead of
+switching to the regular map view. Ruby syntax and `git diff --check` passed;
+in-game verification is recorded under plugin 0.9.14 above.
+
+## High-zoom overview cursor (plugin 0.9.12)
+
+The user reported that the selected tile cursor was too faint to see at the
+farthest U-key zoom. The old 32x32 cursor scaled to a tile about 9 pixels wide,
+making its 3-pixel border less than one screen pixel. Plugin 0.9.12 adds a
+separate overview cursor sized to one overview tile, with a dark outer edge and
+bright inner frame; the old 32px cursor remains for the normal and half-scale
+views. The global cursor follows every arrow move and is explicitly hidden when
+returning to the closer zooms. This cursor is part of the editor workflow the
+user confirmed working with plugin 0.9.14.
+
+## Zero-keypress resume from Play-Arena (plugin 0.9.11)
+
+The user asked for existing saves to open without the two Enter presses after
+launch. `tools/launch-client.ps1` now sets `ARENA_AUTO_CONTINUE=1`; the Arena Demo
+plugin intercepts Essentials' load screen and loads the existing save directly.
+When no save exists, the normal title/New Game menu remains. This is scoped to
+the standard Arena Lab launcher, not direct `Game.exe`/mkxp launches.
+
+Direct Prepare installed plugin 0.9.11. I launched `Play-Arena.bat` with the
+existing arena save and captured the game after startup: it opened directly on
+Map 100 with the floor, player and guide visible, without Continue or Enter.
+Ruby syntax and PowerShell parse checks passed. The no-save New Game branch was
+not tested in this run; by code path it falls through to Essentials' normal
+title menu.
+
+## Restore the centered arena after save reload (plugin 0.9.10)
+
+The user reported that loading their arena save now shows an infinite grass
+field. This confirms the direct-save reload reaches the generated floor, but the
+0.9.6 full-map fallback was too broad for the intended layout. In my local
+0.9.9 reproduction, loading the existing save displayed grass across the whole
+map. Plugin 0.9.10
+restores a visible, walkable 25x25 centered floor with void outside, both in
+Map100 generation and save recovery. The 0.9.9 `Game_Map#setup(100)` recovery
+remains, so direct saves rebuild from that canonical centered map. Prepare
+verified a centered 25x25 ground count (625/625), and the following 0.9.11
+launch confirmed the arena remains visible after direct save load.
+
+## Direct-save arena recovery (plugin 0.9.9)
+
+The user clarified that starting a new game outside town and entering the arena
+works, while loading a save already on Map 100 produces void. I reproduced that
+case in the local game: Continue loads the arena and the guide dialogue appears
+over a black map. This isolates the failure to save-load of a serialized
+`Game_Map`, not ordinary Map 100 generation or map transfer.
+
+Plugin 0.9.9 now calls `Game_Map#setup(100)` after Essentials loads a save whose
+current map is 100. It preserves the saved player position/direction and
+PokemonGlobal arena edits, then reapplies floor edits and placements and centers
+the camera. This reloads authoritative generated Map 100 data instead of
+retaining the stale serialized tile Table. Local reproduction with 0.9.9 showed
+that it restores the grass floor; 0.9.10 restores the centered 25x25/void
+layout.
+
+## Live RGSS map/renderer diagnosis (plugin 0.9.8)
+
+The previous tile-ID hypothesis was not sufficient: preparation reports the
+actual generated center stack as `[401, 0, 0]`, and the existing Outside tileset
+image is present. Tile 401 is above Essentials' blank-ID range, so this does
+not explain the user's black screen. I added a runtime diagnostic to avoid
+further guesses. On the next arena load, `Data/ArenaFloorDiagnostic.txt` records
+the live RGSS `Game_Map` dimensions/tileset/center stack, counts renderable
+layer-0 cells, resolves the generated ground-file paths, and captures the first
+nonblank tile sprite's bitmap/source rectangle from `TilemapRenderer`.
+
+Plugin 0.9.8 passes Ruby syntax validation. It still needs one game launch on
+Map 100 to produce the diagnostic. Do not claim this report is fixed until the
+live renderer evidence identifies and resolves the cause.
+
+## Renderer-level floor fix (plugin 0.9.7)
+
+The user confirmed plugin 0.9.6 still rendered black. I traced Essentials v21.1's
+`TilemapRenderer#refresh_tile_bitmap`: tile IDs 0-47 are explicitly treated as
+the blank autotile block. Our earlier floor selector only rejected ID 0, so a
+nonzero tile in that range could pass collision/passability checks while drawing
+nothing. Plugin 0.9.7 rejects IDs below 48 in both the generator and runtime
+floor validation. The map build now reads Map 100 back after serialization,
+checks its center tile stack matches the selected floor, and prints those IDs.
+This gives the next Prepare a direct data-level check rather than just saying
+the map file was written.
+
+The generated stack is `[401, 0, 0]`, so the <48 hypothesis does not account for
+the observed black screen. Plugin 0.9.8 adds live engine diagnostics to identify
+whether data or the tile bitmap is missing.
+
+## Full floor recovery after black-map report (plugin 0.9.6)
+
+The user confirmed the 0.9.5 fix still showed black/void ground; their screenshot
+shows only the boundary boulder events and player. The prior design left 75% of
+Map 100 empty by default, and runtime recovery reconstructed only the initial
+25x25 field. To remove void as the implicit/default state, plugin 0.9.6 makes
+all 10,000 tiles walkable with the generated base floor. Unedited tiles now
+render and collide as ordinary field; only saved tile records explicitly marked
+`void` become empty. Map generation and runtime recovery use the same rule. The
+center remains the spawn and starting footprint.
+
+Direct Prepare rebuilt Map 100 and verified plugin 0.9.6 in the compiled cache
+(`f81174ead2ca`). Ruby syntax checks and `git diff --check` pass. No GUI launch
+or in-game rendering verification has been performed. Close all game windows,
+launch `Play-Arena.bat`, and load the same save. If the full map still renders
+black, the next cause is the actual tile graphic/tileset mapping; inspect the
+local `Data/Tilesets.rxdata` and exact ground tile IDs from the game runtime.
+
+## Persistent void recovery (plugin 0.9.5)
+
+The user reported that Map 100 still renders black and the global editor view
+shows void after plugin 0.9.4 was prepared. Source review found two paths that
+could preserve that failure: all-void saved tile edits override the default
+field, and a missing/invalid generated floor could silently become an empty
+`[0,0,0]` stack. Plugin 0.9.5 clears only a large, overwhelmingly void legacy
+edit grid, searches for `ArenaDemoGround.txt` from the game and plugin data
+directories, accepts passable terrain-tagged base floors, and never applies an
+empty stack as normal ground. A missing floor now leaves the current map intact
+instead of painting it empty.
+
+This is an implementation based on source inspection, not a reproduced GUI fix.
+The screenshot did not show a plugin version or log. Plugin 0.9.5 passes Ruby
+syntax validation, and direct Prepare rebuilt Map 100 and verified the 0.9.5
+compiled cache (`46490d4e92d5`). The player save has not been inspected and no
+in-game relaunch has been performed here. Close all game windows and relaunch
+`Play-Arena.bat`, then load the same save and check the normal view and U-key
+overview. If it remains black, retain the new prepare log and `mmo.log` from
+that launch.
+
+## 100x100 arena editor upgrade (plugin 0.9.4)
+
+The first launch loaded both plugins, then logged a `NameError` in the zoom
+renderer because Essentials' tile size/zoom constants were unqualified. Plugin
+0.9.1 fixed those references. The user then reported that the full-map view was
+hard to read, the zoom return looked wrong, editor overlays covered choices,
+ice looked like grass, the starting field was off-center, and occupied tiles
+did not provide a usable ground-change action. Plugin 0.9.2 addresses these
+reports. The next playtest then found that the player could not move, custom
+mode treated the floor as void, and older painted tiles stayed at the top-left
+while the base field was centered. Plugin 0.9.3 now falls back to ground from
+older map data, transforms stale start points, refreshes fixed/saved objects,
+recovers a player saved on void and runs a third edit-coordinate migration. The
+user still found the arena void after relaunch. Inspection showed Essentials can
+load the saved `Game_Map` without calling `setup`, preserving old zeroed map
+data. Plugin 0.9.4 now reapplies arena data after `Game.load_map` and reads the
+canonical ground tile stack generated to `Data/ArenaDemoGround.txt`. The global
+overview now uses solid colors and restrained grid guides. A direct Prepare
+succeeded, generated the centered Map 100 and ground data, and verified the
+Arena Demo 0.9.4 compiled cache. No in-game test has been run by Codex.
+
+Map 100 now builds at 100x100, with a centered 25x25 starting field and the
+remaining tiles empty and blocked as void. Custom mode cycles normal, zoomed-out, and
+full-map overview with the raw U key. Any selectable tile can be made field or
+void, and field tiles can be painted with plain/concrete, grass, desert/sand,
+rock, or ice. Surface edits preview immediately, save in player metadata, and
+are reapplied whenever Map 100 loads. Essentials' existing ice terrain tag
+drives sliding movement. Placed objects/trainers cannot be stranded in void;
+the guide, sample trainer, and exit tiles are protected from being voided.
+
+The user playtested the editor and confirmed that ice slides correctly, while
+reporting the issues listed above. Plugin 0.9.3 needs in-game verification for
+movement, floor/void collision, centered rendering, zoom, ground painting and
+save/reload. Launcher preparation rebuilds Map 100, copies the plugin and
+refreshes the compiled plugin cache. Existing saves retain arena placements and
+migrate items/ground edits from the former top-left starting field into the new
+centered field.
+
 ## v5 - first custom mode (2026-10-28)
 
 Implemented the offline tile-based arena editor in plugin 0.8.6. The Arena

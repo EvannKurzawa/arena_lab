@@ -10,9 +10,9 @@ module ArenaDemo
   OBJECTS = ["Boulder", "Rock", "Tree", "Boulder 2", "Rock 2", "Tree 2"].freeze
   OBJECT_EVENTS = Hash[OBJECTS.each_with_index.map { |name, i| [name, i + 3] }].freeze
   LAYOUTS = {
-    "Sidelines" => [[5, 6], [5, 9], [5, 12], [19, 6], [19, 9], [19, 12]],
-    "Slalom" => [[8, 6], [16, 8], [8, 10], [16, 12], [8, 14], [16, 14]],
-    "Training ring" => [[9, 7], [12, 7], [15, 7], [9, 11], [12, 11], [15, 11]]
+    "Sidelines" => [[42, 43], [42, 46], [42, 49], [56, 43], [56, 46], [56, 49]],
+    "Slalom" => [[45, 43], [53, 45], [45, 47], [53, 49], [45, 51], [53, 51]],
+    "Training ring" => [[46, 44], [49, 44], [52, 44], [46, 48], [49, 48], [52, 48]]
   }.freeze
   TRAINER_NAME = "Arena Trainee"
   TRAINER_TYPE = :YOUNGSTER
@@ -53,8 +53,14 @@ module ArenaDemo
   def map_start
     path = File.join("Data", "ArenaDemoStart.txt")
     values = File.file?(path) ? File.read(path).split(",").map(&:to_i) : []
-    return values if values.length == 3
-    return [10, 10, 2]
+    if values.length == 3
+      if values[0].between?(0, 24) && values[1].between?(0, 24)
+        values[0] += (100 - 25) / 2
+        values[1] += (100 - 25) / 2
+      end
+      return values
+    end
+    return [(100 - 25) / 2 + 12, (100 - 25) / 2 + 16, 8]
   end
 
   def enter

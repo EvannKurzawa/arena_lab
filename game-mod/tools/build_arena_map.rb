@@ -72,6 +72,7 @@ DEST_MAP = File.join(DATA_DIR, format("Map%03d.rxdata", MAP_ID))
 MAP_INFOS = File.join(DATA_DIR, "MapInfos.rxdata")
 INTRO_MAP = File.join(DATA_DIR, "Map001.rxdata")
 START_FILE = File.join(DATA_DIR, "ArenaDemoStart.txt")
+GROUND_FILE = File.join(DATA_DIR, "ArenaDemoGround.txt")
 
 abort "Expected a complete Essentials project (missing #{SOURCE_MAP})" unless File.file?(SOURCE_MAP)
 abort "Missing map registry #{MAP_INFOS}" unless File.file?(MAP_INFOS)
@@ -138,7 +139,9 @@ def transfer_point(map, target_map_id)
   return nil
 end
 
-start = [12, 16, 8]
+field_x = (100 - 25) / 2
+field_y = (100 - 25) / 2
+start = [field_x + 12, field_y + 16, 8]
 File.binwrite(START_FILE, start.join(","))
 
 map = Marshal.load(File.binread(SOURCE_MAP))
@@ -146,6 +149,10 @@ map = Marshal.load(File.binread(SOURCE_MAP))
 # construct a new arena rather than copying buildings or village events.
 tilesets = Marshal.load(File.binread(File.join(DATA_DIR, "Tilesets.rxdata")))
 tileset = tilesets[map.instance_variable_get(:@tileset_id)]
+abort "Map 2 references a missing tileset" unless tileset
+tileset_name = tileset.instance_variable_get(:@tileset_name).to_s
+tileset_images = Dir.glob(File.join(PROJECT, "Graphics", "Tilesets", "#{tileset_name}.*"))
+abort "Arena tileset image is missing: Graphics/Tilesets/#{tileset_name}.*" if tileset_images.empty?
 passages = tileset.instance_variable_get(:@passages)
 priorities = tileset.instance_variable_get(:@priorities)
 terrain = tileset.instance_variable_get(:@terrain_tags)
@@ -154,41 +161,31 @@ grounds = Hash.new(0)
 map.instance_variable_get(:@height).times do |y|
   map.instance_variable_get(:@width).times do |x|
     stack = 3.times.map { |z| source[x, y, z] }
-    next if stack[0] == 0
-    next unless stack.all? { |tile| tile == 0 || (passages[tile] & 15 == 0 && priorities[tile] == 0 && terrain[tile] == 0) }
+    next if stack[0] < 48   # Essentials renders tile IDs 0..47 as blank
+    next unless stack.all? { |tile| tile == 0 || (tile >= 48 && passages[tile] & 15 == 0 && priorities[tile] == 0 && terrain[tile] == 0) }
     grounds[stack] += 1
   end
 end
 ground = grounds.max_by { |_stack, count| count }&.first
 abort "No ordinary passable ground found in the local town tileset" unless ground
-map.instance_variable_set(:@width, 25)
-map.instance_variable_set(:@height, 19)
-map.instance_variable_set(:@data, Table.build(25, 19, 3) { |_x, _y, z| ground[z] })
+abort "Selected ground tile is not renderable by Essentials: #{ground.inspect}" if ground[0] < 48
+File.binwrite(GROUND_FILE, ground.join(","))
+map.instance_variable_set(:@width, 100)
+map.instance_variable_set(:@height, 100)
+map.instance_variable_set(:@data, Table.build(100, 100, 3) do |x, y, z|
+  (x >= field_x && x < field_x + 25 && y >= field_y && y < field_y + 25) ? ground[z] : 0
+end)
 map.instance_variable_set(:@events, {
-  1 => event(1, "Arena guide", 10, 16, "trainer_SUPERNERD", "ArenaDemo.arena_reception"),
-  2 => event(2, "Arena trainer", 12, 4, "trainer_YOUNGSTER", "ArenaDemo.challenge_trainer"),
-  3 => event(3, "Boulder obstacle", 5, 6, "Object boulder"),
-  4 => event(4, "Rock obstacle", 5, 9, "Object rock"),
-  5 => event(5, "Tree decoration", 5, 12, "Object tree 1"),
-  6 => event(6, "Boulder obstacle 2", 19, 6, "Object boulder"),
-  7 => event(7, "Rock obstacle 2", 19, 9, "Object rock"),
-  8 => event(8, "Tree decoration 2", 19, 12, "Object tree 1")
+  1 => event(1, "Arena guide", field_x + 10, field_y + 16, "trainer_SUPERNERD", "ArenaDemo.arena_reception"),
+  2 => event(2, "Arena trainer", field_x + 12, field_y + 4, "trainer_YOUNGSTER", "ArenaDemo.challenge_trainer"),
+  3 => event(3, "Boulder obstacle", field_x + 5, field_y + 6, "Object boulder"),
+  4 => event(4, "Rock obstacle", field_x + 5, field_y + 9, "Object rock"),
+  5 => event(5, "Tree decoration", field_x + 5, field_y + 12, "Object tree 1"),
+  6 => event(6, "Boulder obstacle 2", field_x + 19, field_y + 6, "Object boulder"),
+  7 => event(7, "Rock obstacle 2", field_x + 19, field_y + 9, "Object rock"),
+  8 => event(8, "Tree decoration 2", field_x + 19, field_y + 12, "Object tree 1")
 })
 events = map.instance_variable_get(:@events)
-# A visible solid perimeter leaves the interior and entrance lane walkable.
-25.times do |x|
-  [0, 18].each do |y|
-    next if x == 12 && y == 18
-    id = events.keys.max + 1
-    events[id] = event(id, "Arena boundary", x, y, "Object boulder")
-  end
-end
-(1...18).each do |y|
-  [0, 24].each do |x|
-    id = events.keys.max + 1
-    events[id] = event(id, "Arena boundary", x, y, "Object boulder")
-  end
-end
 
 # The arena keeps map 100 and its object IDs for existing saves/multiplayer.
 # A touch exit connects its south entrance to the new offline foyer.
@@ -200,7 +197,7 @@ def touch_portal(id, name, x, y, script)
   portal
 end
 exit_id = events.keys.max + 1
-events[exit_id] = touch_portal(exit_id, "Arena exit", 12, 18, "ArenaDemo.exit_training_room")
+events[exit_id] = touch_portal(exit_id, "Arena exit", field_x + 12, field_y + 18, "ArenaDemo.exit_training_room")
 
 # Reusable runtime placement slots. The editor saves only inventory item IDs
 # and tile coordinates; these blank events provide render/collision slots
@@ -442,12 +439,18 @@ unless intro_commands.any? { |entry| entry.instance_variable_get(:@code) == 355 
 end
 
 File.binwrite(DEST_MAP, Marshal.dump(map))
+written_map = Marshal.load(File.binread(DEST_MAP))
+written_data = written_map.instance_variable_get(:@data)
+written_center = 3.times.map { |z| written_data[field_x + 12, field_y + 12, z] }
+abort "Generated floor did not survive Map 100 serialization: #{written_center.inspect}" unless written_center == ground
 File.binwrite(File.join(DATA_DIR, "Map101.rxdata"), Marshal.dump(town))
 File.binwrite(File.join(DATA_DIR, "Map102.rxdata"), Marshal.dump(interior))
 File.binwrite(File.join(DATA_DIR, "Map103.rxdata"), Marshal.dump(route))
 File.binwrite(MAP_INFOS, Marshal.dump(map_infos))
-puts "Built #{DEST_MAP}: new 25x19 training yard using local passable ground; registered map #{MAP_ID}."
-puts "Arena start: #{start.join(',')}. Trainer: 12,4. Medic: 10,16. Customize from the pause menu."
+floor_tiles = written_data.payload.byteslice(20..).unpack("v*").count { |tile_id| tile_id == ground[0] }
+puts "Built #{DEST_MAP}: 100x100 arena with centered 25x25 floor; floor tile IDs #{ground.inspect}; center verifies #{written_center.inspect}; base-floor count #{floor_tiles}/625."
+puts "Arena tileset: #{map.instance_variable_get(:@tileset_id)} / #{tileset_name}; image: #{File.basename(tileset_images.first)}; base tile index: #{ground[0] - 384}."
+puts "Arena start: #{start.join(',')}. Trainer: #{field_x + 12},#{field_y + 4}; guide: #{field_x + 10},#{field_y + 16}; exit: #{field_x + 12},#{field_y + 18}."
 puts "Added an intro skip choice to #{INTRO_MAP} (or kept the existing choice)."
 puts "Built offline town (101) -> entrance with storage PC (102) -> arena (100)."
 puts "Built Founders' Path (103); guide at #{guide_site.join(',')}, trail scout at #{scout_site.join(',')}."
