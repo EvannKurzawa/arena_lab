@@ -1,5 +1,117 @@
 # Setup and implementation status
 
+## v2.1 - 2026-10-28: user verification
+
+The user verified multiplayer launch, full text rendering, battle synchronization
+and completion, and player collisions. These are user-run GUI results; Codex did
+not run the two-window GUI test. Earlier pending checks and installation stalls
+below are historical and superseded by this confirmation. Console selection was
+a suspected timeout cause, not separately confirmed.
+
+ArenaDemo 0.4.2 adds local peer blocking, mirrored client outcomes and singles
+speed ties, and RNG flushing before replacement/end messages. The runtime uses
+rendered font height. Startup reuses a healthy server; readiness failures identify
+their network stage and visible TCP entries/PIDs. Accounts and saves are retained.
+
+Release checks rerun: customization 16 tests / 90 assertions; multiplayer fixes
+5 tests / 15 assertions; real upstream-reactor ping 1 test / 1 assertion. All
+22 tests / 106 assertions passed. Ruby syntax passed. The full upstream suite was
+not rerun. No play account/database changes or GUI launch were made by Codex.
+
+Simultaneous moves may overlap without server tile reservations. General replay
+for all ability/item combinations is not established. No shared arena editing or
+public hosting was added. Upstream versions/licenses and private asset exclusions
+remain unchanged. README, CHANGELOG, game-mod README and metadata reflect v2.1.
+
+
+## Readiness timeout investigation — 2026-10-28
+
+User supplied a newer server log ending in `reactor: listening on 127.0.0.1:9998`
+while the client launcher's PEMK probe timed out. Listening alone does not establish
+that a ping was accepted/answered. No new successful GUI launch is claimed.
+
+Inspected the shared wire encoder, server ping handler, reactor start/run loop,
+local server wrapper and both launchers. The probe's split framing matches the
+server handler. Added `tools/test_readiness.rb`: a fresh, real upstream reactor on
+an ephemeral loopback port answers the same split ping (PASS: 1 test / 1 assertion,
+Ruby 3.3.12; no database/accounts touched). Its initial run reached the assertion
+but failed cleanup due to a test-variable scope error; that was fixed and rerun.
+
+The port-9998 probe timed out inside and outside the sandbox, and netstat/process
+inspection showed no visible matching listener/Ruby process from this agent's
+session. The revised probe uses bounded TCP connect and labels its failure stage;
+the actual result here is `connect: Errno::ETIMEDOUT`. This cannot establish the
+state of the server shown in the user's separate console. Do not infer a corrupt
+database or broken authentication from this output.
+
+Changed `tools/ping_multiplayer.rb` to distinguish connect/send/header/body failures
+and allow five seconds for an exchange; `tools/local-multiplayer.ps1 -Action Ready`
+now prints port entries/PIDs on failure instead of a generic Ruby exception.
+Ruby syntax, PowerShell parsing and git diff --check passed. README updated.
+
+Next user-side check: press Esc in the existing server console to clear any text
+selection, then rerun Launch-Multiplayer-Clients.bat with that server still open.
+Console selection is a possible cause, not a verified diagnosis. If still failing,
+the new probe stage plus TCP entries/PID and latest server log are needed to
+distinguish an inaccessible listener from a connected but unresponsive server.
+
+
+## Multiplayer follow-up — 2026-10-28
+
+User-tested status: both game windows work, player interaction sends a challenge,
+the other player can accept, and the battle starts. Battle completion is NOT
+validated: the user reports different end states/HP bars. Text is clipped across
+its lower half and remote players can overlap. These results supersede the older
+snapshot's untested challenge/acceptance status, not its unresolved PvP completion.
+
+The supplied server log confirms Ruby 3.3.12, bcrypt 3.1.22 hash/verify PASS,
+PostgreSQL schema 48 PASS, 70 maps and 1,237 species/forms loaded. That startup
+then failed with EADDRINUSE on loopback 9998: another listener occupied the port.
+This does not prove the other listener was a healthy PEMK server. On this turn,
+`ruby tools/ping_multiplayer.rb 0` timed out both inside and outside the sandbox.
+No server process was stopped or database/account altered.
+
+Changes: `004_MultiplayerFixes.rb` adds arena-only local collision checks (shared
+spawn tiles can still be exited), reverses received host win/loss codes for the
+client perspective, mirrors the first singles priority-shuffle draw so equal-speed
+Pokemon keep the same physical turn order, and flushes host RNG before replacement
+menus and end-of-battle messages. These are targeted repairs, not proof of general
+deterministic replay for every ability/item combination. Simultaneous movement is
+not reserved server-side, so local collisions cannot prevent all overlap races.
+PEMK intentionally battles on party copies; original party HP after PvP is expected.
+
+`install-client-runtime.ps1` now sets `fontHeightReporting = 1`, using rendered
+glyph height rather than nominal height. This is a candidate fix requiring visual
+verification; see the upstream mkxp-z configuration's fontHeightReporting option:
+https://github.com/mkxp-z/mkxp-z/blob/dev/mkxp.json . The server launcher probes PEMK
+before migrating/binding and reuses a healthy instance. A quiet probe failure
+continues normal startup. An unrelated/unresponsive listener can still block bind.
+
+Executed from C:/arena-lab using
+`tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe`:
+
+- `game-mod/test/multiplayer_fixes_test.rb`: PASS, 5 tests / 15 assertions.
+- `game-mod/test/arena_customization_test.rb`: PASS, 16 tests / 90 assertions.
+- `-c game-mod/Plugins/ArenaDemo/004_MultiplayerFixes.rb`: Syntax OK.
+- PowerShell parser on both changed .ps1 files: no errors.
+- `git -c safe.directory=C:/arena-lab diff --check`: PASS, line-ending notices only.
+
+The new tests isolate extension behavior with engine stubs; they do not launch
+RGSS or prove two-client HP synchronization. Runtime log reads and attempted
+installation through `tools/install-client-runtime.ps1` stalled, including an
+outside-sandbox retry. No successful installation or GUI retest is claimed here.
+Upstream checkouts/versions remain as recorded below; no upstream source edited.
+
+Manual steps: close both game windows, run Launch-Multiplayer-Server.bat once
+(keep the healthy original server running if already present), then run
+Launch-Multiplayer-Clients.bat to install the plugin/config and restart both.
+Verify full text in dialogs, menus and battle; walking into a stationary peer
+should stop, and adjacent Enter should challenge. Finish battles with each player
+winning, including equal-speed teams and a faint requiring replacement. Compare
+each hit's HP on both screens and verify both return to the arena. If Prepare
+stalls, installation remains blocked; do not treat the source tests as a GUI pass.
+
+
 ## v2 snapshot — 2026-10-27
 
 The `v2` source snapshot includes the enclosed arena/customization, local multiplayer launchers, account fixes, player battle-request interactions, Escape-menu correction, and the pinned native-runtime replacement. [CHANGELOG.md](CHANGELOG.md) summarizes the changes; the sections below retain exact commands, source commits, failures, and verification evidence. Final targeted regressions passed **17 tests / 108 assertions**. GUI account creation and the replacement runtime's click test were user-confirmed; a full GUI PvP battle and post-switch movement remain to be checked. Private runtime assets, credentials, accounts, databases, saves, and generated logs/maps are excluded from this commit. This snapshot does not bundle a ready-to-distribute game or claim complete multiplayer validation.

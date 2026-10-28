@@ -31,6 +31,8 @@ $config = @{
     syncToRefreshrate = $false
     fixedFramerate = 60
     subImageFix = $true
+    # Use rendered glyph height; nominal RGSS height can clip font descenders.
+    fontHeightReporting = 1
 }
 [IO.File]::WriteAllText((Join-Path $engineRoot 'mkxp.json'), ($config | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
 $manifest = @{ repository='https://github.com/mkxp-z/mkxp-z'; commit=$commit; artifactUrl=$url; archiveSha256=$archiveHash; executableSha256=$binaryHash }

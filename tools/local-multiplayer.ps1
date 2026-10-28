@@ -68,7 +68,17 @@ function Prepare-Clients {
 if (!(Test-Path -LiteralPath $rubyExe)) { throw 'Bundled Ruby is missing.' }
 if (!(Test-Path -LiteralPath "$serverRoot/bin/pemk_server.rb")) { throw 'The local PEMK server workspace is missing.' }
 Write-Host "Arena Lab folder: $projectRoot"
-if ($Action -eq 'Ready') { Invoke-Ruby @("$PSScriptRoot/ping_multiplayer.rb"); exit 0 }
+if ($Action -eq 'Ready') {
+    & $rubyExe "$PSScriptRoot/ping_multiplayer.rb"
+    if ($LASTEXITCODE -eq 0) { exit 0 }
+    Write-Host 'TCP entries for port 9998 (last column is the process ID):'
+    $portEntries = @(netstat -ano -p tcp | Select-String ':9998\s')
+    if ($portEntries.Count) { $portEntries | ForEach-Object { Write-Host $_.Line } }
+    else { Write-Host 'No port 9998 TCP entry is visible in this session.' }
+    Write-Host 'In the server window, press Esc to clear console text selection, then retry the clients.'
+    Write-Host 'If it still fails, retain this output and the latest server log; do not start duplicate servers.'
+    exit 1
+}
 if ($Action -eq 'RepairGems') {
     if (!(Test-Path -LiteralPath 'C:/msys64/ucrt64/bin/gcc.exe')) { throw 'Install the MSYS2 UCRT compiler first (see README.md).' }
     $env:PATH = "$(Split-Path $rubyExe);C:/msys64/ucrt64/bin;C:/msys64/usr/bin;$env:PATH"
@@ -87,6 +97,12 @@ if ($Action -eq 'Test') {
     Invoke-Ruby @("$serverRoot/test/server_presence_test.rb")
     Invoke-Ruby @("$projectRoot/game-mod/test/multiplayer_arena_test.rb")
     Invoke-Ruby @("$projectRoot/game-mod/test/login_connection_test.rb")
+    exit 0
+}
+# Reuse a responding PEMK instance; do not migrate or bind a second server.
+& $rubyExe "$PSScriptRoot/ping_multiplayer.rb" 0 quiet
+if ($LASTEXITCODE -eq 0) {
+    Write-Host 'The local PEMK server is already running. Use Launch-Multiplayer-Clients.bat.'
     exit 0
 }
 Invoke-Ruby @("$PSScriptRoot/check_multiplayer.rb")

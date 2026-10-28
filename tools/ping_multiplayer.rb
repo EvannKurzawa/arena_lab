@@ -8,16 +8,21 @@ require_relative '../upstream/pokemon-essentials-mmo-kit/protocol/pemk_wire'
 wait_seconds = Integer(ARGV.fetch(0, '15'))
 deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + wait_seconds
 last_error = nil
+stage = 'connect'
 loop do
   socket = nil
   begin
-    Timeout.timeout(2) do
-      socket = TCPSocket.new('127.0.0.1', 9998)
+    stage = 'connect'
+    Timeout.timeout(5) do
+      socket = Socket.tcp('127.0.0.1', 9998, connect_timeout: 2)
+      stage = 'send ping'
       socket.write(PEMK::Wire.encode_split(type: :ping, t: 123))
+      stage = 'wait for pong header'
       header = socket.read(4)
       raise 'Server closed the connection' unless header && header.bytesize == 4
       length = header.unpack1('N')
       raise 'Unexpected server frame size' unless length.between?(1, 65_536)
+      stage = 'read pong body'
       payload = socket.read(length)
       raise 'Incomplete server reply' unless payload && payload.bytesize == length
       reply = PEMK::Wire.decode_envelope(payload, false).fetch(:env)
@@ -26,13 +31,18 @@ loop do
     puts 'PEMK server READY at 127.0.0.1:9998.'
     exit 0
   rescue StandardError => error
-    last_error = error.class.to_s
+    last_error = "#{stage}: #{error.class}"
   ensure
     socket&.close
   end
   break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
   sleep 0.25
 end
-warn "PEMK server is not responding at 127.0.0.1:9998 (#{last_error})."
-warn 'Start Launch-Multiplayer-Server.bat from this same project folder and leave its window open.'
+unless ARGV[1] == 'quiet'
+  warn "PEMK server is not responding at 127.0.0.1:9998 (#{last_error})."
+  warn 'Start Launch-Multiplayer-Server.bat from this same project folder and leave its window open.'
+  if stage != 'connect'
+    warn 'TCP connected, but the PEMK exchange failed. If the server console has selected text, press Esc there and retry.'
+  end
+end
 exit 1

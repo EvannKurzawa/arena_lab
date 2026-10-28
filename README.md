@@ -1,10 +1,25 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: v2
+## Current snapshot: v2.1
+
+If the multiplayer launcher times out despite a server “listening” message, press
+Esc in the server console to clear any selected text and retry the clients. The
+readiness check now reports the failed network stage and visible port-9998 process
+IDs. Keep that output if it still fails; a listening log alone is not a health check.
+
+2026-10-28: the user verified that local multiplayer launch, text rendering and
+battles now work, including the previously reported battle synchronization issue.
+`v2.1` includes local peer collision checks, mirrored win/loss and singles speed
+ties, earlier battle RNG delivery, rendered font heights, and clearer readiness
+diagnostics. Player collision is also user-verified;
+simultaneous movement can overlap because tiles are not reserved server-side.
+Use the root multiplayer launchers. The server launcher reuses a responding PEMK
+instance instead of binding twice. See CHANGELOG.md and SETUP_STATUS.md for checks
+and the earlier investigation history.
 
 `v2` contains the enclosed arena, expanded offline customization, local PEMK setup, player battle-request interactions, and the native-runtime click-crash fix. See [CHANGELOG.md](CHANGELOG.md) for the update summary and [SETUP_STATUS.md](SETUP_STATUS.md) for exact versions, commands, results, and limitations.
 
-The arena and customization, GUI account creation, and survival of the click test have been user-confirmed. The final targeted regressions passed **17 tests / 108 assertions**. A complete two-window PvP battle and movement after the runtime switch still need an in-game check. This repository contains source and setup tools; ignored private game assets, runtime binaries, accounts, saves, and credentials are not part of this snapshot. Use the root BAT launchers with the existing local setup; a clean clone requires the private prerequisites described in the setup report.
+The arena and customization, GUI account creation, click-crash fix, multiplayer launch, text rendering and battles have been user-confirmed. This repository contains source and setup tools; ignored private game assets, runtime binaries, accounts, saves, and credentials are not part of this snapshot. Use the root BAT launchers with the existing local setup; a clean clone requires the private prerequisites described in the setup report.
 
 ## 1. Vision
 

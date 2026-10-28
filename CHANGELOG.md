@@ -1,5 +1,20 @@
 # Updates
 
+## v2.1 - 2026-10-28
+
+- Fixed clipped text using rendered font heights in the pinned mkxp-z runtime.
+- Added local arena player blocking, while allowing exit from shared spawn tiles.
+- Fixed client win/loss perspective and singles speed ties; flush RNG before
+  replacement menus and end messages to avoid stalled battle replay.
+- Reuse healthy local servers; show readiness failure stages and TCP entries/PIDs.
+- User-verified: multiplayer launch, text, battle synchronization/completion and
+  player collisions. ArenaDemo plugin version: 0.4.2.
+- Release regressions: 22 tests / 106 assertions passed; full upstream suite not
+  rerun. Private runtime assets, saves and credentials remain excluded.
+- Simultaneous moves can still overlap without server tile reservations. No
+  general replay guarantee across all abilities/items or new online arena storage.
+
+
 ## v2 — 2026-10-27
 
 ### Arena demo

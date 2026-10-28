@@ -1,5 +1,15 @@
 # Arena Demo
 
+Project snapshot v2.1 / plugin 0.4.2: the user verified multiplayer launch, full
+text rendering, battle synchronization/completion and player collisions. The new
+`004_MultiplayerFixes.rb` adds arena peer blocking, mirrored win/loss and singles
+speed-tie draws, and RNG delivery before replacement/end messages. Simultaneous
+moves can overlap without server tile reservations. The runtime installer uses
+rendered font height; readiness failures show their network stage and TCP entries.
+Use the root launchers; accounts and saves are retained. Earlier pending checks
+below describe historical versions.
+
+
 Version 0.4.1 selects an official checksum-pinned mkxp-z Windows build (`37a04d1`) in the root launchers. Native debugging located the old executable's click crash in Input.update's key-repeat division. Configuration/Ruby timing workarounds failed and were removed; the replacement passed the user's physical click test. Essentials v21.1, PEMK, existing accounts/assets and the battle engine are retained. `004_LoadDiagnostics.rb` only records save-load failures and optional short progress messages, with the heavy boot tracing removed. Use the root launchers rather than the private package's original BAT files. Runtime provenance and exact validation limits are in SETUP_STATUS.md.
 
 
