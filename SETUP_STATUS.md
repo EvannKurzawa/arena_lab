@@ -12,6 +12,14 @@ If a player supplies the compatible Essentials 21.1 archive, the existing safe
 install path remains available. A conflicting installed plugin still reports
 an error instead of being silently replaced.
 
+Built and uploaded refreshed installers pinned to commit
+`f723550f83c3cc92f77db549c7a939b5d8308dcc` at the [v6.2.1 GitHub
+release](https://github.com/EvannKurzawa/arena_lab/releases/tag/v6.2.1).
+SHA-256: Setup `3E6FD1D198E71FD6A092B4D5B65CA2736EDAD0B0350E605B51D021CDB546579F`;
+Update `1C47C4044C4C880459A3CE9B6608480016E4F90A49D04C1180C7B6774850523E`.
+PowerShell and Ruby syntax checks passed, and `git diff --check` passed. A full
+game launch or multiplayer retest was not run in this session.
+
 ## New Arena Village and separated map exits (plugin 0.9.21)
 
 ### v6.2 status and next work
