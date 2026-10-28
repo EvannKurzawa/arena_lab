@@ -1,5 +1,147 @@
 # Setup and implementation status
 
+## New Arena Village and separated map exits (plugin 0.9.21)
+
+### v6.2 status and next work
+
+The generated map is functional but visually rough and currently ugly; treat it
+as a placeholder. A finished village should be laid out manually in RPG Maker XP
+using the editor, then the map events/transfers should be rechecked. The next
+gameplay milestone after that is an open world extending beyond the village, with
+exploration routes, lore/story and wild-Pokémon encounters. The current small
+village grass patch is only a temporary proof of catching.
+
+The Windows installer sources are kept in `tools/deliverables/`. Build
+`ArenaLab-Setup.exe` and `ArenaLab-Update.exe` with
+`tools/package-deliverables.ps1` after committing, so the setup EXE pins the
+new commit. The EXEs are release assets from ignored `dist/`, not repository
+files. The release publishing script targets GitHub tag `v6.2`.
+
+Replaced the generated Lappet Town layout with a new 32x24 Arena Village map.
+It contains a central stadium, three matching house sprites, residents, paths,
+trees, and a small tall-grass area. Wild encounters now use the village grass
+area and remain offline-only. The entrance-room exit returns to `(16,12)`, in
+front of the stadium. All generated village house events are local interactions
+and have no transfers; entering the stadium still leads to Arena Entrance (102),
+then Arena (100). The generator unregisters and deletes Map 103 only when its
+registry name is the project's old generated `Founders' Path`. The original
+Essentials map files remain in the private base project for compatibility, but
+neither quick start nor the full intro now leaves the player in Lappet Town or
+the old route. The full intro's final transfer is redirected to the village
+and sets the entrance room as the healing return point.
+
+Generated new matching pixel-art sprite sheets for `$ArenaFacade` and
+`$VillageHouse` (both 4x4 RPG Maker XP character sheets) under
+`game-mod/Graphics/Characters/`; map preparation copies them into the local
+Essentials project. Updated the village encounter/story plugin, README files,
+and plugin metadata to 0.9.21.
+
+Validation: Ruby syntax checks passed for `build_arena_map.rb`,
+`001_ArenaDemo.rb`, and `006_FoundersPath.rb`; `git diff --check` passed with
+only Git line-ending notices. The private runtime's `Data/Map002.rxdata` path
+did not respond to a filesystem probe in this session, so map generation and an
+in-game visual/transfer check have **not** been run. Close the game and launch
+`Play-Arena.bat` locally to regenerate maps 100-102 and test village → entrance
+→ arena → entrance → stadium-front return, house interactions, and grass-only
+encounters.
+
+## Arena facade sprite and village placement correction (plugin 0.9.20)
+
+The user reported that the first facade rendered as repeated/cropped stadiums
+over the old house and sat at the village edge. The source sheet had three
+columns, but RPG Maker XP expects four directional frames for a `$` character;
+regenerated it as a 640x512 4x4 sheet, with each identical frame showing the
+160x128-pixel (5x4-tile) facade. The generator now preserves the original home
+door and places a separate arena entrance at the nearest walkable site to the
+village center, requiring the entire facade footprint to be clear. The home
+door remains a home; the stadium sign is placed nearby. Save-load recovery now
+reloads Map 101 from generated data too, so Continue sees the new layout. Ruby
+syntax and sprite dimensions/transparency were checked; an in-game retest is
+still pending. Close all clients and run `Play-Arena.bat` to rebuild the map.
+
+## Arena-style village exterior (plugin 0.9.19 history)
+
+The user pointed out that Arena Village still used the original house exterior.
+Added an original stadium facade sprite at
+`game-mod/Graphics/Characters/$ArenaFacade.png` and updated the map generator to
+use it for the entrance building event. The entrance interaction is preserved;
+the foyer's normal door graphic is saved separately so it is not replaced by
+the oversized facade. Preparation copies the sprite into the private Essentials
+game and regenerates Map 101. The first sprite layout placed the building at the
+original house and did not match RPG Maker XP's four-column frame convention;
+the correction above supersedes that placement and layout.
+
+## One-time Zekrom and Dialga save grant (plugin 0.9.19)
+
+The user requested level-100 Zekrom and Dialga directly in the party. The
+private save files are not readable in this execution context, so I did not
+attempt to unmarshal or overwrite a guessed save path. Instead, an ignored
+one-time marker at the repository root arms `012_OneTimeLegendaryGrant.rb` for
+the primary offline profile only. On the next `Play-Arena.bat` launch, the game
+adds both Pokémon to the party through Essentials' own `Pokemon` and save APIs,
+then saves the offline profile and consumes the marker. Existing Zekrom/Dialga
+are not duplicated, and a party without two free slots is left unchanged. The
+grant is local-only and the marker is gitignored. It has not run yet; close all
+game windows and launch `Play-Arena.bat` once to apply it. The launcher cache
+sync fix from 0.9.18 ensures this new plugin script loads from an existing cache.
+
+## Following Pokémon cache loading correction (plugin 0.9.18)
+
+After the user launched the game and still saw no follower, inspection found the
+cached plugin synchronizer only refreshed Arena Demo. If Essentials already had
+`Data/PluginScripts.rxdata`, the newly installed Following Pokemon EX could be
+missing from that cache and thus never load. `tools/sync-plugin-cache.rb` now
+adds or updates both Arena Demo and Following Pokemon EX entries, preserving a
+one-time cache backup. Deferred network hook installation also handles either
+plugin load order. This is the first fix to try; no game relaunch has verified it.
+
+## Following Pokémon in the arena and multiplayer (plugin 0.9.17 history)
+
+The user supplied `Following Pokemon EX.rar`; its metadata was inspected and
+confirms version 2.5.1 for Essentials 21.1. The RAR includes the plugin scripts,
+matching walking follower sprites and animation data. It is ignored by Git and
+must be supplied separately on each computer because it is third-party content.
+The resource page is [Following Pokemon EX on Eevee Expo](https://eeveeexpo.com/resources/516/).
+
+Added `tools/install-following-pokemon.ps1` to extract and install that plugin
+into the private Essentials project during client preparation. It retains the
+original `Data/Animations.rxdata` as
+`Data/ArenaLab-Animations-before-FollowingEX.rxdata`, merges plugin animations
+and remaps configured IDs rather than replacing the Essentials table. It also
+disables plugin hotkeys for toggling/cycling party members, so the lead able
+Pokémon remains consistent with multiplayer. The installer refuses a different
+existing plugin version or conflicting local sprite files. The RAR itself and
+extracted temporary files are excluded from Git.
+
+Map generation now places a hidden follower anchor on maps 100-103. The Arena
+Demo integration starts the actual Following Pokemon EX follower from that map
+event, preserving its native walking, collision and sprite behavior. Presence
+frames carry only a validated species/form/gender/shiny/shadow descriptor on
+arena-world maps. The server validates and forwards those fields; each client
+resolves the character sprite from its local plugin assets. Remote Pokémon use
+an animated walking character behind their owner. This remains source-level
+implementation pending in-game checks of local following, two-machine sprite
+agreement, save reload and animation merge.
+
+The archive was verified and an installation was attempted against the ignored
+local Essentials runtime, but the runtime path did not return in this execution
+context; therefore installation into that private game and an RPG Maker/mkxp
+launch are not claimed. Run `Play-Arena.bat` after placing the RAR at the project
+root; preparation installs the matching plugin on each computer.
+
+## Visible return door and follower sprite correction (plugin 0.9.16 history)
+
+Map generation now gives the south return tile a visible door graphic copied
+from the Arena Entrance door; stepping onto it still transfers to the entrance
+room. The arena building is marked by the village sign. The oversized static
+Pokemon icon prototype was disabled after the user reported its size and lack
+of HGSS-style movement. The user-provided `Following Pokemon EX.zip` was
+inspected: its metadata identifies v2.2.3 for Essentials 20.1 and requires the
+v20.1 hotfixes; it contains no overworld follower sprite sheets. It is therefore
+not installed into the v21.1 project. This was superseded after the user supplied
+the correct v2.5.1 Essentials 21.1 RAR. The visible return door still has no new
+in-game test in this update.
+
 ## Editor text layering and catalog navigation (plugin 0.9.14)
 
 Lowered the full-map overview below Essentials' message layer (z=99999), so

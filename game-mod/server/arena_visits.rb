@@ -237,26 +237,26 @@ module ArenaVisitsServer
   end
 
   def arena_scope(conn, map)
-    return :legacy unless [100, 101, 102, 103].include?(map) && conn.data[:arena_cap]
+    return :legacy unless [100, 101, 102].include?(map) && conn.data[:arena_cap]
     arena_room(conn)&.fetch(:token) || conn.data[:account_id]
   end
 
   def broadcast_zone(map, sender, frame)
-    return super unless [100, 101, 102, 103].include?(map)
+    return super unless [100, 101, 102].include?(map)
     @zones.fetch(map, []).each do |peer|
       @reactor.send_frame(peer, frame) if !peer.equal?(sender) && arena_scope(peer, map) == arena_scope(sender, map)
     end
   end
 
   def broadcast_legacy(map, sender, frame)
-    return super unless [100, 101, 102, 103].include?(map)
+    return super unless [100, 101, 102].include?(map)
     (@zone_legacy[map] || []).each do |peer|
       @reactor.send_frame(peer, frame) if !peer.equal?(sender) && arena_scope(peer, map) == arena_scope(sender, map)
     end
   end
 
   def send_snapshot(conn, map)
-    return super unless [100, 101, 102, 103].include?(map)
+    return super unless [100, 101, 102].include?(map)
     frames = @zones.fetch(map, []).filter_map do |peer|
       peer.data[:presence_body] if !peer.equal?(conn) && !peer.closing && arena_scope(conn, map) == arena_scope(peer, map)
     end
@@ -264,7 +264,21 @@ module ArenaVisitsServer
   end
 
   def presence_frame(env, account, map)
-    super.merge(arena_room: arena_scope(@online.fetch(account), map))
+    frame = super.merge(arena_room: arena_scope(@online.fetch(account), map))
+    return frame unless [100, 101, 102].include?(map)
+    species = env[:follower_species]
+    species = "" unless species.is_a?(String) && species.match?(/\A[A-Z0-9_]{1,32}\z/)
+    form = env[:follower_form].is_a?(Integer) ? env[:follower_form] : 0
+    gender = env[:follower_gender].is_a?(Integer) ? env[:follower_gender] : 0
+    form = 0 unless form.between?(0, 255)
+    gender = 0 unless gender.between?(0, 2)
+    frame.merge(
+      follower_species: species,
+      follower_form: form,
+      follower_gender: gender,
+      follower_shiny: env[:follower_shiny] == true,
+      follower_shadow: env[:follower_shadow] == true
+    )
   end
 
   def handle_addressed(sender, env, body, account)

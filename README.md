@@ -1,6 +1,36 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: v6 - custom update (plugin 0.9.14 in source)
+## Current snapshot: v6.2 — village prototype and packaging update (plugin 0.9.21 in source)
+
+The generated Arena Village is currently an **ugly functional placeholder**:
+it has a central stadium, houses, residents and an offline grass patch, but its
+layout and look need to be redesigned manually in RPG Maker XP. The stadium and
+house sprites are temporary matching-generation art. House events no longer
+transfer to Lappet Town. The arena return point is directly in front of the
+stadium; the playable route is village (101) → entrance (102) → arena (100).
+The obsolete generated Founders' Path map (103) is removed from the registry.
+Close all game windows and run `Play-Arena.bat` to regenerate the current
+placeholder maps and copy the sprites.
+
+**Next world steps:** rebuild the village cleanly in RPG Maker XP, then expand
+from it into an open world with routes, lore and wild-Pokémon encounters.
+
+For this local save, the next primary offline launch grants Zekrom and Dialga
+at level 100 directly to the party and saves automatically. Close all game
+windows, then run `Play-Arena.bat` once. The one-time grant marker is local-only
+and excluded from Git.
+
+The generated Arena Village has an interactable sign marking the arena building.
+The arena's south exit is now a visible door that returns to the entrance room.
+The lead able Pokémon now follows the player using Following Pokemon EX's
+walking sprites. Visitors receive a validated species/form descriptor and
+resolve the same sprite from their own local game assets. The required v21.1
+Following Pokemon EX RAR is third-party content and is not bundled or committed.
+Put the archive named `Following Pokemon EX.rar` at the project root before
+running `Play-Arena.bat` on a computer that has not prepared the plugin yet. The
+launcher installs the plugin and matching sprite assets into the private local
+Essentials project, and merges its animations without replacing the Essentials
+animation table. See `SETUP_STATUS.md` for the resource source and details.
 
 The user has confirmed multiplayer communication between two physical computers
 on the same network: the second computer installed the client from GitHub and
@@ -159,11 +189,12 @@ This section records the original 0.5.0 implementation. Arena customization is
 now accessed through the offline Arena Guide's **Custom mode** choice, not from
 the pause menu. The entrance attendant handles multiplayer visits.
 
-Offline: run `Launch-ArenaDemo.bat`, choose offline, New Game and the intro skip.
-Talk to the town keeper for 10 Poke Balls, then the nearby trail scout to enter
-Founders' Path. Catch Rattata, Caterpie or Spearow in the grass and return to the
-keeper for the story reward. The entrance PC uses normal Essentials storage.
-Talk to the Arena Guide offline to edit furniture and trainers before hosting.
+Offline: run `Play-Arena.bat`, choose offline, New Game and the intro skip.
+Talk to the village keeper for 10 Poke Balls, then catch Rattata, Caterpie or
+Spearow in the grass patch at the edge of Arena Village and return for the story
+reward. Wild encounters and rewards are offline-only. The entrance PC uses
+normal Essentials storage. Talk to the Arena Guide offline to edit furniture
+and trainers before hosting.
 
 For a local visit, stop the old server console with Ctrl+C and restart
 `Launch-Multiplayer-Server.bat`, then `Launch-Multiplayer-Clients.bat` with two
@@ -183,7 +214,7 @@ Readiness now detects an old server that lacks the visit extension.
 
 This is still loopback development for two accounts on this PC. Online arena
 storage, public hosting, remote internet setup and arbitrary furniture placement
-are outside this update. Founders' Path encounters and story rewards are offline.
+are outside this update. Village grass encounters and story rewards are offline.
 The generated foyer still uses temporary rock boundaries.
 
 Validation: 41 tests / 291 assertions passed, including real loopback protocol
@@ -194,8 +225,8 @@ access still stalls here. Details and manual playtest steps are in SETUP_STATUS.
 
 ## Initial world step (historical, superseded by 0.5.0)
 
-Offline quick start now enters Arena Town. Walk into the building immediately
-north of the spawn to reach the entrance room. Its PC opens Essentials' normal
+Offline quick start now enters Arena Village directly in front of the central
+stadium. Interact with its entrance to reach the arena foyer. Its PC opens Essentials' normal
 Pokemon storage; interact with the north door to enter the training arena.
 Walk through the arena's south opening to return, then through the entrance
 room's south opening to reach town. Custom mode and trainer recruitment are
@@ -204,8 +235,14 @@ available from the Arena Guide; there is no Arena Demo pause-menu shortcut.
 Close the game and run `Launch-ArenaDemo.bat` to install the source changes and
 generate maps 100-102. Keep a backup of private saves before testing. New Game
 with the intro skip is recommended because existing saves can retain old maps.
-The town reuses local Lappet Town artwork and one existing building as an arena
-placeholder; story, catching routes and a final visual design come later.
+The village map is freshly composed from local terrain tiles, without Lappet
+Town's building layout or transfer events. The stadium and village houses use
+matching generated sprites. The arena's south door returns through the foyer to
+the stadium frontage; house interactions remain local. The generated map 103
+catching route has been retired and its grass patch now sits inside the village.
+The first able Pokémon follows with its species, form, gender, shiny and shadow
+appearance. Configure a second computer with the same plugin archive before
+joining; the archive is deliberately excluded from GitHub.
 
 Authenticated quick start still enters the tested shared arena directly.
 Invitations, visitor restrictions and custom-layout synchronization are pending.

@@ -311,7 +311,7 @@ if defined?(PEMK::Dispatch)
           return ArenaDemo::Visits.receive(message)
         end
         if [:pos, :step, :spawn, :dir].include?(message[:type]) && ArenaDemo::Visits.ready? &&
-           [100, 101, 102, 103].include?(message[:map])
+           [100, 101, 102].include?(message[:map])
           return unless message[:arena_room] == ArenaDemo::Visits.scope
         end
         ArenaDemo::Visits.reset if message[:type] == PEMK::NetClient::DISCONNECTED

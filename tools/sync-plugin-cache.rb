@@ -12,33 +12,47 @@ unless File.file?(cache)
   puts 'No compiled plugin cache yet; the debug engine will compile installed plugins.'
   exit
 end
-version = File.read(File.join(plugin, 'meta.txt'))[/^Version\s*=\s*(\S+)/i, 1]
-abort 'Missing ArenaDemo version' unless version
 before = File.binread(cache)
 entries = Marshal.load(before)
 abort 'Unexpected plugin cache format' unless entries.is_a?(Array)
-matches = entries.select { |entry| entry.is_a?(Array) && entry[0] == 'Arena Demo' }
-if matches.empty?
-  puts 'ArenaDemo is not compiled yet; the debug engine will compile installed plugins.'
-  exit
+
+changed = false
+targets = [
+  ['Arena Demo', File.join(project, 'Plugins', 'ArenaDemo')],
+  ['Following Pokemon EX', File.join(project, 'Plugins', 'Following Pokemon EX')]
+]
+targets.each do |name, plugin_dir|
+  next unless File.file?(File.join(plugin_dir, 'meta.txt'))
+  version = File.read(File.join(plugin_dir, 'meta.txt'))[/^Version\s*=\s*(\S+)/i, 1]
+  abort "Missing #{name} version" unless version
+  files = Dir.glob('**/*.rb', base: plugin_dir).sort
+  abort "No installed #{name} scripts" if files.empty?
+  scripts = files.map do |relative|
+    [relative, Zlib::Deflate.deflate(File.binread(File.join(plugin_dir, relative)))]
+  end
+  matches = entries.select { |entry| entry.is_a?(Array) && entry[0] == name }
+  abort "Duplicate #{name} cache entries" if matches.length > 1
+  if matches.empty?
+    entries << [name, { :version => version }, scripts]
+    changed = true
+    puts "Added #{name} to the compiled plugin cache (#{files.length} scripts)."
+    next
+  end
+  entry = matches.first
+  abort "Unexpected #{name} cache metadata" unless entry[1].is_a?(Hash)
+  next if entry[1][:version] == version && entry[2] == scripts
+  entry[1][:version] = version
+  entry[2] = scripts
+  changed = true
+  puts "Updated #{name} in the compiled plugin cache (#{files.length} scripts)."
 end
-abort 'Duplicate ArenaDemo cache entries' unless matches.length == 1
-entry = matches.first
-abort 'Unexpected ArenaDemo cache metadata' unless entry[1].is_a?(Hash)
-files = Dir.glob('**/*.rb', base: plugin).sort
-abort 'No installed ArenaDemo scripts' if files.empty?
-scripts = files.map do |relative|
-  [relative, Zlib::Deflate.deflate(File.binread(File.join(plugin, relative)))]
-end
-changed = entry[1][:version] != version || entry[2] != scripts
+
 if changed
-  backup = cache + ".before-arena-#{version}.bak"
+  backup = cache + '.before-arena-plugin-sync.bak'
   begin
     File.open(backup, File::WRONLY | File::CREAT | File::EXCL | File::BINARY) { |file| file.write(before) }
   rescue Errno::EEXIST
   end
-  entry[1][:version] = version
-  entry[2] = scripts
   temporary = cache + '.arena.tmp'
   begin
     File.binwrite(temporary, Marshal.dump(entries))
@@ -46,6 +60,6 @@ if changed
   ensure
     File.delete(temporary) if File.file?(temporary)
   end
+else
+  puts 'Arena Demo and Following Pokemon EX compiled plugin cache entries are current.'
 end
-digest = Digest::SHA256.hexdigest(scripts.map { |name, code| name + Zlib::Inflate.inflate(code) }.join)
-puts "ArenaDemo #{version} cache verified (#{files.length} scripts, #{digest[0, 12]}#{changed ? ', updated' : ''})."

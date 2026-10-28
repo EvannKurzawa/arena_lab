@@ -1,5 +1,16 @@
 # Updates
 
+## v6.2 (2026-10-29)
+
+- Mark the generated Arena Village honestly as an ugly functional placeholder;
+  its final visual layout needs to be built manually in RPG Maker XP.
+- Set the next world milestone to a larger explorable area with routes, lore and
+  wild Pokémon beyond the village grass patch.
+- Refresh the Windows setup and updater EXEs for this source commit and publish
+  them as v6.2 release assets.
+- Fix village return routing, replace the old playable Lappet Town layout, and
+  use matching-generation temporary stadium/house sprites.
+
 ## v6 - custom update (2026-10-28)
 
 - Confirm the mode-based arena editor works in-game, including immediate ice

@@ -82,7 +82,18 @@ module ArenaDemo
       end
     end
     enter_town
-    pbMessage("Welcome to Arena Town! The building just north of you is your arena. Inside, the attendant handles visits and the PC opens Pokemon storage.")
+    pbMessage("Welcome to Arena Village! The marked village building is your arena. Inside, the attendant handles visits and the PC opens Pokemon storage.")
+  end
+
+  def prepare_village_return
+    return unless $PokemonGlobal.respond_to?(:pokecenterMapId=)
+    $PokemonGlobal.pokecenterMapId = ENTRANCE_MAP_ID
+    $PokemonGlobal.pokecenterX, $PokemonGlobal.pokecenterY = 7, 10
+    $PokemonGlobal.pokecenterDirection = 8
+  end
+
+  def arena_sign
+    pbMessage("ARENA\nThis village building is your training arena.")
   end
 
   def enter_town

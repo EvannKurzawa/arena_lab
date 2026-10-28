@@ -31,6 +31,10 @@ module ArenaDemo
     :ARENA_TRAINER_TACTICIAN => {
       :name => "Tactician", :sprite => "trainer_SUPERNERD", :type => :SUPERNERD,
       :team => [[:MAGNEMITE, 10], [:KOFFING, 10]]
+    },
+    :ARENA_TRAINER_LEADER => {
+      :name => "Giovanni", :sprite => "trainer_LEADER_Giovanni", :type => :ROCKETBOSS,
+      :team => [[:MEWTWO, 70], [:PERSIAN, 72], [:RHYPERIOR, 70], [:MEOWTH, 76]]
     }
   }.freeze
 
@@ -286,18 +290,19 @@ module ArenaDemo
   # serialized Table data in place. Player progression and arena edits live in
   # Game_Player/PokemonGlobal, so retain those and the player's current tile.
   def reload_saved_arena_map_from_data
-    return unless $game_map && $game_map.map_id == MAP_ID && $game_player
+    return unless $game_map && [MAP_ID, TOWN_MAP_ID].include?($game_map.map_id) && $game_player
     return if instance_variable_get(:@reloading_saved_arena_map)
     instance_variable_set(:@reloading_saved_arena_map, true)
     map = $game_map
+    map_id = map.map_id
     position = [$game_player.x, $game_player.y, $game_player.direction]
-    map.setup(MAP_ID)
+    map.setup(map_id)
     $game_map = map
     $game_player.moveto(position[0], position[1])
     $game_player.direction = position[2]
-    recover_centered_arena_state(map)
+    recover_centered_arena_state(map) if map_id == MAP_ID
     $game_player.center($game_player.x, $game_player.y)
-    write_floor_map_diagnostic(map)
+    write_floor_map_diagnostic(map) if map_id == MAP_ID
   ensure
     instance_variable_set(:@reloading_saved_arena_map, false)
   end

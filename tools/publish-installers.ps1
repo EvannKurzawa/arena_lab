@@ -1,4 +1,4 @@
-param([string]$Tag = 'v3.1')
+param([string]$Tag = 'v6.2')
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $repo = 'EvannKurzawa/arena_lab'
@@ -7,7 +7,7 @@ $assets = @(
     (Join-Path (Split-Path $PSScriptRoot -Parent) 'dist/ArenaLab-Update.exe')
 )
 foreach ($asset in $assets) { if (!(Test-Path -LiteralPath $asset)) { throw "Build package missing: $asset. Run tools/package-deliverables.ps1 first." } }
-if ($Tag -notmatch '^v[0-9]+\.[0-9]+(?:\.[0-9]+)?$') { throw 'Use a new semantic version tag such as v3.1.' }
+if ($Tag -notmatch '^v[0-9]+\.[0-9]+(?:\.[0-9]+)?$') { throw 'Use a semantic version tag such as v6.2.' }
 
 # Reuse the user's existing Git credential without displaying or writing it.
 $credentialText = "protocol=https`nhost=github.com`n`n" | & git credential fill
@@ -34,16 +34,16 @@ try {
 } catch {
     if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw }
     $releaseBody = @'
-Windows client bootstrap and source updater for Arena Lab v3.
+Windows client bootstrap and source updater for Arena Lab v6.2.
 
 ArenaLab-Setup.exe installs the client from pinned public source/runtime dependencies and asks for the player's own Essentials v21.1 game folder. It does not contain Pokémon-derived assets or provision a fresh PostgreSQL host.
 
-ArenaLab-Update.exe updates Arena Lab source files from GitHub main while preserving local game data. Close game windows before running it.
+ArenaLab-Update.exe updates Arena Lab source files from GitHub main while preserving local game data. Close game windows before running it. The generated Arena Village is a rough placeholder scheduled for manual RPG Maker XP redesign; an open world with routes and wild PokÃ©mon is later work.
 '@
     $payload = @{
         tag_name = $Tag
         target_commitish = 'main'
-        name = "$Tag - Windows setup and updater"
+        name = "$Tag - Arena Lab setup and updater"
         body = $releaseBody
         draft = $false
         prerelease = $false

@@ -1,6 +1,6 @@
 # Arena Demo
 
-Repository snapshot **v6 - custom update**, plugin **0.9.14 in source**: the previous manual-IP
+Repository snapshot **v6.2**, plugin **0.9.21 in source**: the previous manual-IP
 arena visit was confirmed between two physical computers. The updated automatic
 discovery flow still needs its two-computer retest. Follow the v4 test guidance
 in `SETUP_STATUS.md`. The first offline custom mode is implemented; the user
@@ -26,6 +26,31 @@ Plugin 0.9.8 writes live map/tile-renderer data to
 work but direct loads of an arena save are black. Plugin 0.9.9 reloads Map 100
 from generated data on save load while preserving position and saved edits.
 Plugin 0.9.10 restores the centered 25x25 floor and void outside it.
+## Current world generation (plugin 0.9.21)
+
+`Play-Arena.bat` generates three connected playable maps: Arena Village
+(101), Arena Entrance (102), and Arena (100). The current generated 32x24
+village is an ugly functional placeholder with a centered stadium, three houses,
+two residents, trees, paths and an offline grass patch. It needs a full manual
+visual redesign in RPG Maker XP; the present layout and house art are temporary.
+The playable path is 101 → 102 → 100; leaving the arena returns through the
+entrance to the tile in front of the stadium. House events have no map transfers.
+The old generated Founders' Path map (103) is unregistered and removed when the
+generator finds that exact map name. Upstream Essentials maps remain in the
+private base project for compatibility, but Arena Lab does not link to them.
+
+The stadium and houses use new matching, four-column RPG Maker character sheets
+in `game-mod/Graphics/Characters/`. The map generator copies them into the local
+Essentials project. Close the game and run `Play-Arena.bat` to rebuild maps and
+install the sprites. This source update has not yet had a GUI playtest.
+
+## Next world milestones
+
+1. Redesign Arena Village manually in RPG Maker XP so its tiles, buildings,
+   paths and event placement look like a cohesive finished map.
+2. Extend exploration into an open world with routes, story/lore and wild
+   Pokémon encounters beyond the village's small temporary grass patch.
+
 The Bag keeps eight tabs: Mail and Battle Items are merged into Items, with
 Key Items retained before Arena Furniture and Recruited Trainers. Existing Bag
 saves migrate when opened.
@@ -116,13 +141,24 @@ SETUP_STATUS.md because private game-data access stalls in this session.
 
 The notes below are historical snapshots.
 
-2026-10-28 world-path step: generator map 101 is an offline town using local
-Lappet Town tiles with tutorial events removed. Its original house doorway
+2026-10-28 world-path step: generator map 101 is an offline village using local
+Lappet Town tiles with tutorial events removed. An arena sign identifies the
+building used as the player's arena. Its doorway
 leads to a new compact entrance room (102), containing an Essentials storage PC
 and a north door into the existing arena (100). South exits lead back through
 the entrance room to town. The foyer uses local indoor floor/PC artwork with
 temporary rock boundaries. Quick start enters town offline and retains direct
 arena entry online. Management remains in the arena's existing menu/NPC for now.
+
+The village arena building now uses an original stadium-style facade sprite
+instead of its reused house exterior. Its interaction still leads to the same
+foyer. The arena's south return tile displays a visible door sprite copied from
+the foyer door. Plugin 0.9.17 integrates Following Pokemon EX 2.5.1 for Essentials
+21.1: the first able party Pokémon walks behind the player, and multiplayer
+presence relays its appearance so visitors resolve the matching sprite locally.
+Place the separately downloaded `Following Pokemon EX.rar` at the repo root;
+the launcher installs its plugin, sprites and safely merged animations into the
+private Essentials project. The third-party archive is excluded from GitHub.
 
 Use the root launcher with the game closed to install and generate the maps.
 New Game plus intro skip avoids cached maps in existing saves. The generation
