@@ -48,7 +48,8 @@ ArenaLab-Update.exe updates Arena Lab source files from GitHub main while preser
         draft = $false
         prerelease = $false
     } | ConvertTo-Json
-    $release = Invoke-RestMethod -Method Post -Uri "$api/releases" -Headers $headers -ContentType 'application/json' -Body $payload
+    $payloadBytes = [Text.Encoding]::UTF8.GetBytes($payload)
+    $release = Invoke-RestMethod -Method Post -Uri "$api/releases" -Headers $headers -ContentType 'application/json; charset=utf-8' -Body $payloadBytes
 }
 try {
     foreach ($asset in $assets) {

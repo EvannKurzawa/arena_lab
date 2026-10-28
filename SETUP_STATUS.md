@@ -11,11 +11,13 @@ gameplay milestone after that is an open world extending beyond the village, wit
 exploration routes, lore/story and wild-Pokémon encounters. The current small
 village grass patch is only a temporary proof of catching.
 
-The Windows installer sources are kept in `tools/deliverables/`. Build
-`ArenaLab-Setup.exe` and `ArenaLab-Update.exe` with
-`tools/package-deliverables.ps1` after committing, so the setup EXE pins the
-new commit. The EXEs are release assets from ignored `dist/`, not repository
-files. The release publishing script targets GitHub tag `v6.2`.
+The Windows installer sources are kept in `tools/deliverables/`. Built
+`ArenaLab-Setup.exe` and `ArenaLab-Update.exe` for source commit
+`435d5c0c8c429282714e2201a48a074e5b903b3c` and uploaded both to the [v6.2
+GitHub release](https://github.com/EvannKurzawa/arena_lab/releases/tag/v6.2).
+The EXEs in ignored `dist/` are release assets, not repository files. The first
+upload attempt exposed a Windows PowerShell JSON encoding issue; the publisher
+now sends UTF-8 request bytes.
 
 Replaced the generated Lappet Town layout with a new 32x24 Arena Village map.
 It contains a central stadium, three matching house sprites, residents, paths,
