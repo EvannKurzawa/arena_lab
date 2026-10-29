@@ -64,6 +64,15 @@ try {
     New-Item -ItemType Directory -Path $gameRoot -Force | Out-Null
     Get-ChildItem -LiteralPath $sourceGame -Force | Copy-Item -Destination $gameRoot -Recurse -Force
 
+    $followerPicker = New-Object Windows.Forms.OpenFileDialog
+    $followerPicker.Title = 'Optional: select your separately downloaded Following Pokemon EX v2.5.1 archive'
+    $followerPicker.Filter = 'RAR archives (*.rar)|*.rar|All files (*.*)|*.*'
+    $followerPicker.CheckFileExists = $true
+    $followerChoice = [Windows.Forms.MessageBox]::Show("Do you have the Following Pokemon EX v2.5.1 archive for Essentials 21.1?`n`nChoose Yes to select it and enable walking followers. Choose No to continue without follower sprites.", 'Optional follower sprites', [Windows.Forms.MessageBoxButtons]::YesNo, [Windows.Forms.MessageBoxIcon]::Question)
+    if ($followerChoice -eq [Windows.Forms.DialogResult]::Yes -and $followerPicker.ShowDialog() -eq [Windows.Forms.DialogResult]::OK) {
+        Copy-Item -LiteralPath $followerPicker.FileName -Destination (Join-Path $root 'Following Pokemon EX.rar') -Force
+    }
+
     $pemkStage = Join-Path $work 'pemk-source'
     Expand-Archive -LiteralPath $pemkZip -DestinationPath $pemkStage
     $pemkFolder = Get-ChildItem -LiteralPath $pemkStage -Directory | Select-Object -First 1

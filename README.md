@@ -1,6 +1,6 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: v6.2.2 — LAN discovery fix (plugin 0.9.23 in source)
+## Current snapshot: v6.2.3 — arena visit, music and attendant fixes (plugin 0.9.24 in source)
 
 The generated Arena Village is currently an **ugly functional placeholder**:
 it has a central stadium, houses, residents and an offline grass patch, but its
@@ -29,6 +29,10 @@ Lab skips follower visuals and continues launching; multiplayer remains
 available. Both players need the compatible add-on to see each other's
 following Pokémon. To enable followers, place the Essentials 21.1 archive named
 `Following Pokemon EX.rar` at the project root before running `Play-Arena.bat`.
+The Windows Setup EXE also offers to select a separately downloaded archive
+during installation. The archive is not included in the public installer.
+The Windows Setup EXE also offers to select a separately downloaded archive
+during installation. The archive is not included in the public installer.
 The launcher installs it and merges animations without replacing Essentials'
 animation table. See `SETUP_STATUS.md` for details.
 

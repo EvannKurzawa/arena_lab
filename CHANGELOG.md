@@ -1,5 +1,16 @@
 # Updates
 
+## v6.2.3 (2026-10-29)
+
+- Fix online visits bouncing back to the entrance: server position checks now
+  use the centered 25x25 arena coordinates on the 100x100 map, including the
+  correct entry tile and placed-obstacle coordinates.
+- Explicitly enable the inherited map music on the generated village, entrance
+  and arena maps, and restore the entrance attendant if an event left it hidden.
+- Refresh the setup and update executables. Following Pokemon EX remains a
+  separately supplied local archive because its resource page does not grant
+  redistribution rights; setup can now select that archive during install.
+
 ## v6.2.2 (2026-10-29)
 
 - Keep LAN arena discovery listening when Windows reports a UDP connection reset

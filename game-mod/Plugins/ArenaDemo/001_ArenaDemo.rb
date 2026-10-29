@@ -145,6 +145,20 @@ module ArenaDemo
     end
   end
 
+  # The entrance attendant is a map event rather than save data. Rebuild its
+  # visible state after map reloads in case an event page/plugin left it erased.
+  def restore_entrance_attendant(force = false)
+    return unless $game_map && $game_map.map_id == ENTRANCE_MAP_ID
+    event = $game_map.events[4]
+    return unless event
+    needs_restore = force || event.instance_variable_get(:@erased) ||
+                    (event.respond_to?(:transparent) && event.transparent)
+    return unless needs_restore
+    event.refresh if event.respond_to?(:refresh)
+    event.instance_variable_set(:@erased, false)
+    event.transparent = false if event.respond_to?(:transparent=)
+  end
+
   def refresh_objects
     return if !$game_map || $game_map.map_id != MAP_ID
     # A visit uses the host's frozen snapshot; personal saves stay untouched.
@@ -319,5 +333,10 @@ class Game_Map
   def setup(map_id)
     arena_demo_setup(map_id)
     ArenaDemo.refresh_objects if map_id == ArenaDemo::MAP_ID
+    ArenaDemo.restore_entrance_attendant(true) if map_id == ArenaDemo::ENTRANCE_MAP_ID
   end
 end
+
+EventHandlers.add(:on_frame_update, :arena_demo_entrance_attendant_visibility, proc {
+  ArenaDemo.restore_entrance_attendant if $game_map && $game_map.map_id == ArenaDemo::ENTRANCE_MAP_ID
+})

@@ -1,5 +1,33 @@
 # Setup and implementation status
 
+## Arena visit bounce, map music and entrance attendant (v6.2.3)
+
+Fixed the online arena position audit to match the current 100x100 arena map
+with its centered 25x25 floor. The server previously validated the first arena
+position using obsolete small-map coordinates, rejected the host/visitor's
+first presence frame, then corrected it back to the entrance. Object collision
+coordinates and the arena entry transition now use the centered-map offset.
+
+Generated village, entrance and arena maps now explicitly enable autoplay for
+the music inherited from their Essentials map templates. The entrance
+attendant is restored after the entrance map reloads and if an event left it
+erased or transparent. These fixes passed Ruby syntax checks; the current GUI
+session was not available for a game/audio/multiplayer playtest.
+
+The Following Pokemon EX archive at the official resource page identifies
+Essentials 21.1 compatibility and requests contributor credit, but the page
+does not state redistribution rights. It therefore remains out of the public
+Setup EXE and GitHub assets. The installer still supports a user-provided local
+archive. Both players need their own compatible installation to see followers.
+Official resource: https://eeveeexpo.com/resources/516/.
+
+Windows Setup now offers a picker for a separately downloaded follower archive
+and installs it into the selected Essentials project; choosing No continues
+without follower visuals.
+
+The setup and updater executables are to be rebuilt and published against the
+commit containing these fixes. No two-computer retest has been performed yet.
+
 ## Cross-computer LAN discovery and follower visibility (v6.2.2)
 
 The user reported that same-PC multiplayer worked, but two-computer discovery

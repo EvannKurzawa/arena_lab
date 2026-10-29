@@ -163,6 +163,14 @@ start = [field_x + 12, field_y + 16, 8]
 File.binwrite(START_FILE, start.join(","))
 
 map = Marshal.load(File.binread(SOURCE_MAP))
+# These maps are generated from Essentials map templates. Preserve each
+# template's BGM and explicitly enable map autoplay so transfers start it.
+def enable_map_music(map)
+  bgm = map.instance_variable_get(:@bgm)
+  has_bgm = bgm && bgm.instance_variable_get(:@name).to_s != ""
+  map.instance_variable_set(:@autoplay_bgm, !!has_bgm)
+end
+enable_map_music(map)
 # Reuse a real, fully passable ground stack from the installed tileset, but
 # construct a new arena rather than copying buildings or village events.
 tilesets = Marshal.load(File.binread(File.join(DATA_DIR, "Tilesets.rxdata")))
@@ -236,6 +244,7 @@ end
 # Reuse the local town's artwork, replacing tutorial/story events with a
 # deliberately small offline hub. Locate its real house door and exit spawn.
 town = Marshal.load(File.binread(SOURCE_MAP))
+enable_map_music(town)
 home = Marshal.load(File.binread(HOME_MAP))
 town_start = transfer_point(home, 2)
 abort "Cannot locate the house's town exit" unless town_start
@@ -349,6 +358,7 @@ abort "No walkable tall-grass stack found in installed maps with the town tilese
 # Make a compact foyer from real indoor floor and PC tiles. No asset copies
 # enter this repository; all generated maps stay in the private game project.
 interior = Marshal.load(File.binread(File.join(DATA_DIR, "Map009.rxdata")))
+enable_map_music(interior)
 interior_source = interior.instance_variable_get(:@data)
 indoor_tileset = tilesets[interior.instance_variable_get(:@tileset_id)]
 indoor_passages = indoor_tileset.instance_variable_get(:@passages)
@@ -394,6 +404,7 @@ foyer_events = {
   4 => event(4, "Multiplayer attendant", 4, 5, "trainer_SUPERNERD", "ArenaDemo.multiplayer_attendant"),
   5 => event(5, "PC housing", 10, 3, "")
 }
+foyer_events[4].instance_variable_get(:@pages).first.instance_variable_set(:@always_on_top, true)
 # Reuse a real door graphic so the north interaction is visible.
 foyer_events[2].instance_variable_get(:@pages).first.instance_variable_set(:@graphic,
   Marshal.load(Marshal.dump(foyer_door_graphic)))

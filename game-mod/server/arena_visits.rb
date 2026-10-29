@@ -4,6 +4,11 @@ require 'securerandom'
 # Reactor-owned, temporary rooms. Loaded after PEMK by our launcher.
 module ArenaVisitsServer
   MAPS = [100, 102].freeze
+  ARENA_OFFSET = (100 - 25) / 2
+  ARENA_SIZE = 25
+  ARENA_START = [ARENA_OFFSET + 12, ARENA_OFFSET + 16].freeze
+  ARENA_GUIDE = [ARENA_OFFSET + 10, ARENA_OFFSET + 16].freeze
+  ARENA_TRAINER = [ARENA_OFFSET + 12, ARENA_OFFSET + 4].freeze
   POSITIONS = [
     [[5, 6], [5, 9], [5, 12], [19, 6], [19, 9], [19, 12]],
     [[8, 6], [16, 8], [8, 10], [16, 12], [8, 14], [16, 14]],
@@ -297,9 +302,13 @@ module ArenaVisitsServer
     map, x, y = env.values_at(:map, :x, :y)
     valid = MAPS.include?(map) && x.is_a?(Integer) && y.is_a?(Integer)
     valid &&= if map == 100
-                (((1..23).include?(x) && (1..17).include?(y)) || [x, y] == [12, 18]) &&
-                  ![[10, 16], [12, 4]].include?([x, y]) &&
-                  room[:objects].none? { |id| POSITIONS[room[:layout]][id] == [x, y] }
+                x.between?(ARENA_OFFSET, ARENA_OFFSET + ARENA_SIZE - 1) &&
+                  y.between?(ARENA_OFFSET, ARENA_OFFSET + ARENA_SIZE - 1) &&
+                  ![ARENA_GUIDE, ARENA_TRAINER].include?([x, y]) &&
+                  room[:objects].none? do |id|
+                    relative = POSITIONS[room[:layout]][id]
+                    [relative[0] + ARENA_OFFSET, relative[1] + ARENA_OFFSET] == [x, y]
+                  end
               else
                 (1..13).include?(x) && (1..11).include?(y) &&
                   ![[7, 2], [10, 3], [10, 4], [4, 5]].include?([x, y])
@@ -309,7 +318,7 @@ module ArenaVisitsServer
     elsif (previous = conn.data[:last_pos]) && previous[0] == map
       valid &&= (previous[1] - x).abs + (previous[2] - y).abs <= 1
     elsif previous && MAPS.include?(previous[0])
-      valid &&= (map == 100 && [x, y] == [12, 16]) || (map == 102 && [x, y] == [7, 3])
+      valid &&= (map == 100 && [x, y] == ARENA_START) || (map == 102 && [x, y] == [7, 3])
     end
     unless valid
       point = conn.data[:last_pos]
