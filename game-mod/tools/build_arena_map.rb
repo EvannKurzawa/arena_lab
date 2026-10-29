@@ -137,6 +137,30 @@ def follower_anchor
   anchor
 end
 
+def resolve_arena_sign_graphic(source_map)
+  # Essentials signposts are commonly tiles, not an "Object sign" charset.
+  source_map.instance_variable_get(:@events).each_value do |candidate|
+    next unless candidate.instance_variable_get(:@name).to_s.match?(/sign/i)
+    x, y = candidate.instance_variable_get(:@x), candidate.instance_variable_get(:@y)
+    data = source_map.instance_variable_get(:@data)
+    tile = [2, 1].map { |layer| data[x, y, layer] }.find { |id| id.to_i >= 384 }
+    return ['', tile] if tile
+  end
+  sign = Dir.glob(File.join(PROJECT, 'Graphics', 'Characters', '*')).sort.find do |path|
+    File.file?(path) && File.basename(path).match?(/sign.*\.(png|bmp)\z/i)
+  end
+  return [File.basename(sign, File.extname(sign)), 0] if sign
+  # A readable stone marker uses the same installed asset as arena boundaries.
+  ['Object boulder', 0]
+end
+
+def arena_sign_event(id, x, y, source_map)
+  character, tile = resolve_arena_sign_graphic(source_map)
+  sign = event(id, 'Arena sign', x, y, character, 'ArenaDemo.arena_sign')
+  sign.instance_variable_get(:@pages).first.instance_variable_get(:@graphic).instance_variable_set(:@tile_id, tile)
+  sign
+end
+
 # Find the same Lappet Town tile used by the house's exit door, rather than
 # guessing a coordinate or using the house map as the arena base.
 def transfer_point(map, target_map_id)
@@ -326,7 +350,7 @@ sign_site = sites.reject do |point|
 end.min_by { |x, y| (x - arena_site[0]).abs + (y - arena_site[1]).abs }
 town_events[5] = arena_building
 if sign_site
-  town_events[4] = event(4, "Arena sign", *sign_site, "Object sign", "ArenaDemo.arena_sign")
+  town_events[4] = arena_sign_event(4, *sign_site, Marshal.load(File.binread(SOURCE_MAP)))
 end
 town_events[900] = follower_anchor
 File.binwrite(File.join(DATA_DIR, "ArenaDemoTownStart.txt"), town_start.join(","))
@@ -472,7 +496,7 @@ town_events[2] = event(2, "Grassland scout", 25, 14, "trainer_YOUNGSTER", "Arena
 arena_building = event(3, "Village arena entrance", 16, 11, "$ArenaFacade", "ArenaDemo.enter_entrance")
 arena_building.instance_variable_get(:@pages).first.instance_variable_set(:@always_on_top, true)
 town_events[3] = arena_building
-town_events[4] = event(4, "Arena sign", 19, 12, "Object sign", "ArenaDemo.arena_sign")
+town_events[4] = arena_sign_event(4, 19, 12, town_source)
 town_events[5] = event(5, "West village house", 7, 7, "$VillageHouse", "ArenaDemo.village_house")
 town_events[6] = event(6, "East village house", 25, 7, "$VillageHouse", "ArenaDemo.village_house")
 town_events[7] = event(7, "South village house", 7, 18, "$VillageHouse", "ArenaDemo.village_house")

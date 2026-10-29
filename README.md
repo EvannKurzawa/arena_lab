@@ -1,4 +1,10 @@
-Source update (plugin 0.9.31): discovery skips native controls when the game's
+Source update (plugin 0.9.32): visible wild characters expose the map identifier
+required by Essentials' grass animation callbacks. Village signs reuse native
+sign tiles or an installed sign charset, with a stone marker fallback, instead
+of assuming `Graphics/Characters/Object sign` exists. Update both computers and
+relaunch Play-Arena.bat to regenerate the village map.
+
+Previous update (plugin 0.9.31): discovery skips native controls when the game's
 Fiddle module lacks Windows error setters. Network followers have explicit player
 ownership and rebuild after PvP; local followers are not recreated mid-battle.
 Offline village grass now has visible roaming wild Pokemon. Walk into one or

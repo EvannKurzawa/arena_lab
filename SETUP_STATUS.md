@@ -1,5 +1,34 @@
 # Setup and implementation status
 
+## Visible wild grass callback and missing village sign (0.9.32)
+
+2026-10-29. Essentials/PEMK pins and visit protocol 3 unchanged.
+
+Essentials' grass_rustling callback invokes event.map_id. Game_Character exposes
+map but lacks map_id, and ArenaVisibleWildCharacter inherited that gap. Added
+map_id to its shared ArenaRemotePokemon base, returning map.map_id; this covers
+remote followers too. The regression executes the actual upstream grass callback
+with a visible wild character, rather than only a replacement movement model.
+
+Two map-generator sign paths assumed Graphics/Characters/Object sign existed.
+They now reuse a source-map sign tile or an installed sign-named charset. With
+neither available, the existing boundary boulder becomes a readable stone marker.
+The sign interaction/text remain. No new assets are downloaded or redistributed.
+
+Executed with bundled Ruby 3.3.12: 25 tests / 155 assertions passed across
+remote_follower_test.rb, new sign_graphic_test.rb, visible_wild_test.rb,
+following_ownership_test.rb and lan_discovery_retry_test.rb. Covers actual grass
+callback execution, native sign tiles, absent sign charsets and installed local
+sign charsets. No game GUI, private-map generation or two-computer test executed.
+
+Changed: 011_ArenaFollowingIntegration.rb, meta.txt, build_arena_map.rb,
+remote_follower_test.rb, new sign_graphic_test.rb, README and this report.
+No private saves/assets edited. After push, close both games, update both PCs
+with the existing updater and relaunch Play-Arena.bat to regenerate maps. Walk
+outside, interact with the sign, observe roaming Pokemon in grass and complete a
+visible encounter, checking for neither reported exception. Saved village maps
+are refreshed from generated data by the existing load recovery.
+
 ## Partial Fiddle, PvP follower ownership and visible village encounters (0.9.31)
 
 2026-10-29. Essentials/PEMK pins and arena visit protocol 3 remain unchanged.

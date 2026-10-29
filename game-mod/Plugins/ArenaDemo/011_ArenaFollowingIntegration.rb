@@ -206,6 +206,8 @@ if defined?(PEMK::BattleLauncher)
 end
 
 class ArenaRemotePokemon < Game_Character
+  # Essentials' grass step callbacks use map_id as well as map.map_id.
+  def map_id; map.map_id; end
   attr_reader :owner_id
   def bind_owner(id); @owner_id = id; @id = -id; end
   def initialize(leader, charset)
