@@ -1,6 +1,6 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: v6.2.5 — visit customization sync and follower fix (plugin 0.9.25 in source)
+## Current snapshot: v6.2.6 — reliable host-service protocol restart (plugin 0.9.25 in source)
 
 The generated Arena Village is currently an **ugly functional placeholder**:
 it has a central stadium, houses, residents and an offline grass patch, but its

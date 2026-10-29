@@ -1,5 +1,11 @@
 # Updates
 
+## v6.2.6 (2026-10-29)
+
+- Bump the host-service arena capability probe to protocol 3. An idle older
+  Arena Lab service is now detected and safely restarted after updating, instead
+  of being mistaken for a current server.
+
 ## v6.2.5 (2026-10-29)
 
 - Prevent remote follower movement from calling a nonexistent Essentials event
