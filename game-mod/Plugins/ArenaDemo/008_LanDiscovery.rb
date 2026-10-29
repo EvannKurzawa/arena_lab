@@ -29,7 +29,7 @@ module ArenaDemo
       end
     end
 
-    def discover(timeout = 2.5)
+    def discover(timeout = 5.0)
       socket = UDPSocket.new(Socket::AF_INET)
       socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_BROADCAST, 1)
       socket.bind('0.0.0.0', 0)
@@ -44,13 +44,25 @@ module ArenaDemo
         # The limited broadcast above remains available if interface enumeration
         # isn't implemented by this Ruby build.
       end
-      targets.uniq.each { |address| socket.send(PROBE, 0, address, PORT) }
+      targets.uniq!
       deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
+      next_probe = 0
       hosts = {}
-      local_name = Socket.gethostname.to_s.gsub(/[^A-Za-z0-9_.-]/, '_')[0, 80]
+      local_addresses = Socket.ip_address_list.select(&:ipv4?).map(&:ip_address)
       while (remaining = deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)) > 0
-        readable = IO.select([socket], nil, nil, remaining)
-        break unless readable
+        now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        if now >= next_probe
+          targets.each do |address|
+            begin
+              socket.send(PROBE, 0, address, PORT)
+            rescue SystemCallError
+              # A disconnected/VPN interface must not prevent other probes.
+            end
+          end
+          next_probe = now + 0.5
+        end
+        readable = IO.select([socket], nil, nil, [remaining, next_probe - now].min)
+        next unless readable
         begin
           data, sender = socket.recvfrom(256)
         rescue Errno::ECONNRESET, Errno::ECONNREFUSED
@@ -61,9 +73,9 @@ module ArenaDemo
         end
         prefix, name = data.split("\t", 2)
         next unless prefix == PREFIX && name && name.match?(/\A[A-Za-z0-9_.-]{1,80}\z/)
-        address = name == local_name ? '127.0.0.1' : sender[3]
-        hosts[name] ||= { :name => name, :address => address }
-        hosts[name][:address] = address if address == '127.0.0.1'
+        # Hostnames are labels, not identities: two computers can share one.
+        address = local_addresses.include?(sender[3]) ? '127.0.0.1' : sender[3]
+        hosts[address] ||= { :name => name, :address => address }
       end
       hosts.values.sort_by { |host| host[:name].downcase }
     ensure

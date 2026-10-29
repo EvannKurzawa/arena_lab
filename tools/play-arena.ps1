@@ -25,7 +25,9 @@ function Start-ArenaService {
             '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSScriptRoot/local-multiplayer.ps1`"",
             '-Action', 'Server', '-ListenAddress', '0.0.0.0', '-Managed'
         ) -RedirectStandardOutput "$runtimeRoot/desktop-server-$PID.stdout.log" -RedirectStandardError "$runtimeRoot/desktop-server-$PID.stderr.log" | Out-Null
-        & $rubyPath --disable-gems "$PSScriptRoot/ping_multiplayer.rb" 15 arena lan
+        # Cold database startup, dependency checks and migrations can exceed
+        # fifteen seconds. Keep one startup attempt under the service mutex.
+        & $rubyPath --disable-gems "$PSScriptRoot/ping_multiplayer.rb" 90 arena lan
         if ($LASTEXITCODE -ne 0) { throw "Host service failed to become ready. See desktop-server-$PID.stderr.log and pemk-server.log under tools/runtime." }
     } finally {
         if ($held) { $serviceMutex.ReleaseMutex() }

@@ -1,5 +1,63 @@
 # Setup and implementation status
 
+## Multiplayer retry and follower fixes (2026-10-29, plugin 0.9.26)
+
+Source only; not yet published in an installer. Upstream pins and visit protocol
+3 remain unchanged. The published v6.2.6 installers do not contain these fixes.
+The existing ArenaLab-Update.exe fetches GitHub main at execution time, so once
+these changes are pushed, both computers can use the v6.2.6 updater to obtain
+them without a new installer release. Close both games, run the updater on each
+computer, then launch Play-Arena.bat to install plugin 0.9.26 locally.
+
+Essentials Game_Character#move_generic calls check_event_trigger_touch on blocked
+movement. ArenaRemotePokemon now implements that hook, returning false, alongside
+the existing turning hook. Both callback call sites in upstream were inspected.
+
+The host readiness wait increases from 15 to 90 seconds: database startup alone
+can consume 15 seconds before checks, migrations and server loading. The game's
+request wait increases from 45 to 150 seconds to include service mutex acquisition
+and probes. This addresses a premature timeout consistent with the report; logs
+from the affected computer were unavailable to prove its cold-start timing.
+
+LAN discovery retries probes every 0.5 seconds over five seconds. Per-interface
+send failures no longer abort the search. Local addresses are identified by IP
+instead of hostname, and different hosts sharing a name are kept separate.
+
+Changed: README, this report, plugin metadata, 007_ConnectionMode.rb,
+008_LanDiscovery.rb, 011_ArenaFollowingIntegration.rb, tools/play-arena.ps1;
+added remote_follower_test.rb and lan_discovery_retry_test.rb.
+
+Executed using bundled Ruby 3.3.12:
+
+- `ruby game-mod/test/remote_follower_test.rb`: 1 test, 4 assertions passed using
+  actual upstream blocked movement in all four directions.
+- `ruby game-mod/test/lan_discovery_retry_test.rb`: 1 test, 1 assertion passed
+  using real UDP with a responder deliberately ignoring the first probe.
+- `ruby game-mod/test/multiplayer_fixes_test.rb`: 5 tests, 16 assertions passed.
+- `ruby tools/test_readiness.rb`: 1 test, 1 assertion passed with upstream reactor.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File
+  game-mod/test/server_replacement_test.ps1`: 11 checks passed.
+- Same PowerShell invocation for desktop_launcher_test.ps1: 13 checks passed.
+  Initial invocations without Bypass were blocked by execution policy.
+
+Broader attempted suites are NOT passing: arena_visits_server_test.rb has stale
+protocol-2, pre-snapshot and small-map fixtures (5 failures, 1 error).
+arena_visits_client_test.rb and arena_customization_test.rb fail loading because
+their MenuHandlers stub lacks remove. live_connection_test.rb has 2 fixture
+errors (missing LanDiscovery and request_pending?). multiplayer_arena_test.rb
+and login_connection_test.rb require DATABASE_URL and did not start. No production
+database was used for testing.
+
+No game GUI, real cold host startup, authenticated clients or two-computer test
+was executed. A zero-bug multiplayer claim is not supported. Manual steps:
+install this updated source on both computers (or publish fresh installers),
+close both games and relaunch Play-Arena.bat. Host once with the service stopped;
+request a visit once from the other PC. Walk players/followers into obstacles
+and boundaries, finish a visit, disconnect/reconnect and check saved arenas.
+If startup still fails, retain tools/runtime/desktop-server stderr and
+pemk-server.log for diagnosis. Successful protocol/socket tests do not establish
+successful in-game multiplayer.
+
 ## Visitor crash, guide collision and custom arena synchronization (v6.2.6)
 
 The reported follower exception occurred because ArenaRemotePokemon inherited

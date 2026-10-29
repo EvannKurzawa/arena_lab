@@ -1,6 +1,18 @@
+Source update: remote follower blocked-movement callbacks are fixed. Cold host
+startup now allows 90 seconds; LAN discovery retries every half-second for five
+seconds. These changes are not in the published v6.2.6 installers. See
+SETUP_STATUS.md for validation limits.
+
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: v6.2.6 — reliable host-service protocol restart (plugin 0.9.25 in source)
+## Current snapshot: multiplayer retry fixes (plugin 0.9.26 in source)
+
+Source now handles the remote follower's blocked-movement touch callback, allows
+90 seconds for cold host startup (150 seconds for the game's full request), and
+retries LAN discovery every half-second during a five-second search. A failed
+network interface no longer cancels probes to the others. These fixes are not
+included in the previously published v6.2.6 installers. See `SETUP_STATUS.md`
+for the checks and remaining two-computer verification.
 
 The generated Arena Village is currently an **ugly functional placeholder**:
 it has a central stadium, houses, residents and an offline grass patch, but its

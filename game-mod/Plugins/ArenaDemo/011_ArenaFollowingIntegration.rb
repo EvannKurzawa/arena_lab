@@ -188,6 +188,7 @@ class ArenaRemotePokemon < Game_Character
 
   # This character is visual-only; movement must not invoke map event triggers.
   def check_event_trigger_after_turning(*_args); end
+  def check_event_trigger_touch(*_args); false; end
 end
 
 module ArenaDemo::FollowingPresence

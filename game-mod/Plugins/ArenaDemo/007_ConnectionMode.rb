@@ -77,7 +77,8 @@ module ArenaDemo
       request = File.join(directory, 'host.request')
       File.binwrite(request + '.tmp', id)
       File.rename(request + '.tmp', request)
-      deadline = Visits.now + 45
+      # Includes the launcher service mutex and cold database/server startup.
+      deadline = Visits.now + 150
       response = File.join(directory, 'host.response')
       while Visits.now < deadline
         if File.file?(response)
