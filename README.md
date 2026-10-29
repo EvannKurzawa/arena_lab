@@ -1,4 +1,10 @@
-Source update: remote follower blocked-movement callbacks are fixed. Cold host
+Source update (plugin 0.9.27): Windows discovery disables UDP reset notifications,
+remote followers support released Essentials callback names, and placed trainers
+can be challenged while connected. Generated maps select existing local music
+when their template has none; door transfers play an installed door sound.
+Run the existing ArenaLab-Update.exe on both computers after updating GitHub main.
+
+Remote follower blocked-movement callbacks are fixed. Cold host
 startup now allows 90 seconds; LAN discovery retries every half-second for five
 seconds. These changes are not in the published v6.2.6 installers. See
 SETUP_STATUS.md for validation limits.

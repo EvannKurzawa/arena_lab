@@ -189,6 +189,10 @@ class ArenaRemotePokemon < Game_Character
   # This character is visual-only; movement must not invoke map event triggers.
   def check_event_trigger_after_turning(*_args); end
   def check_event_trigger_touch(*_args); false; end
+  # Released Essentials 21.1 runtimes can still use the camelCase hooks.
+  def pbCheckEventTriggerAfterTurning(*_args); false; end
+  def pbCheckEventTriggerTouch(*_args); false; end
+  def pbCheckEventTriggerAfterMoving(*_args); false; end
 end
 
 module ArenaDemo::FollowingPresence

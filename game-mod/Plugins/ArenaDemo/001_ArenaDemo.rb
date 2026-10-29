@@ -133,6 +133,8 @@ module ArenaDemo
 
   def transfer_to(map_id, x, y, direction)
     return if defined?(Visits) && !Visits.allow_travel?(map_id)
+    play_door_sound if [MAP_ID, ENTRANCE_MAP_ID, TOWN_MAP_ID].include?(map_id) &&
+                       $game_map && $game_map.map_id != map_id
     pbFadeOutIn do
       $game_temp.player_new_map_id = map_id
       $game_temp.player_new_x = x
@@ -143,6 +145,15 @@ module ArenaDemo
       $game_map.autoplay
       $game_map.refresh
     end
+  end
+
+  def play_door_sound
+    # Resolve the player's own Essentials assets; do not bundle new audio.
+    files = Dir.glob("Audio/SE/*").select { |path| File.file?(path) &&
+      path.match?(/\.(ogg|wav|mp3|midi?|wma)\z/i) }
+    sound = files.sort.find { |path| File.basename(path).match?(/door.*(enter|open)/i) } ||
+            files.sort.find { |path| File.basename(path).match?(/door/i) }
+    pbSEPlay(File.basename(sound, File.extname(sound))) if sound
   end
 
   # The entrance attendant is a map event rather than save data. Rebuild its

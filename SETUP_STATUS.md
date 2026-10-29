@@ -1,5 +1,54 @@
 # Setup and implementation status
 
+## Windows discovery, released-runtime followers, online NPCs and audio (0.9.27)
+
+2026-10-29. Upstream Essentials/PEMK pins and visit protocol 3 unchanged.
+Both computers must update and restart. The existing ArenaLab-Update.exe fetches
+main, so a replacement installer is unnecessary once these changes are pushed.
+
+Changes:
+
+- Windows UDP sockets disable SIO_UDP_CONNRESET through WSAIoctl. Ruby's ioctl
+  is unimplemented on Windows, so the implementation uses Fiddle and the matching
+  UCRT/MSVCRT descriptor conversion. Actual UCRT socket control was executed
+  successfully. Both responder and search retain reset/refused recovery.
+- Remote visual followers implement released Essentials camelCase trigger hooks
+  (including pbCheckEventTriggerAfterTurning), in addition to upstream snake_case
+  hooks. They do not activate map events.
+- Removed the blanket online guard on recruited trainer challenges. They resolve
+  the existing read-only host snapshot and start normal local Essentials NPC
+  battles. Arena edits remain locked; this does not create a peer PvP battle.
+- Generated maps preserve an available template BGM or select an installed
+  town/city/route track (falling back to an existing BGM). Door transfers resolve
+  an installed door-open/enter sound. No music, sound assets or user volume
+  settings are deleted, copied into source, or replaced.
+
+Validation: bundled Ruby 3.3.12, 11 tests / 31 assertions passed across
+lan_discovery_retry_test.rb, remote_follower_test.rb, online_npc_audio_test.rb
+and multiplayer_fixes_test.rb. Includes real Windows UDP with a closed-port
+probe and deliberately dropped first discovery request, actual upstream blocked
+movement, released callback names, connected NPC trainer entry and synthetic
+installed audio fixtures. These are not full engine battle or audible playback
+tests. Initial native attempts using IO#ioctl and an unavailable Ruby export
+failed; those implementations were replaced before the passing run.
+
+Sandbox commands stalled when accessing the runtime; the passing checks ran
+outside the sandbox. No game window or two-computer session was operated.
+The broader stale fixtures reported in the previous section remain unresolved.
+
+Changed files: 001_ArenaDemo.rb, 008_LanDiscovery.rb,
+009_ArenaCustomMode.rb, 011_ArenaFollowingIntegration.rb, meta.txt,
+build_arena_map.rb, both discovery/follower regression tests, new
+online_npc_audio_test.rb, README and this status report.
+
+Manual test after updating both computers: launch Play-Arena.bat to regenerate
+maps; host and request a visit once; turn/move followers against obstacles;
+challenge a placed trainer as host and visitor, finish the battles and leave.
+Check village/entrance/arena music, door sounds, battle music and music restoration
+after battle. Audio requires the player's existing complete Essentials assets.
+MSVCRT game-runtime Fiddle control and actual audio playback still need this
+in-game check; the native UCRT development runtime passed.
+
 ## Multiplayer retry and follower fixes (2026-10-29, plugin 0.9.26)
 
 Source only; not yet published in an installer. Upstream pins and visit protocol

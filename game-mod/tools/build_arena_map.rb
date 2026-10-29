@@ -167,6 +167,23 @@ map = Marshal.load(File.binread(SOURCE_MAP))
 # template's BGM and explicitly enable map autoplay so transfers start it.
 def enable_map_music(map)
   bgm = map.instance_variable_get(:@bgm)
+  # Indoor templates may intentionally have no music. Give generated maps an
+  # installed exploration track instead of silently inheriting that blank.
+  files = Dir.glob(File.join(PROJECT, 'Audio', 'BGM', '*')).select do |path|
+    File.file?(path) && path.match?(/\.(ogg|wav|mp3|midi?|wma)\z/i)
+  end
+  name = bgm && bgm.instance_variable_get(:@name).to_s
+  present = name && files.any? { |path| File.basename(path, File.extname(path)).casecmp?(name) }
+  unless present
+    track = files.sort.find { |path| File.basename(path).match?(/town|city|route/i) } || files.sort.first
+    if track
+      bgm = RPG::AudioFile.allocate
+      bgm.instance_variable_set(:@name, File.basename(track, File.extname(track)))
+      bgm.instance_variable_set(:@volume, 80)
+      bgm.instance_variable_set(:@pitch, 100)
+      map.instance_variable_set(:@bgm, bgm)
+    end
+  end
   has_bgm = bgm && bgm.instance_variable_get(:@name).to_s != ""
   map.instance_variable_set(:@autoplay_bgm, !!has_bgm)
 end

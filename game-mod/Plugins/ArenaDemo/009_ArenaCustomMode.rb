@@ -972,7 +972,8 @@ module ArenaDemo
   end
 
   def challenge_recruited_trainer(slot)
-    return if multiplayer?
+    return unless $game_map && $game_map.map_id == MAP_ID
+    return if $game_temp && $game_temp.in_battle
     placement = trainer_placements[slot]
     return unless placement
     profile = TRAINER_PROFILES[placement_item(placement)]

@@ -11,16 +11,43 @@ module ArenaDemo
 
     module_function
 
+    def configure_socket(socket)
+      # Winsock reports ICMP port-unreachable for an earlier UDP probe as a
+      # reset on a later recvfrom. Suppress that notification at its source.
+      return unless RUBY_PLATFORM =~ /mswin|mingw/
+      require 'fiddle'
+      # Ruby IO#ioctl is not implemented on Windows. Use Winsock's WSAIoctl
+      # with the CRT descriptor-to-native-socket conversion.
+      runtime = Fiddle.dlopen(RUBY_PLATFORM.include?('ucrt') ? 'ucrtbase.dll' : 'msvcrt.dll')
+      native_handle = Fiddle::Function.new(
+        runtime['_get_osfhandle'],
+        [Fiddle::TYPE_INT], Fiddle::TYPE_INTPTR_T
+      ).call(socket.fileno)
+      winsock = Fiddle.dlopen('ws2_32.dll')
+      control = Fiddle::Function.new(winsock['WSAIoctl'],
+        [Fiddle::TYPE_INTPTR_T, Fiddle::TYPE_INT, Fiddle::TYPE_VOIDP,
+         Fiddle::TYPE_INT, Fiddle::TYPE_VOIDP, Fiddle::TYPE_INT,
+         Fiddle::TYPE_VOIDP, Fiddle::TYPE_VOIDP, Fiddle::TYPE_VOIDP], Fiddle::TYPE_INT)
+      result = control.call(native_handle, 0x9800000C - 0x100000000,
+                            [0].pack('L'), 4, 0, 0, [0].pack('L'), 0, 0)
+      raise IOError, 'Could not disable Windows UDP connection resets' unless result == 0
+    end
+
     def start_responder(logger = nil)
       Thread.new do
         socket = UDPSocket.new(Socket::AF_INET)
+        configure_socket(socket)
         socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1)
         socket.bind('0.0.0.0', PORT)
         name = Socket.gethostname.to_s.gsub(/[^A-Za-z0-9_.-]/, '_')[0, 80]
         loop do
-          data, sender = socket.recvfrom(256)
-          next unless data == PROBE
-          socket.send("#{PREFIX}\t#{name}", 0, sender[3], sender[1])
+          begin
+            data, sender = socket.recvfrom(256)
+            next unless data == PROBE
+            socket.send("#{PREFIX}\t#{name}", 0, sender[3], sender[1])
+          rescue Errno::ECONNRESET, Errno::ECONNREFUSED
+            next
+          end
         end
       rescue Exception => error
         logger.call("LAN discovery stopped: #{error.class}: #{error.message}") if logger
@@ -31,6 +58,7 @@ module ArenaDemo
 
     def discover(timeout = 5.0)
       socket = UDPSocket.new(Socket::AF_INET)
+      configure_socket(socket)
       socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_BROADCAST, 1)
       socket.bind('0.0.0.0', 0)
       targets = ['127.0.0.1', '255.255.255.255']

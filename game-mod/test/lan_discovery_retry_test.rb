@@ -2,6 +2,21 @@ require 'minitest/autorun'
 require_relative '../Plugins/ArenaDemo/008_LanDiscovery'
 
 class LanDiscoveryRetryTest < Minitest::Test
+  def test_windows_unreachable_port_does_not_raise_a_receive_reset
+    skip 'Windows-specific Winsock control' unless RUBY_PLATFORM =~ /mswin|mingw/
+    closed = UDPSocket.new
+    closed.bind('127.0.0.1', 0)
+    port = closed.addr[1]
+    closed.close
+    socket = UDPSocket.new
+    ArenaDemo::LanDiscovery.configure_socket(socket)
+    socket.send('probe', 0, '127.0.0.1', port)
+    refute IO.select([socket], nil, nil, 0.3), 'An unreachable UDP port surfaced as a reset'
+  ensure
+    socket&.close
+    closed&.close unless closed&.closed?
+  end
+
   def test_discovery_recovers_from_lost_first_probe
     socket = UDPSocket.new
     socket.bind('127.0.0.1', 0)
