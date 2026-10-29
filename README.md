@@ -1,4 +1,12 @@
-Source update (plugin 0.9.27): Windows discovery disables UDP reset notifications,
+Source update (plugin 0.9.28): fixes the game's missing Fiddle.dlopen API,
+clears saved ice/forced movement during load, refreshes saved entrance maps,
+and validates arena spawn tiles across custom floors. Loaded maps also get
+music selection and autoplay repair. Existing local MIDI SoundFonts are reused;
+decoded music is preferred when available. Audio diagnosis is written locally to
+`tools/runtime/essentials-v21.1-base/Data/ArenaAudioDiagnostic.txt`.
+Update both computers with the existing ArenaLab-Update.exe and relaunch.
+
+Previous update (plugin 0.9.27): Windows discovery disables UDP reset notifications,
 remote followers support released Essentials callback names, and placed trainers
 can be challenged while connected. Generated maps select existing local music
 when their template has none; door transfers play an installed door sound.

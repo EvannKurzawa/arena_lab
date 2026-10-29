@@ -170,8 +170,11 @@ def enable_map_music(map)
   # Indoor templates may intentionally have no music. Give generated maps an
   # installed exploration track instead of silently inheriting that blank.
   files = Dir.glob(File.join(PROJECT, 'Audio', 'BGM', '*')).select do |path|
-    File.file?(path) && path.match?(/\.(ogg|wav|mp3|midi?|wma)\z/i)
+    File.file?(path) && path.match?(/\.(ogg|wav|mp3|flac|opus|midi?|wma)\z/i)
   end
+  # Prefer decoded audio: MIDI is silent without a configured SoundFont.
+  decoded = files.reject { |path| path.match?(/\.midi?\z/i) }
+  files = decoded unless decoded.empty?
   name = bgm && bgm.instance_variable_get(:@name).to_s
   present = name && files.any? { |path| File.basename(path, File.extname(path)).casecmp?(name) }
   unless present
@@ -185,6 +188,7 @@ def enable_map_music(map)
     end
   end
   has_bgm = bgm && bgm.instance_variable_get(:@name).to_s != ""
+  bgm.instance_variable_set(:@volume, 80) if has_bgm && bgm.instance_variable_get(:@volume).to_i <= 0
   map.instance_variable_set(:@autoplay_bgm, !!has_bgm)
 end
 enable_map_music(map)

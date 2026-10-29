@@ -34,6 +34,27 @@ $config = @{
     # Use rendered glyph height; nominal RGSS height can clip font descenders.
     fontHeightReporting = 1
 }
+# MIDI needs a SoundFont in mkxp-z. Reuse local assets when present; never
+# download or redistribute a bank as part of this source update.
+$soundFonts = @(
+    (Join-Path $gameRoot 'Audio/BGM/GMGSx.sf2'),
+    (Join-Path $gameRoot 'Audio/GMGSx.sf2'),
+    (Join-Path $gameRoot 'GMGSx.sf2'),
+    (Join-Path $engineRoot 'GMGSx.sf2')
+)
+$originalConfigPath = Join-Path $gameRoot 'mkxp.json'
+if (Test-Path -LiteralPath $originalConfigPath) {
+    try {
+        $originalConfig = Get-Content -LiteralPath $originalConfigPath -Raw | ConvertFrom-Json
+        if ($originalConfig.midiSoundFont) {
+            $configuredFont = [string]$originalConfig.midiSoundFont
+            if (![IO.Path]::IsPathRooted($configuredFont)) { $configuredFont = Join-Path $gameRoot $configuredFont }
+            $soundFonts = @($configuredFont) + $soundFonts
+        }
+    } catch { Write-Verbose 'Original game config is not strict JSON; checking standard SoundFont locations.' }
+}
+$selectedFont = $soundFonts | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+if ($selectedFont) { $config.midiSoundFont = $selectedFont.Replace('\', '/') }
 [IO.File]::WriteAllText((Join-Path $engineRoot 'mkxp.json'), ($config | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
 $manifest = @{ repository='https://github.com/mkxp-z/mkxp-z'; commit=$commit; artifactUrl=$url; archiveSha256=$archiveHash; executableSha256=$binaryHash }
 [IO.File]::WriteAllText((Join-Path $engineRoot 'arena-runtime.json'), ($manifest | ConvertTo-Json), [Text.UTF8Encoding]::new($false))

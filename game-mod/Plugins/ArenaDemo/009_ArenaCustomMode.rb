@@ -343,6 +343,9 @@ module ArenaDemo
         candidates << [INITIAL_FIELD_X + dx, INITIAL_FIELD_Y + dy]
       end
     end
+    MAP_HEIGHT.times do |y|
+      MAP_WIDTH.times { |x| candidates << [x, y] }
+    end
     destination = candidates.uniq.find do |x, y|
       !tile_is_void?(x, y) && map.passableStrict?(x, y, 2, $game_player)
     end
@@ -365,21 +368,38 @@ module ArenaDemo
   # serialized Table data in place. Player progression and arena edits live in
   # Game_Player/PokemonGlobal, so retain those and the player's current tile.
   def reload_saved_arena_map_from_data
-    return unless $game_map && [MAP_ID, TOWN_MAP_ID].include?($game_map.map_id) && $game_player
+    return unless $game_map && [MAP_ID, TOWN_MAP_ID, ENTRANCE_MAP_ID].include?($game_map.map_id) && $game_player
     return if instance_variable_get(:@reloading_saved_arena_map)
     instance_variable_set(:@reloading_saved_arena_map, true)
     map = $game_map
     map_id = map.map_id
     position = [$game_player.x, $game_player.y, $game_player.direction]
+    reset_saved_player_movement
     map.setup(map_id)
     $game_map = map
     $game_player.moveto(position[0], position[1])
     $game_player.direction = position[2]
     recover_centered_arena_state(map) if map_id == MAP_ID
     $game_player.center($game_player.x, $game_player.y)
+    map.autoplay
     write_floor_map_diagnostic(map) if map_id == MAP_ID
   ensure
     instance_variable_set(:@reloading_saved_arena_map, false)
+  end
+
+  def reset_saved_player_movement
+    # Ice/forced routes are transient. A serialized flag can otherwise keep
+    # calling move_forward without input after loading or repositioning.
+    [:ice_sliding, :descending_waterfall, :ascending_waterfall].each do |flag|
+      $PokemonGlobal.public_send("#{flag}=", false) if $PokemonGlobal.respond_to?("#{flag}=")
+    end
+    { :move_route_forcing => false, :move_route => nil, :original_move_route => nil,
+      :move_route_index => 0, :original_move_route_index => 0,
+      :move_timer => nil, :wait_count => 0, :wait_start => nil,
+      :jump_count => 0, :jump_distance => 0, :jumping_on_spot => false,
+      :through => false, :walk_anime => true, :direction_fix => false }.each do |key, value|
+      $game_player.instance_variable_set("@#{key}", value)
+    end
   end
 
   def write_floor_map_diagnostic(map)
@@ -1555,9 +1575,9 @@ if defined?(Game_Map)
   Game_Map.prepend(ArenaDemo::VoidTileCollision)
 end
 
-if defined?(Game) && Game.respond_to?(:load_map)
+if defined?(Game) && Game.respond_to?(:load)
   module ArenaDemo::SavedArenaRecovery
-    def load_map(*args)
+    def load(*args)
       result = super
       ArenaDemo.reload_saved_arena_map_from_data
       result

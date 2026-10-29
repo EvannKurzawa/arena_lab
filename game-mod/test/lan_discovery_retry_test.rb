@@ -2,6 +2,25 @@ require 'minitest/autorun'
 require_relative '../Plugins/ArenaDemo/008_LanDiscovery'
 
 class LanDiscoveryRetryTest < Minitest::Test
+  def test_configuration_works_without_fiddle_dlopen
+    require 'fiddle'
+    socket = UDPSocket.new
+    Fiddle.stub(:dlopen, ->(*) { raise 'Game runtime has no dlopen' }) do
+      assert_equal true, ArenaDemo::LanDiscovery.configure_socket(socket)
+    end
+  ensure
+    socket&.close
+  end
+
+  def test_missing_native_api_is_optional
+    require 'fiddle'
+    socket = UDPSocket.new
+    Fiddle::Handle.stub(:new, ->(*) { raise NotImplementedError }) do
+      assert_equal false, ArenaDemo::LanDiscovery.configure_socket(socket)
+    end
+  ensure
+    socket&.close
+  end
   def test_windows_unreachable_port_does_not_raise_a_receive_reset
     skip 'Windows-specific Winsock control' unless RUBY_PLATFORM =~ /mswin|mingw/
     closed = UDPSocket.new

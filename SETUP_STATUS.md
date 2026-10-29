@@ -1,5 +1,56 @@
 # Setup and implementation status
 
+## Saved movement, bundled Fiddle compatibility and music playback (0.9.28)
+
+2026-10-29. Essentials/PEMK commits and visit protocol 3 unchanged.
+Both computers must run the existing updater after these changes reach main,
+then relaunch Play-Arena.bat. No replacement installer required.
+
+The reported dlopen crash is a runtime API mismatch introduced by 0.9.27:
+standalone Ruby provided Fiddle.dlopen but the game's Fiddle module did not.
+Socket configuration now uses Handle.new, checks native API availability and
+falls back to normal reset-aware UDP without failing discovery when native
+controls are unavailable. Real UCRT socket control still passes its tests.
+
+Save recovery now runs after Game.load has finished, refreshes maps 100/101/102
+instead of excluding the entrance, and clears serialized forced routes, through
+mode, ice/waterfall movement flags and transient movement state before moving
+the player. Arena void recovery searches the full custom map if the original
+25x25 field has no valid tile. This addresses saved-state causes consistent with
+the reported involuntary movement; the user's private save was not reproduced.
+
+Music repair now runs on actual Game_Map autoplay as well as generation, so
+older loaded maps receive the selected BGM too. It repairs zero map-track volume,
+prefers existing decoded tracks over MIDI and preserves the player's volume
+option. The runtime setup reuses a local configured or standard-location SF2
+SoundFont if present. mkxp-z documents that MIDI uses a SoundFont (default none):
+https://github.com/mkxp-z/mkxp-z/blob/dev/mkxp.json . No bank or audio is downloaded
+or redistributed. A local Data/ArenaAudioDiagnostic.txt records the map, chosen
+track, map volume, available candidates and player music volume. Private audio
+directory inspection stalled here; the actual silent track/volume was not read.
+
+Validation executed with bundled Ruby 3.3.12: 16 tests / 44 assertions passed
+across lan_discovery_retry_test.rb, save_recovery_audio_test.rb,
+online_npc_audio_test.rb, remote_follower_test.rb and multiplayer_fixes_test.rb.
+New checks cover unavailable dlopen, optional native failures, forced movement
+reset, recovery to a custom tile outside the initial field, and the real autoplay
+wrapper replacing a silent MIDI template with an installed OGG fixture while
+preserving player volume. These are fixture/socket tests, not audible playback.
+
+Files changed: README, this report, 008_LanDiscovery.rb, 009_ArenaCustomMode.rb,
+new 013_ArenaAudio.rb, plugin metadata, build_arena_map.rb,
+install-client-runtime.ps1, lan_discovery_retry_test.rb and new
+save_recovery_audio_test.rb. No user saves or private assets edited.
+
+Manual check: update both computers and relaunch. On the host load the same
+offline save and verify the player stands on a floor and stays still without
+input. On the visitor search and complete a visit. Check music on startup and
+through village/entrance/arena transfers and after a battle; check Music Volume
+in Options if the diagnostic reports zero. If still silent, inspect the local
+ArenaAudioDiagnostic.txt and retain runtime logs. MIDI-only assets without an
+installed SoundFont still require that missing prerequisite; no audible music,
+GUI startup or two-computer session is claimed as tested here.
+
 ## Windows discovery, released-runtime followers, online NPCs and audio (0.9.27)
 
 2026-10-29. Upstream Essentials/PEMK pins and visit protocol 3 unchanged.

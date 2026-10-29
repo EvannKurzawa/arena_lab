@@ -16,21 +16,26 @@ module ArenaDemo
       # reset on a later recvfrom. Suppress that notification at its source.
       return unless RUBY_PLATFORM =~ /mswin|mingw/
       require 'fiddle'
+      return false unless defined?(Fiddle::Handle) && defined?(Fiddle::Function) &&
+                          defined?(Fiddle::TYPE_INTPTR_T)
       # Ruby IO#ioctl is not implemented on Windows. Use Winsock's WSAIoctl
       # with the CRT descriptor-to-native-socket conversion.
-      runtime = Fiddle.dlopen(RUBY_PLATFORM.include?('ucrt') ? 'ucrtbase.dll' : 'msvcrt.dll')
+      runtime = Fiddle::Handle.new(RUBY_PLATFORM.include?('ucrt') ? 'ucrtbase.dll' : 'msvcrt.dll')
       native_handle = Fiddle::Function.new(
         runtime['_get_osfhandle'],
         [Fiddle::TYPE_INT], Fiddle::TYPE_INTPTR_T
       ).call(socket.fileno)
-      winsock = Fiddle.dlopen('ws2_32.dll')
+      winsock = Fiddle::Handle.new('ws2_32.dll')
       control = Fiddle::Function.new(winsock['WSAIoctl'],
         [Fiddle::TYPE_INTPTR_T, Fiddle::TYPE_INT, Fiddle::TYPE_VOIDP,
          Fiddle::TYPE_INT, Fiddle::TYPE_VOIDP, Fiddle::TYPE_INT,
          Fiddle::TYPE_VOIDP, Fiddle::TYPE_VOIDP, Fiddle::TYPE_VOIDP], Fiddle::TYPE_INT)
       result = control.call(native_handle, 0x9800000C - 0x100000000,
                             [0].pack('L'), 4, 0, 0, [0].pack('L'), 0, 0)
-      raise IOError, 'Could not disable Windows UDP connection resets' unless result == 0
+      result == 0
+    rescue LoadError, StandardError, NotImplementedError
+      # Native controls are optional; the receive loop still handles ICMP errors.
+      false
     end
 
     def start_responder(logger = nil)
