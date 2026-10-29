@@ -35,6 +35,74 @@ module ArenaDemo
     :ARENA_TRAINER_LEADER => {
       :name => "Giovanni", :sprite => "trainer_LEADER_Giovanni", :type => :ROCKETBOSS,
       :team => [[:MEWTWO, 70], [:PERSIAN, 72], [:RHYPERIOR, 70], [:MEOWTH, 76]]
+    },
+    :ARENA_TRAINER_CHAMPION => {
+      :name => "Blue", :sprite => "trainer_CHAMPION", :type => :CHAMPION,
+      :team => [[:BLASTOISE, 67], [:PIDGEOT, 65], [:EXEGGUTOR, 62], [:ALAKAZAM, 70]]
+    },
+ :ARENA_TRAINER_PROFESSOR => {
+      :name => "Oak", :sprite => "trainer_PROFESSOR", :type => :PROFESSOR,
+      :team => [[:BLASTOISE, 95], [:CHARIZARD, 95], [:VENUSAUR, 95], [:PIKACHU, 95], [:EEVEE, 95]]
+    },
+ :ARENA_TRAINER_POKEMONTRAINER_RED => {
+      :name => "Red", :sprite => "trainer_POKEMONTRAINER_Red", :type => :POKEMONTRAINER_Red,
+      :team => [[:CHARIZARD, 100], [:PIKACHU, 100], [:MEW, 100]]
+    },
+ :ARENA_TRAINER_POKEMONTRAINER_LEAF => {
+      :name => "Leaf", :sprite => "trainer_POKEMONTRAINER_Leaf", :type => :POKEMONTRAINER_Leaf,
+      :team => [[:BULBASAUR, 10], [:PIDGEY, 8], [:MANKEY, 9]]
+    },
+ :ARENA_TRAINER_ELITEFOUR_AGATHA => {
+      :name => "Agatha", :sprite => "trainer_ELITEFOUR_Agatha", :type => :ELITEFOUR_Agatha,
+      :team => [[:ARBOK, 51], [:CROBAT, 50], [:HAUNTER, 52], [:GENGAR, 55]]
+    },
+ :ARENA_TRAINER_ELITEFOUR_LANCE => {
+      :name => "Lance", :sprite => "trainer_ELITEFOUR_Lance", :type => :ELITEFOUR_Lance,
+      :team => [[:GYARADOS, 51], [:DRAGONAIR, 50], [:AERODACTYL, 52], [:DRAGONITE, 55]]
+    },
+ :ARENA_TRAINER_ELITEFOUR_BRUNO => {
+      :name => "Bruno", :sprite => "trainer_ELITEFOUR_Bruno", :type => :ELITEFOUR_Bruno,
+      :team => [[:HITMONCHAN, 51], [:HITMONLEE, 50], [:HITMONTOP, 52], [:MACHAMP, 55]]
+    },
+ :ARENA_TRAINER_ELITEFOUR_LORELEI => {
+      :name => "Lorelei", :sprite => "trainer_ELITEFOUR_Lorelei", :type => :ELITEFOUR_Lorelei,
+      :team => [[:DEWGONG, 51], [:JYNX, 50], [:CLOYSTER, 52], [:LAPRAS, 55]]
+    },
+ :ARENA_TRAINER_LEADER_BROCK => {
+      :name => "Brock", :sprite => "trainer_LEADER_Brock", :type => :LEADER_Brock,
+      :team => [[:CROAGUNK, 15], [:SUDOWOODO, 17], [:ONIX, 19]]
+    },
+ :ARENA_TRAINER_LEADER_MISTY => {
+      :name => "Misty", :sprite => "trainer_LEADER_Misty", :type => :LEADER_Misty,
+      :team => [[:STARYU, 15], [:PSYDUCK, 17], [:TOGEPI, 19]]
+    },
+ :ARENA_TRAINER_LEADER_SURGE => {
+      :name => "Surge", :sprite => "trainer_LEADER_Surge", :type => :LEADER_Surge,
+      :team => [[:MAGNEMITE, 25], [:ELECTABUZZ, 27], [:RAICHU, 29]]
+    },
+ :ARENA_TRAINER_LEADER_ERIKA => {
+      :name => "Erika", :sprite => "trainer_LEADER_Erika", :type => :LEADER_Erika,
+      :team => [[:TANGELA, 25], [:VILEPLUME, 27], [:IVYSAUR, 29]]
+    },
+ :ARENA_TRAINER_LEADER_KOGA => {
+      :name => "Koga", :sprite => "trainer_LEADER_Koga", :type => :LEADER_Koga,
+      :team => [[:KOFFING, 25], [:GRIMER, 27], [:SKUNTANK, 29]]
+    },
+ :ARENA_TRAINER_LEADER_SABRINA => {
+      :name => "Sabrina", :sprite => "trainer_LEADER_Sabrina", :type => :LEADER_Sabrina,
+      :team => [[:MRMIME, 35], [:VENOMOTH, 37], [:ALAKAZAM, 39]]
+    },
+ :ARENA_TRAINER_LEADER_BLAINE => {
+      :name => "Blaine", :sprite => "trainer_LEADER_Blaine", :type => :LEADER_Blaine,
+      :team => [[:RAPIDASH, 35], [:ARCANINE, 37], [:MAGMORTAR, 39]]
+    },
+ :ARENA_TRAINER_POKEMONTRAINER_BRENDAN => {
+      :name => "Brendan", :sprite => "trainer_POKEMONTRAINER_Brendan", :type => :POKEMONTRAINER_Brendan,
+      :team => [[:TREECKO, 10], [:ZIGZAGOON, 8], [:RALTS, 9]]
+    },
+ :ARENA_TRAINER_POKEMONTRAINER_MAY => {
+      :name => "May", :sprite => "trainer_POKEMONTRAINER_May", :type => :POKEMONTRAINER_May,
+      :team => [[:BLAZIKEN, 100], [:ABSOL, 100], [:KYOGRE, 100]]
     }
   }.freeze
 
