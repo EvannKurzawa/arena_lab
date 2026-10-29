@@ -25,8 +25,12 @@ Windows Setup now offers a picker for a separately downloaded follower archive
 and installs it into the selected Essentials project; choosing No continues
 without follower visuals.
 
-The setup and updater executables are to be rebuilt and published against the
-commit containing these fixes. No two-computer retest has been performed yet.
+Committed and pushed as `b9bb419c57b1234e8b14c2bd38a14e2261aac06c`.
+Built and published updated executables at the [v6.2.3 GitHub
+release](https://github.com/EvannKurzawa/arena_lab/releases/tag/v6.2.3).
+SHA-256: Setup `E661D44F5BBDE7E79D32AFD617B56C608A999885D42E101DA74DDE960A93B199`;
+Update `4A93D110D58E8A9BA329C5E3DE19D41B8931F17123163091DBAD14F61F4A986D`.
+No two-computer or in-game audio/visibility retest has been performed yet.
 
 ## Cross-computer LAN discovery and follower visibility (v6.2.2)
 
