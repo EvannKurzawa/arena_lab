@@ -22,7 +22,11 @@ verified local Arena Lab service when it is idle; active sessions are refused.
 
 Ruby syntax checks and whitespace validation passed. The v6.2.5 core changes
 were published at the [v6.2.5 GitHub release](https://github.com/EvannKurzawa/arena_lab/releases/tag/v6.2.5).
-The additional host-service restart adjustment is being packaged as v6.2.6.
+The service restart fix and refreshed installers are now published at the
+[v6.2.6 GitHub release](https://github.com/EvannKurzawa/arena_lab/releases/tag/v6.2.6),
+pinned to `451fe8b8e9918e31a866f0bfda4ed3bbd772a36d`. SHA-256: Setup
+`FB710A30B52C431556AB1EE9073C5BE14DD5E787D6867B4B07049A68DB5183D7`; Update
+`E7C3E4A55AA220952F28E2D9B88D2CA4CD34EAA44FF2B367CE25D9FDAF2E34B9`.
 No live two-computer playtest has yet confirmed the follower fix or full custom
 arena rendering.
 
