@@ -1,5 +1,43 @@
 # Setup and implementation status
 
+## v7 — user-confirmed working snapshot (2026-10-29)
+
+After the outdoor fixes at `cefc527`, the user reported: "now everything works."
+This supersedes the pending user-playtest status for the recent reported issues.
+The recent test cycle included LAN discovery/visits between the host and visiting
+PC, PvP and follower ownership, placed trainer battles online, area music and
+door sounds, entrance objects, saved movement recovery and visible village wild
+Pokemon. The confirmation is a user report, not an independently observed Codex
+GUI test or a claim that all possible multiplayer scenarios are bug-free.
+
+v7 labels the source snapshot with Arena Demo plugin 0.9.32, Essentials 21.1 and
+the existing PEMK pins. Visit protocol remains 3. No engine, dependency, asset,
+save or credential changes are part of this documentation update. The exact
+upstream URLs/commits and integration procedure remain recorded below.
+
+Automated results are unchanged: the latest targeted outdoor-fix run passed
+25 tests / 155 assertions, including actual upstream grass callback execution.
+The preceding broader regression run passed 38 tests / 193 assertions. These
+are separate recorded runs, not a single combined suite. The broader stale-fixture
+limitations documented below have not been rerun or declared resolved.
+
+Updated README to present v7, remove the accumulated pre-title patch notices,
+document current visible encounters/update instructions and replace the outdated
+LAN-flow pending statement. Earlier status sections remain the historical record
+of what was inspected, executed and unverified at each point.
+
+Commands for this documentation update: read README/status, inspect git status
+and recent commits, run `git diff --check`, review the documentation diff, commit
+with message `v7`, then push to `origin main`. No game/client/server or new tests
+were launched for this documentation-only change.
+
+Existing installations: close both games, run the existing ArenaLab-Update.exe
+on both computers, then launch Play-Arena.bat. The updater downloads main. No
+new installer build, release upload or Git tag is created by this commit.
+Remaining scope limits include clean-install hosting prerequisites, internet/NAT
+automation, online wild encounters and persistent online arena storage. The
+generated village is still a functional visual placeholder for future redesign.
+
 ## Visible wild grass callback and missing village sign (0.9.32)
 
 2026-10-29. Essentials/PEMK pins and visit protocol 3 unchanged.

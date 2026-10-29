@@ -1,59 +1,25 @@
-Source update (plugin 0.9.32): visible wild characters expose the map identifier
-required by Essentials' grass animation callbacks. Village signs reuse native
-sign tiles or an installed sign charset, with a stone marker fallback, instead
-of assuming `Graphics/Characters/Object sign` exists. Update both computers and
-relaunch Play-Arena.bat to regenerate the village map.
-
-Previous update (plugin 0.9.31): discovery skips native controls when the game's
-Fiddle module lacks Windows error setters. Network followers have explicit player
-ownership and rebuild after PvP; local followers are not recreated mid-battle.
-Offline village grass now has visible roaming wild Pokemon. Walk into one or
-face it and press Confirm to start a normal Essentials battle and catch it.
-Density: one per 24 usable grass tiles, capped at four, with an eight-second
-replacement delay. Walking sprites use your installed follower assets; otherwise
-Essentials Pokemon icons are used. Spawns remain local and are not saved.
-Update both computers with the existing updater and restart Play-Arena.bat.
-
-Previous update (plugin 0.9.30): discovery uses the game's supported recvfrom API;
-arena-only refreshes no longer hide entrance boundary boulders. Runtime setup
-now configures Essentials' local `soundfont.sf2` for MIDI music. Area music names
-without English keywords are accepted while battle/victory tracks stay excluded.
-Close both games, update both computers, then relaunch Play-Arena.bat.
-
-Previous update (plugin 0.9.29): overworld maps reject battle/encounter/victory
-music, including tracks persisted by older builds. Discovery consumes expected
-UDP reset notifications without Ruby debug exception messages and keeps searching.
-Update both computers with the existing ArenaLab-Update.exe, then relaunch.
-
-Previous update (plugin 0.9.28): fixes the game's missing Fiddle.dlopen API,
-clears saved ice/forced movement during load, refreshes saved entrance maps,
-and validates arena spawn tiles across custom floors. Loaded maps also get
-music selection and autoplay repair. Existing local MIDI SoundFonts are reused;
-decoded music is preferred when available. Audio diagnosis is written locally to
-`tools/runtime/essentials-v21.1-base/Data/ArenaAudioDiagnostic.txt`.
-Update both computers with the existing ArenaLab-Update.exe and relaunch.
-
-Previous update (plugin 0.9.27): Windows discovery disables UDP reset notifications,
-remote followers support released Essentials callback names, and placed trainers
-can be challenged while connected. Generated maps select existing local music
-when their template has none; door transfers play an installed door sound.
-Run the existing ArenaLab-Update.exe on both computers after updating GitHub main.
-
-Remote follower blocked-movement callbacks are fixed. Cold host
-startup now allows 90 seconds; LAN discovery retries every half-second for five
-seconds. These changes are not in the published v6.2.6 installers. See
-SETUP_STATUS.md for validation limits.
-
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: multiplayer retry fixes (plugin 0.9.26 in source)
+## Current snapshot: v7 (Arena Demo plugin 0.9.32)
 
-Source now handles the remote follower's blocked-movement touch callback, allows
-90 seconds for cold host startup (150 seconds for the game's full request), and
-retries LAN discovery every half-second during a five-second search. A failed
-network interface no longer cancels probes to the others. These fixes are not
-included in the previously published v6.2.6 installers. See `SETUP_STATUS.md`
-for the checks and remaining two-computer verification.
+On 2026-10-29, after the latest outdoor fixes, the user confirmed that everything
+now works. This is the current user-confirmed working snapshot. The recent test
+cycle covered LAN hosting/visits, PvP and follower sprites, online trainer
+interactions, music/sounds, entrance objects, save recovery and visible village
+wild Pokemon. Codex did not operate the two clients or verify every feature.
+
+Offline grass encounters are visible and roam within the grass. Walk into a
+Pokemon or face it and press Confirm to battle and catch it. Density is one per
+24 usable grass tiles, capped at four, with an eight-second replacement delay.
+Walking sprites use separately installed follower assets; otherwise Essentials
+Pokemon icons are used. Spawns are local and unsaved.
+
+To update, close all game windows, run the existing **ArenaLab-Update.exe on both
+computers**, then launch `Play-Arena.bat`. The updater fetches GitHub `main`.
+v7 labels this source snapshot; it is not a newly published installer package.
+
+See `SETUP_STATUS.md` for integration, automated checks and scope limits.
+Older sections below describe the project's development history.
 
 The generated Arena Village is currently an **ugly functional placeholder**:
 it has a central stadium, houses, residents and an offline grass patch, but its
@@ -98,9 +64,8 @@ does **not** mean the clean installer can host by itself. The one-app setup that
 can host or join from any newly installed computer is a later step. See
 [TWO_COMPUTER_SETUP.md](TWO_COMPUTER_SETUP.md) for the tested setup.
 
-The new automatic LAN discovery, host-approved **Request to visit** flow, and
-attendant connection status have been tested in-game on one computer. Retesting
-this updated flow between two computers is still pending.
+The automatic LAN discovery, host-approved **Request to visit** flow and
+connection status are included in the v7 user-confirmed working snapshot.
 
 The offline custom arena is generated as a 100x100 tile map with a centered
 25x25 walkable floor; the rest is void unless opened in custom mode. Custom mode
