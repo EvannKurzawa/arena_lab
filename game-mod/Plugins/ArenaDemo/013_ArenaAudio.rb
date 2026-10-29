@@ -19,7 +19,8 @@ module ArenaDemo
       data.instance_variable_set(:@autoplay_bgm, !!track)
       details = "map=#{map.map_id} track=#{bgm && bgm.name.inspect} " +
                 "track_volume=#{bgm && bgm.volume} files=#{files.length} " +
-                "music_volume=#{defined?($PokemonSystem) && $PokemonSystem && $PokemonSystem.bgmvolume}\n"
+                "music_volume=#{defined?($PokemonSystem) && $PokemonSystem && $PokemonSystem.bgmvolume}\n" +
+                "available_tracks=#{files.map { |path| File.basename(path) }.sort.inspect}\n"
       begin
         File.write('Data/ArenaAudioDiagnostic.txt', details)
       rescue SystemCallError, IOError

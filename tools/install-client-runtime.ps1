@@ -37,10 +37,12 @@ $config = @{
 # MIDI needs a SoundFont in mkxp-z. Reuse local assets when present; never
 # download or redistribute a bank as part of this source update.
 $soundFonts = @(
+    (Join-Path $gameRoot 'soundfont.sf2'),
     (Join-Path $gameRoot 'Audio/BGM/GMGSx.sf2'),
     (Join-Path $gameRoot 'Audio/GMGSx.sf2'),
     (Join-Path $gameRoot 'GMGSx.sf2'),
-    (Join-Path $engineRoot 'GMGSx.sf2')
+    (Join-Path $engineRoot 'GMGSx.sf2'),
+    (Join-Path $engineRoot 'soundfont.sf2')
 )
 $originalConfigPath = Join-Path $gameRoot 'mkxp.json'
 if (Test-Path -LiteralPath $originalConfigPath) {

@@ -13,10 +13,11 @@ module ArenaDemo
 
     def receive_probe(socket)
       # $DEBUG prints even rescued exceptions in the debug game launcher.
-      # Poll without blocking and silence only expected UDP/empty-queue noise.
+      # Callers select this single-reader socket before receiving. The game's
+      # bundled socket implementation provides recvfrom, not recvfrom_nonblock.
       previous_debug = $DEBUG
       $DEBUG = false
-      socket.recvfrom_nonblock(256)
+      socket.recvfrom(256)
     rescue Errno::ECONNRESET, Errno::ECONNREFUSED, IO::WaitReadable
       nil
     ensure

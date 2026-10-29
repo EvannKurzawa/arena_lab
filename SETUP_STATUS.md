@@ -1,5 +1,50 @@
 # Setup and implementation status
 
+## Game socket compatibility, entrance boundaries and MIDI bank (0.9.30)
+
+2026-10-29. Essentials/PEMK pins and visit protocol 3 unchanged.
+Update both PCs with the existing updater and restart Play-Arena.bat, which
+configures the runtime and synchronizes compiled plugin sources.
+
+Confirmed code causes and fixes:
+
+- recvfrom_nonblock was unsupported in the game runtime. Discovery now uses
+  recvfrom after IO.select, with one reader per owned socket, retaining quiet
+  reset/refused handling and propagation of unexpected errors. The '(closed)'
+  receiver can result from ensure closing the socket during error unwinding.
+- CustomModeRefresh hid IDs 3 through 8 on every map. Entrance boundaries reuse
+  IDs 6/7, so network refreshes hid the top-left boulders and could also hide the
+  PC/attendant. Legacy hiding is now restricted to map 100. Entrance refreshes
+  restore any boundaries made transparent/through by previous builds.
+- The installed file listing contains essentials-v21.1-base/soundfont.sf2.
+  Runtime setup omitted that name while checking GMGSx.sf2 and configured banks.
+  It now detects soundfont.sf2 in the game/runtime root for MIDI playback.
+- Area names without English category words can now be selected if categorized
+  tracks are absent; combat/victory/evolution/title exclusions remain. Diagnostics
+  include all available music filenames to diagnose any remaining silence.
+
+Executed using bundled Ruby 3.3.12: 25 tests / 61 assertions passed across
+lan_discovery_retry_test.rb, music_selection_test.rb, entrance_refresh_test.rb,
+save_recovery_audio_test.rb, online_npc_audio_test.rb, remote_follower_test.rb
+and multiplayer_fixes_test.rb. Socket fixtures expose only recvfrom. Entrance
+tests repeat connection refreshes and verify boulders, PC, attendant, collision
+and arena-only hiding. soundfont_setup_test.ps1 passed two checks using the
+actual setup selection block: root soundfont.sf2 detection and explicit-bank
+precedence. No game, GUI, backend or two-computer test was launched.
+
+Private audio reads stalled, so the affected install's selected track/volume
+was not inspected. The omitted MIDI bank and strict name filter are identified
+causes of possible silence; audible playback is not yet verified. After updating
+both PCs, check music on load, battle/return music, visible entrance boulders after
+Host online, and visitor search. If silent, retain Data/ArenaAudioDiagnostic.txt
+and the generated runtime mkxp.json midiSoundFont entry. Broader fixture limits
+remain as recorded in earlier sections.
+
+Changed: README, this report, 000_ArenaMusicSelection.rb, 008_LanDiscovery.rb,
+009_ArenaCustomMode.rb, 013_ArenaAudio.rb, meta.txt, install-client-runtime.ps1,
+discovery/music tests and new entrance_refresh_test.rb / soundfont_setup_test.ps1.
+No private save or game asset was edited.
+
 ## Overworld track selection and discovery debug messages (0.9.29)
 
 2026-10-29. Essentials/PEMK pins and visit protocol 3 unchanged.

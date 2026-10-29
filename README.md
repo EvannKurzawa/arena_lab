@@ -1,4 +1,10 @@
-Source update (plugin 0.9.29): overworld maps reject battle/encounter/victory
+Source update (plugin 0.9.30): discovery uses the game's supported recvfrom API;
+arena-only refreshes no longer hide entrance boundary boulders. Runtime setup
+now configures Essentials' local `soundfont.sf2` for MIDI music. Area music names
+without English keywords are accepted while battle/victory tracks stay excluded.
+Close both games, update both computers, then relaunch Play-Arena.bat.
+
+Previous update (plugin 0.9.29): overworld maps reject battle/encounter/victory
 music, including tracks persisted by older builds. Discovery consumes expected
 UDP reset notifications without Ruby debug exception messages and keeps searching.
 Update both computers with the existing ArenaLab-Update.exe, then relaunch.

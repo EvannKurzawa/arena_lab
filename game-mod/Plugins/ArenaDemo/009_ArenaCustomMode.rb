@@ -1497,6 +1497,17 @@ end
 
 module ArenaDemo::CustomModeRefresh
   def refresh_objects
+    return super unless $game_map
+    unless $game_map.map_id == ArenaDemo::MAP_ID
+      if $game_map.map_id == ArenaDemo::ENTRANCE_MAP_ID
+        $game_map.events.each_value do |event|
+          next unless event.name == "Foyer boundary"
+          event.transparent = false
+          event.through = false
+        end
+      end
+      return super
+    end
     super
     [3, 4, 5, 6, 7, 8].each do |id|
       event = $game_map.events[id]
