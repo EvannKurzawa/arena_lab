@@ -18,8 +18,12 @@ assets. Visitors apply a read-only snapshot to their map; it does not replace
 their own saved tile edits or placements. The visit protocol is now version 3,
 so all clients and the host service must be updated and restarted together.
 
-Ruby syntax checks and whitespace validation are required before release. No
-live two-computer playtest has yet confirmed the follower fix or full custom
+Ruby syntax checks and whitespace validation passed. Built and published
+Setup and Update executables pinned to `16eba013399c060e2bb885f8765d1651fcd27149`
+at the [v6.2.5 GitHub release](https://github.com/EvannKurzawa/arena_lab/releases/tag/v6.2.5).
+SHA-256: Setup `CC2F7A334A1D779791E24DBD64C32A9EECB68A1FF3C714DE32937FA3A8E63AEC`;
+Update `567E2DD35EDEB196984B1B7AB3876E53E4406D8F7595A6B1137D9A2889040524`.
+No live two-computer playtest has yet confirmed the follower fix or full custom
 arena rendering.
 
 ## Arena visit bounce, map music and entrance attendant (v6.2.3)
