@@ -185,6 +185,9 @@ class ArenaRemotePokemon < Game_Character
   end
 
   def name; "Arena remote follower"; end
+
+  # This character is visual-only; movement must not invoke map event triggers.
+  def check_event_trigger_after_turning(*_args); end
 end
 
 module ArenaDemo::FollowingPresence

@@ -1,5 +1,15 @@
 # Updates
 
+## v6.2.5 (2026-10-29)
+
+- Prevent remote follower movement from calling a nonexistent Essentials event
+  trigger hook, which crashed the host when a visitor moved or interacted.
+- Make the entrance attendant a solid tile locally and keep server position
+  validation consistent, avoiding delayed pushback when walking into the guide.
+- Include the host's complete arena surface and placed furniture/trainers in the
+  online visit snapshot; visitors render that read-only snapshot without changing
+  their own saved arena. Server validates snapshot bounds and collisions.
+
 ## v6.2.3 (2026-10-29)
 
 - Fix online visits bouncing back to the entrance: server position checks now

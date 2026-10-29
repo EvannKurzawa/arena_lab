@@ -157,6 +157,7 @@ module ArenaDemo
     event.refresh if event.respond_to?(:refresh)
     event.instance_variable_set(:@erased, false)
     event.transparent = false if event.respond_to?(:transparent=)
+    event.through = false if event.respond_to?(:through=)
   end
 
   def refresh_objects
@@ -336,6 +337,22 @@ class Game_Map
     ArenaDemo.restore_entrance_attendant(true) if map_id == ArenaDemo::ENTRANCE_MAP_ID
   end
 end
+
+module ArenaDemo::EntranceAttendantCollision
+  def passable?(x, y, direction, self_event = nil)
+    offsets = { 1 => [-1, 1], 2 => [0, 1], 3 => [1, 1],
+                4 => [-1, 0], 6 => [1, 0],
+                7 => [-1, -1], 8 => [0, -1], 9 => [1, -1] }
+    offset = offsets[direction]
+    if @map_id == ArenaDemo::ENTRANCE_MAP_ID && offset &&
+       [x + offset[0], y + offset[1]] == [4, 5] &&
+       (!self_event || self_event.id != 4)
+      return false
+    end
+    super
+  end
+end
+Game_Map.prepend(ArenaDemo::EntranceAttendantCollision)
 
 EventHandlers.add(:on_frame_update, :arena_demo_entrance_attendant_visibility, proc {
   ArenaDemo.restore_entrance_attendant if $game_map && $game_map.map_id == ArenaDemo::ENTRANCE_MAP_ID

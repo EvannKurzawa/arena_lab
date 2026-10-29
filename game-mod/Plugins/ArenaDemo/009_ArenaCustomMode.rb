@@ -18,6 +18,8 @@ module ArenaDemo
   SURFACE_NAMES = { "plain" => "Concrete / plain", "grass" => "Grass",
                     "desert" => "Desert / sand", "ice" => "Ice",
                     "rock" => "Rock" }.freeze
+  VISIT_SURFACE_CODES = { "void" => "0", "plain" => "1", "grass" => "2",
+                          "desert" => "3", "ice" => "4", "rock" => "5" }.freeze
   FURNITURE_STOCK = {
     :ARENA_FURNITURE_BOULDER => ["Boulder", "Object boulder", 2],
     :ARENA_FURNITURE_ROCK    => ["Rock", "Object rock", 2],
@@ -214,6 +216,8 @@ module ArenaDemo
   end
 
   def custom_placements
+    visit = defined?(Visits) && Visits.snapshot
+    return visit[:placements] if visit && visit[:placements].is_a?(Array)
     ensure_custom_inventory
     values = $PokemonGlobal.arena_demo_placements
     unless values.is_a?(Array)
@@ -242,6 +246,8 @@ module ArenaDemo
   end
 
   def tile_edit_records
+    visit = defined?(Visits) && Visits.snapshot
+    return visit[:tile_edits] if visit && visit[:tile_edits].is_a?(Hash)
     return {} unless $PokemonGlobal
     records = $PokemonGlobal.arena_demo_tile_edits
     unless records.is_a?(Hash)
@@ -280,6 +286,7 @@ module ArenaDemo
   # saved inside the old field, so they remain on walkable ground.
   def migrate_centered_arena_layout
     return unless $PokemonGlobal
+    return if defined?(Visits) && Visits.snapshot
     return if $PokemonGlobal.arena_demo_centered_layout_migration_version.to_i >= 3
     dx = INITIAL_FIELD_X
     dy = INITIAL_FIELD_Y
@@ -404,6 +411,75 @@ module ArenaDemo
     floor = record["floor"] == "void" ? "void" : "field"
     ground = SURFACE_NAMES.key?(record["ground"]) ? record["ground"] : "plain"
     { "floor" => floor, "ground" => ground }
+  end
+
+  # Network snapshot: 10,000 one-byte surface codes and at most 96 placements.
+  def visit_snapshot_payload
+    surface = String.new(capacity: MAP_WIDTH * MAP_HEIGHT)
+    records = tile_edit_records
+    MAP_HEIGHT.times do |y|
+      MAP_WIDTH.times do |x|
+        state = tile_surface_state(records, x, y)
+        code = state["floor"] == "void" ? "void" : state["ground"]
+        surface << VISIT_SURFACE_CODES.fetch(code, "1")
+      end
+    end
+    placements = custom_placements.filter_map do |placement|
+      next unless placement.is_a?(Hash)
+      kind = { "furniture" => 0, "trainer" => 1 }[placement["kind"]]
+      item = placement["item"].to_s
+      x, y = placement.values_at("x", "y")
+      next unless kind && item.match?(/\A[A-Z0-9_]{1,48}\z/) &&
+                  x.is_a?(Integer) && x.between?(0, MAP_WIDTH - 1) &&
+                  y.is_a?(Integer) && y.between?(0, MAP_HEIGHT - 1)
+      next unless kind == 0 ? FURNITURE_STOCK.key?(item.to_sym) : TRAINER_PROFILES.key?(item.to_sym)
+      [kind, item, x, y]
+    end.first(MAX_ARENA_FURNITURE + MAX_ARENA_TRAINERS)
+    { :surface => surface, :placements => placements }
+  end
+
+  def decode_visit_snapshot(surface, placements)
+    return nil unless surface.is_a?(String) && surface.bytesize == MAP_WIDTH * MAP_HEIGHT
+    codes = VISIT_SURFACE_CODES.invert
+    bytes = surface.bytes
+    return nil unless bytes.all? { |byte| byte.between?(48, 53) }
+    return nil unless placements.is_a?(Array) && placements.length <= MAX_ARENA_FURNITURE + MAX_ARENA_TRAINERS
+    tile_edits = {}
+    bytes.each_with_index do |byte, index|
+      x = index % MAP_WIDTH
+      y = index / MAP_WIDTH
+      state_name = codes[byte.chr]
+      return nil unless state_name
+      default = initial_field_tile?(x, y) ? "plain" : "void"
+      next if state_name == default
+      tile_edits[tile_edit_key(x, y)] = if state_name == "void"
+                                           { "floor" => "void", "ground" => "plain" }
+                                         else
+                                           { "floor" => "field", "ground" => state_name }
+                                         end
+    end
+    reserved = [[INITIAL_FIELD_X + 12, INITIAL_FIELD_Y + 16],
+                [INITIAL_FIELD_X + 10, INITIAL_FIELD_Y + 16],
+                [INITIAL_FIELD_X + 12, INITIAL_FIELD_Y + 4],
+                [INITIAL_FIELD_X + 12, INITIAL_FIELD_Y + 18]]
+    seen = {}
+    decoded_placements = placements.map do |entry|
+      return nil unless entry.is_a?(Array) && entry.length == 4
+      kind_id, item, x, y = entry
+      kind = { 0 => "furniture", 1 => "trainer" }[kind_id]
+      return nil unless kind && item.is_a?(String) && item.match?(/\A[A-Z0-9_]{1,48}\z/) &&
+                        x.is_a?(Integer) && x.between?(0, MAP_WIDTH - 1) &&
+                        y.is_a?(Integer) && y.between?(0, MAP_HEIGHT - 1)
+      known = kind == "furniture" ? FURNITURE_STOCK.key?(item.to_sym) : TRAINER_PROFILES.key?(item.to_sym)
+      point = [x, y]
+      return nil unless known && !seen[point] && !reserved.include?(point)
+      return nil if (bytes[y * MAP_WIDTH + x] - 48) == 0
+      seen[point] = true
+      { "kind" => kind, "item" => item, "x" => x, "y" => y }
+    end
+    { :tile_edits => tile_edits.freeze, :placements => decoded_placements.freeze }
+  rescue StandardError
+    nil
   end
 
   def surface_records_for_render
@@ -577,6 +653,7 @@ module ArenaDemo
 
   def fixed_event_tile?(x, y)
     return false unless $game_map && $game_map.map_id == MAP_ID
+    return true if [x, y] == [INITIAL_FIELD_X + 12, INITIAL_FIELD_Y + 16]
     $game_map.events.values.any? do |event|
       [1, 2, 9].include?(event.id) && event.x == x && event.y == y
     end
@@ -1400,7 +1477,6 @@ end
 module ArenaDemo::CustomModeRefresh
   def refresh_objects
     super
-    return if multiplayer?
     [3, 4, 5, 6, 7, 8].each do |id|
       event = $game_map.events[id]
       next unless event

@@ -1,6 +1,6 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: v6.2.3 — arena visit, music and attendant fixes (plugin 0.9.24 in source)
+## Current snapshot: v6.2.5 — visit customization sync and follower fix (plugin 0.9.25 in source)
 
 The generated Arena Village is currently an **ugly functional placeholder**:
 it has a central stadium, houses, residents and an offline grass patch, but its
@@ -22,6 +22,8 @@ and excluded from Git.
 
 The generated Arena Village has an interactable sign marking the arena building.
 The arena's south exit is now a visible door that returns to the entrance room.
+Opening an online visit now shares the saved ground and placed furniture/trainers
+with the visitor; both games must be updated to the same visit protocol.
 When installed, Following Pokemon EX makes the lead able Pokémon follow using
 walking sprites and multiplayer shares the matching appearance. That third-party
 plugin archive is optional and is not bundled. If the archive is absent, Arena

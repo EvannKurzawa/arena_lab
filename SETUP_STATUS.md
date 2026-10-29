@@ -1,5 +1,27 @@
 # Setup and implementation status
 
+## Visitor crash, guide collision and custom arena synchronization (v6.2.5)
+
+The reported follower exception occurred because ArenaRemotePokemon inherited
+Essentials movement code that calls check_event_trigger_after_turning, a hook
+that exists on event/player characters but not this visual-only Game_Character.
+The remote follower now implements an empty hook so it cannot trigger map
+events. The entrance guide tile is explicitly blocked by client passability and
+retained in the server position audit to prevent walk-through followed by a
+server correction.
+
+Arena visits now send a 10,000-byte surface grid and up to 96 placed furniture
+and trainer entries with the visit state. Server checks dimensions, allowed
+tile codes, placement identifiers, overlaps, occupied map events and walkable
+tiles. Each client resolves trainer/furniture sprites from its local Essentials
+assets. Visitors apply a read-only snapshot to their map; it does not replace
+their own saved tile edits or placements. The visit protocol is now version 3,
+so all clients and the host service must be updated and restarted together.
+
+Ruby syntax checks and whitespace validation are required before release. No
+live two-computer playtest has yet confirmed the follower fix or full custom
+arena rendering.
+
 ## Arena visit bounce, map music and entrance attendant (v6.2.3)
 
 Fixed the online arena position audit to match the current 100x100 arena map

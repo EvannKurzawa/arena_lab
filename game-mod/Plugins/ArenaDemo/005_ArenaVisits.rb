@@ -53,7 +53,7 @@ module ArenaDemo
         :objects => ArenaDemo.objects.map { |name| OBJECTS.index(name) }.compact,
         :layout => LAYOUTS.keys.index($PokemonGlobal.arena_demo_layout) || 0,
         :difficulty => $PokemonGlobal.arena_demo_difficulty || 1
-      }
+      }.merge(ArenaDemo.visit_snapshot_payload)
       unless send_request(:arena_open, snapshot)
         @phase = :closed
         pbMessage("The arena could not be opened. Check your connection.")
@@ -119,7 +119,7 @@ module ArenaDemo
     def receive(message)
       case message[:type]
       when :arena_ready
-        return unless message[:version] == 2
+        return unless message[:version] == 3
         @ready = true
         @phase ||= :closed
         @refresh = true
@@ -132,17 +132,20 @@ module ArenaDemo
           @visit_request = nil
         elsif message[:phase] == :open
           ids, layout, difficulty = message.values_at(:objects, :layout, :difficulty)
+          decoded_snapshot = ArenaDemo.decode_visit_snapshot(message[:surface], message[:placements])
           return unless [:host, :guest].include?(message[:role]) &&
                         message[:room].is_a?(String) && message[:room].length <= 32 &&
                         ids.is_a?(Array) && ids.length <= 6 && ids.uniq == ids &&
                         ids.all? { |id| id.is_a?(Integer) && id.between?(0, 5) } &&
                         layout.is_a?(Integer) && layout.between?(0, 2) &&
-                        difficulty.is_a?(Integer) && difficulty.between?(0, 2)
+                        difficulty.is_a?(Integer) && difficulty.between?(0, 2) && decoded_snapshot
           joining = message[:role] == :guest && @room != message[:room]
           @room, @role = message.values_at(:room, :role)
           @phase = @role == :guest ? :visiting : :hosting
           @snapshot = { :objects => ids.map { |id| OBJECTS[id] }.freeze,
-                        :layout => LAYOUTS.keys[layout], :difficulty => difficulty }.freeze
+                        :layout => LAYOUTS.keys[layout], :difficulty => difficulty,
+                        :tile_edits => decoded_snapshot[:tile_edits],
+                        :placements => decoded_snapshot[:placements] }.freeze
           @arrival = true if joining
           @invitation = nil
           @request_pending = nil
