@@ -4,6 +4,7 @@
 # RPG Maker XP. The village is newly composed; only its tile set is reused.
 # No upstream map/art assets are written to this source tree.
 require "fileutils"
+require_relative '../Plugins/ArenaDemo/000_ArenaMusicSelection'
 
 class Table
   attr_reader :payload
@@ -172,24 +173,14 @@ def enable_map_music(map)
   files = Dir.glob(File.join(PROJECT, 'Audio', 'BGM', '*')).select do |path|
     File.file?(path) && path.match?(/\.(ogg|wav|mp3|flac|opus|midi?|wma)\z/i)
   end
-  # Prefer decoded audio: MIDI is silent without a configured SoundFont.
-  decoded = files.reject { |path| path.match?(/\.midi?\z/i) }
-  files = decoded unless decoded.empty?
   name = bgm && bgm.instance_variable_get(:@name).to_s
-  present = name && files.any? { |path| File.basename(path, File.extname(path)).casecmp?(name) }
-  unless present
-    track = files.sort.find { |path| File.basename(path).match?(/town|city|route/i) } || files.sort.first
-    if track
-      bgm = RPG::AudioFile.allocate
-      bgm.instance_variable_set(:@name, File.basename(track, File.extname(track)))
-      bgm.instance_variable_set(:@volume, 80)
-      bgm.instance_variable_set(:@pitch, 100)
-      map.instance_variable_set(:@bgm, bgm)
-    end
-  end
-  has_bgm = bgm && bgm.instance_variable_get(:@name).to_s != ""
-  bgm.instance_variable_set(:@volume, 80) if has_bgm && bgm.instance_variable_get(:@volume).to_i <= 0
-  map.instance_variable_set(:@autoplay_bgm, !!has_bgm)
+  track = ArenaDemo::MusicSelection.select(files, name)
+  bgm = RPG::AudioFile.allocate
+  bgm.instance_variable_set(:@name, track ? File.basename(track, File.extname(track)) : '')
+  bgm.instance_variable_set(:@volume, 80)
+  bgm.instance_variable_set(:@pitch, 100)
+  map.instance_variable_set(:@bgm, bgm)
+  map.instance_variable_set(:@autoplay_bgm, !!track)
 end
 enable_map_music(map)
 # Reuse a real, fully passable ground stack from the installed tileset, but

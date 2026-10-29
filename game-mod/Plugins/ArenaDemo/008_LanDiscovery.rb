@@ -11,6 +11,18 @@ module ArenaDemo
 
     module_function
 
+    def receive_probe(socket)
+      # $DEBUG prints even rescued exceptions in the debug game launcher.
+      # Poll without blocking and silence only expected UDP/empty-queue noise.
+      previous_debug = $DEBUG
+      $DEBUG = false
+      socket.recvfrom_nonblock(256)
+    rescue Errno::ECONNRESET, Errno::ECONNREFUSED, IO::WaitReadable
+      nil
+    ensure
+      $DEBUG = previous_debug
+    end
+
     def configure_socket(socket)
       # Winsock reports ICMP port-unreachable for an earlier UDP probe as a
       # reset on a later recvfrom. Suppress that notification at its source.
@@ -47,7 +59,10 @@ module ArenaDemo
         name = Socket.gethostname.to_s.gsub(/[^A-Za-z0-9_.-]/, '_')[0, 80]
         loop do
           begin
-            data, sender = socket.recvfrom(256)
+            IO.select([socket])
+            received = receive_probe(socket)
+            next unless received
+            data, sender = received
             next unless data == PROBE
             socket.send("#{PREFIX}\t#{name}", 0, sender[3], sender[1])
           rescue Errno::ECONNRESET, Errno::ECONNREFUSED
@@ -96,14 +111,9 @@ module ArenaDemo
         end
         readable = IO.select([socket], nil, nil, [remaining, next_probe - now].min)
         next unless readable
-        begin
-          data, sender = socket.recvfrom(256)
-        rescue Errno::ECONNRESET, Errno::ECONNREFUSED
-          # On Windows, probing loopback when no responder is bound there can
-          # deliver an ICMP port-unreachable as WSAECONNRESET. That reply says
-          # only that this address has no host; keep listening for LAN replies.
-          next
-        end
+        received = receive_probe(socket)
+        next unless received
+        data, sender = received
         prefix, name = data.split("\t", 2)
         next unless prefix == PREFIX && name && name.match?(/\A[A-Za-z0-9_.-]{1,80}\z/)
         # Hostnames are labels, not identities: two computers can share one.

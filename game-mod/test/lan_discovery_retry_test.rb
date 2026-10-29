@@ -2,6 +2,37 @@ require 'minitest/autorun'
 require_relative '../Plugins/ArenaDemo/008_LanDiscovery'
 
 class LanDiscoveryRetryTest < Minitest::Test
+  def test_expected_reset_is_quiet_in_debug_mode_and_next_reply_survives
+    socket = Object.new
+    socket.instance_variable_set(:@attempts, 0)
+    def socket.recvfrom_nonblock(*)
+      @attempts += 1
+      raise Errno::ECONNRESET if @attempts == 1
+      ['host reply', ['AF_INET', 9997, 'host', '192.168.1.20']]
+    end
+    previous_debug = $DEBUG
+    $DEBUG = true
+    _, errors = capture_io do
+      assert_nil ArenaDemo::LanDiscovery.receive_probe(socket)
+      assert_equal true, $DEBUG
+      assert_equal 'host reply', ArenaDemo::LanDiscovery.receive_probe(socket)[0]
+    end
+    assert_empty errors
+  ensure
+    $DEBUG = previous_debug
+  end
+
+  def test_unexpected_receive_errors_propagate_and_restore_debug_mode
+    socket = Object.new
+    def socket.recvfrom_nonblock(*); raise IOError, 'unexpected failure'; end
+    previous_debug = $DEBUG
+    $DEBUG = true
+    assert_raises(IOError) { ArenaDemo::LanDiscovery.receive_probe(socket) }
+    assert_equal true, $DEBUG
+  ensure
+    $DEBUG = previous_debug
+  end
+
   def test_configuration_works_without_fiddle_dlopen
     require 'fiddle'
     socket = UDPSocket.new

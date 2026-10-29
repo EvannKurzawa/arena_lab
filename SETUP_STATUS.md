@@ -1,5 +1,48 @@
 # Setup and implementation status
 
+## Overworld track selection and discovery debug messages (0.9.29)
+
+2026-10-29. Essentials/PEMK pins and visit protocol 3 unchanged.
+
+The previous music fallback selected an arbitrary decoded file, so a battle BGM
+could displace overworld MIDI. A shared selector now accepts named exploration
+tracks and rejects battle/trainer/encounter/victory/fanfare/evolution/champion
+tracks. Generation and runtime autoplay both use it; saved battle templates are
+replaced too. Decoded audio preference applies only after the overworld filter.
+If no recognized overworld file exists, autoplay stops the wrong BGM instead of
+substituting another battle track. Local audio diagnostics still report selection.
+
+Discovery already rescues reset/refused errors, but Ruby debug mode can print
+rescued exceptions. The friend successfully joining is consistent with such a
+message; no full trace from that computer was available to prove this. Both UDP
+receive paths now use one nonblocking helper that consumes expected reset,
+refused and empty-queue notifications with debug printing temporarily disabled.
+It restores the previous debug flag even on failure and propagates unexpected
+errors. Native reset suppression remains optional; discovery does not depend on
+Fiddle support for this receive handling. No global debug setting is changed.
+
+Executed with bundled Ruby 3.3.12: 22 tests / 55 assertions passed across
+lan_discovery_retry_test.rb, music_selection_test.rb, save_recovery_audio_test.rb,
+online_npc_audio_test.rb, remote_follower_test.rb and multiplayer_fixes_test.rb.
+Includes captured stderr with DEBUG enabled, a reset followed by a valid reply,
+unexpected receive error propagation, real Windows UDP retry/control tests,
+rejection of decoded battle tracks when only overworld MIDI is available, and
+the actual map autoplay wrapper replacing an older battle template.
+No audible playback, game GUI or physical two-computer test was executed.
+
+Files changed: README, this status, plugin meta.txt, 008_LanDiscovery.rb,
+013_ArenaAudio.rb, new 000_ArenaMusicSelection.rb, build_arena_map.rb,
+lan_discovery_retry_test.rb, save_recovery_audio_test.rb,
+online_npc_audio_test.rb and new music_selection_test.rb.
+
+After push, close both games, run the existing ArenaLab-Update.exe on both PCs,
+then relaunch Play-Arena.bat. Check village/entrance/arena exploration music,
+NPC battle music and the return to exploration music; search and complete a
+visit. If a reset message remains, retain the complete new trace and installed
+Plugins/ArenaDemo/meta.txt version (expected 0.9.29), since the reported old
+line number does not identify the current receive helper. If music is absent,
+inspect Data/ArenaAudioDiagnostic.txt for track selection and volume.
+
 ## Saved movement, bundled Fiddle compatibility and music playback (0.9.28)
 
 2026-10-29. Essentials/PEMK commits and visit protocol 3 unchanged.

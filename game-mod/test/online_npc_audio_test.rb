@@ -1,6 +1,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'fileutils'
+require_relative '../Plugins/ArenaDemo/000_ArenaMusicSelection'
 
 # Exercise the production entry points with lightweight engine/asset fixtures.
 module ArenaDemo

@@ -1,6 +1,7 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'fileutils'
+require_relative '../Plugins/ArenaDemo/000_ArenaMusicSelection'
 
 module ArenaDemo
   MAP_ID = 100
@@ -46,15 +47,16 @@ class SaveRecoveryAudioTest < Minitest::Test
     assert_equal [70, 70], [$game_player.x, $game_player.y]
   end
 
-  def test_loaded_entrance_replaces_silent_midi_with_decoded_music
+  def test_loaded_entrance_replaces_battle_template_with_overworld_music
     Dir.mktmpdir('arena-playback-') do |directory|
       Dir.chdir(directory) do
         FileUtils.mkdir_p('Audio/BGM')
         FileUtils.mkdir_p('Data')
         File.write('Audio/BGM/Town.mid', '')
         File.write('Audio/BGM/Route.ogg', '')
+        File.write('Audio/BGM/000 Battle.ogg', '')
         data = Object.new
-        data.instance_variable_set(:@bgm, RPG::AudioFile.new('Town', 0, 100))
+        data.instance_variable_set(:@bgm, RPG::AudioFile.new('000 Battle', 0, 100))
         data.instance_variable_set(:@autoplay_bgm, false)
         $PokemonSystem = Struct.new(:bgmvolume).new(60)
         map = Game_Map.new(data)

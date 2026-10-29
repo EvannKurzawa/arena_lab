@@ -1,4 +1,9 @@
-Source update (plugin 0.9.28): fixes the game's missing Fiddle.dlopen API,
+Source update (plugin 0.9.29): overworld maps reject battle/encounter/victory
+music, including tracks persisted by older builds. Discovery consumes expected
+UDP reset notifications without Ruby debug exception messages and keeps searching.
+Update both computers with the existing ArenaLab-Update.exe, then relaunch.
+
+Previous update (plugin 0.9.28): fixes the game's missing Fiddle.dlopen API,
 clears saved ice/forced movement during load, refreshes saved entrance maps,
 and validates arena spawn tiles across custom floors. Loaded maps also get
 music selection and autoplay repair. Existing local MIDI SoundFonts are reused;
