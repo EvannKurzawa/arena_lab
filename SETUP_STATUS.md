@@ -1,5 +1,74 @@
 # Setup and implementation status
 
+## Partial Fiddle, PvP follower ownership and visible village encounters (0.9.31)
+
+2026-10-29. Essentials/PEMK pins and arena visit protocol 3 remain unchanged.
+The existing updater fetches main; both computers must update and restart.
+
+The game exposes a partial Fiddle module whose Function calls can invoke missing
+win32_last_error= setters. Native UDP control now checks all required error
+setters before making a call; the reset-aware pure Ruby receive path remains
+available. The new fixture reproduces missing win32_last_error= with DEBUG true
+and verifies no native Function is constructed and no exception log is emitted.
+
+Follower lifecycle: remote characters now have explicit owning account IDs and
+separate negative character IDs. They reject another player's leader object;
+remote self-echoes cannot create a second local follower. Their sprites retain
+the exact owning character and remote visuals rebuild after PEMK PvP. Neighbor
+map spritesets cannot steal the attachment context. Local follower creation and
+remote movement pause during battles to avoid recreating a temporarily hidden
+local follower. Descriptor changes are compared before replacing cached values.
+These address identified lifecycle/ownership risks; the reported physical
+two-computer post-PvP scene has not been reproduced in-game here.
+
+Research read on the web:
+
+- https://eeveeexpo.com/resources/1087/ : Voltseon's v21.1 documentation describes
+  visible encounters, movement settings and recommends 4-6 active spawns to limit
+  load and crowding. It requires RainefallUtils plus walking assets.
+- https://github.com/VisibleOverworldWildEncounters/Visible-Overworld-Wild-Encounters-V20/blob/main/README.md
+  describes contact battles, despawn, terrain restriction and spawn-cap options.
+  Neither reference establishes a universal tiles-per-Pokemon density.
+
+Implemented a small original overlay, not a copy or installation of those
+third-party plugins. No third-party code/assets or additional dependencies were
+redistributed. It uses Essentials terrain tags, existing encounter weights,
+pbGenerateWildPokemon, PokemonIconSprite/Sprite_Character and WildBattle.start.
+The player's optional walking assets are resolved locally; existing Essentials
+icons are used if no walking sprite exists.
+
+VisibleWild configuration: one spawn per 24 usable grass tiles (rounded up), cap
+four, approximately two in the existing 42-tile patch before event exclusions.
+This density is a project tuning choice, not a published standard. Spawns choose
+Rattata/Caterpie/Spearow using the existing weights and level ranges, wander every
+1.5-3.5 seconds, stay on grass, avoid blocking events/player/other spawns, and
+despawn after 60 seconds. Battle/removal replacements wait eight seconds. Contact
+or facing + Confirm starts a normal catchable battle against that exact generated
+Pokemon. Step-based invisible encounters are suppressed only in this offline
+village; other maps are unchanged. Menus/interpreters/battles defer interaction.
+Spawns are transient module state, not injected into serialized map events;
+leaving the map or going online disposes them. They are not synchronized online.
+
+Tests use real production entry points with socket/engine fixtures; no graphical
+walking, catch, audible sound or physical two-computer PvP test was executed.
+No private saves/assets were modified. Existing wider fixture limitations remain.
+
+Changed: 006_FoundersPath.rb, 008_LanDiscovery.rb,
+011_ArenaFollowingIntegration.rb, new 014_VisibleWildPokemon.rb, plugin metadata,
+discovery regression test, new following_ownership_test.rb / visible_wild_test.rb,
+README and this report. Final validation: 38 tests / 193 assertions passed across
+the nine Ruby regression files (discovery, follower ownership, visible wild,
+remote follower movement, entrance refresh, music selection, save recovery/audio,
+online NPC/audio and multiplayer fixes). Changed Ruby syntax and git diff --check
+passed. Ownership tests include two remote players after rebuild, self-echo
+rejection, neighbor-map context protection and local battle-spawn prevention.
+
+Manual checks: update/restart both PCs, discover and complete a visit without
+Fiddle error logs, finish PvP and move each player separately to verify ownership
+on both screens. Offline in the village, observe roaming sprites, contact and
+Confirm battles, catch a Pokemon, wait for replacement, save/reload and leave/
+return. Without walking assets, confirm icon fallback remains visible/catchable.
+
 ## Game socket compatibility, entrance boundaries and MIDI bank (0.9.30)
 
 2026-10-29. Essentials/PEMK pins and visit protocol 3 unchanged.

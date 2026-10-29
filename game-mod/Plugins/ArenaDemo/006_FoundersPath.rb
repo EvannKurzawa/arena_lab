@@ -9,7 +9,7 @@ module ArenaDemo
       pbMessage("Wild Pokemon live in the grassy patch just behind me. Catching is available offline.")
       return
     end
-    pbMessage("This grassland has always grown beside the village. The first arena keepers met their Pokemon here. Walk through the tall grass to find a wild Pokemon.")
+    pbMessage("Wild Pokemon roam in the grass. Walk into one, or face it and press Confirm, to battle and catch it.")
   end
 
   def village_house

@@ -1,4 +1,14 @@
-Source update (plugin 0.9.30): discovery uses the game's supported recvfrom API;
+Source update (plugin 0.9.31): discovery skips native controls when the game's
+Fiddle module lacks Windows error setters. Network followers have explicit player
+ownership and rebuild after PvP; local followers are not recreated mid-battle.
+Offline village grass now has visible roaming wild Pokemon. Walk into one or
+face it and press Confirm to start a normal Essentials battle and catch it.
+Density: one per 24 usable grass tiles, capped at four, with an eight-second
+replacement delay. Walking sprites use your installed follower assets; otherwise
+Essentials Pokemon icons are used. Spawns remain local and are not saved.
+Update both computers with the existing updater and restart Play-Arena.bat.
+
+Previous update (plugin 0.9.30): discovery uses the game's supported recvfrom API;
 arena-only refreshes no longer hide entrance boundary boulders. Runtime setup
 now configures Essentials' local `soundfont.sf2` for MIDI music. Area music names
 without English keywords are accepted while battle/victory tracks stay excluded.

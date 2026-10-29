@@ -2,6 +2,26 @@ require 'minitest/autorun'
 require_relative '../Plugins/ArenaDemo/008_LanDiscovery'
 
 class LanDiscoveryRetryTest < Minitest::Test
+  def test_partial_fiddle_error_setters_do_not_call_native_functions
+    require 'fiddle'
+    original = Fiddle.method(:respond_to?)
+    partial = ->(name, *args) { name == :win32_last_error= ? false : original.call(name, *args) }
+    socket = UDPSocket.new
+    previous_debug = $DEBUG
+    $DEBUG = true
+    _, errors = capture_io do
+      Fiddle.stub(:respond_to?, partial) do
+        Fiddle::Function.stub(:new, ->(*) { flunk 'Incomplete Fiddle must not invoke native calls' }) do
+          assert_equal false, ArenaDemo::LanDiscovery.configure_socket(socket)
+        end
+      end
+    end
+    assert_empty errors
+  ensure
+    $DEBUG = previous_debug
+    socket&.close
+  end
+
   def test_expected_reset_is_quiet_in_debug_mode_and_next_reply_survives
     socket = Object.new
     socket.instance_variable_set(:@attempts, 0)

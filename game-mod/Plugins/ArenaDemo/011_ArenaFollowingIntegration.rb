@@ -53,6 +53,7 @@ module ArenaDemo
     end
 
     def ensure_local_follower
+      return if @pvp_active || ($game_temp && $game_temp.in_battle)
       return unless defined?(FollowingPkmn) && $game_map && ARENA_MAPS.include?($game_map.map_id)
       return unless local_pokemon && $game_map.events[900]
       return if FollowingPkmn.get
@@ -70,6 +71,10 @@ module ArenaDemo
     end
 
     def sprite_context(spriteset, viewport)
+      return if spriteset && spriteset.map != $game_map
+      # A battle/map rebuild owns new sprites. Never reuse an old attachment.
+      sprites.each_value { |sprite| sprite.dispose unless sprite.disposed? }
+      sprites.clear
       @spriteset = spriteset
       @viewport = viewport
       return unless spriteset && viewport && defined?(PEMK::Remotes)
@@ -88,10 +93,11 @@ module ArenaDemo
     end
 
     def clear_remote
-      sprites.keys.each { |id| dispose_remote(id) }
+      (sprites.keys | followers.keys | (@last_descriptors || {}).keys).each { |id| dispose_remote(id) }
     end
 
     def sync_remote(id, leader, descriptor, attach = false)
+      return dispose_remote(id) if defined?(PEMK) && id == PEMK.self_id
       return dispose_remote(id) unless leader && descriptor && !descriptor[:follower_species].to_s.empty?
       charset = charset_for(descriptor)
       return dispose_remote(id) if charset.empty?
@@ -99,6 +105,7 @@ module ArenaDemo
       prior = @last_descriptors[id]
       if prior != descriptor || !followers[id]
         character = ArenaRemotePokemon.new(leader, charset)
+        character.bind_owner(id)
         followers[id] = character
         @last_descriptors[id] = descriptor.dup
         old = sprites.delete(id)
@@ -108,34 +115,48 @@ module ArenaDemo
       return unless @spriteset && @viewport && $scene.is_a?(Scene_Map)
       old = sprites[id]
       return if old && !old.disposed?
-      sprite = Sprite_Character.new(@viewport, followers[id])
+      sprite = ArenaRemotePokemonSprite.new(@viewport, followers[id])
       sprites[id] = sprite
       @spriteset.addUserSprite(sprite)
     end
 
     def remote_position(id, message)
+      return dispose_remote(id) if id == PEMK.self_id
       return unless ARENA_MAPS.include?(message[:map])
+      return dispose_remote(id) if $game_map && message[:map] != $game_map.map_id
       @last_descriptors ||= {}
       if message[:follower_species].to_s.empty?
         dispose_remote(id)
         return
       end
-      @last_descriptors[id] = message.slice(
+      descriptor = message.slice(
         :follower_species, :follower_form, :follower_gender,
         :follower_shiny, :follower_shadow
       )
       leader = PEMK::Remotes.players[id]
-      sync_remote(id, leader, @last_descriptors[id]) if leader
+      sync_remote(id, leader, descriptor) if leader
     end
 
     def update_remote_followers
       return unless $scene.is_a?(Scene_Map)
-      followers.each do |id, follower|
+      return if @pvp_active || ($game_temp && $game_temp.in_battle)
+      followers.dup.each do |id, follower|
         leader = PEMK::Remotes.players[id] if defined?(PEMK::Remotes)
-        next unless leader
+        unless leader
+          dispose_remote(id)
+          next
+        end
         follower.follow_remote(leader)
         follower.update
       end
+    end
+
+    def rebuild_after_battle
+      sprites.each_value { |sprite| sprite.dispose unless sprite.disposed? }
+      sprites.clear
+      followers.clear
+      sprite_context(@spriteset, @viewport)
+      PEMK::Presence.emit_now(:pos) if defined?(PEMK::Presence)
     end
 
     def install_network_hooks
@@ -151,7 +172,42 @@ module ArenaDemo
   end
 end
 
+if defined?(Sprite_Character)
+  class ArenaRemotePokemonSprite < Sprite_Character
+    def initialize(viewport, character)
+      @arena_owner_character = character
+      super
+    end
+
+    def update
+      # Following plugins can alter generic character sprite updates. Keep this
+      # visual bound to the exact network-owned character on every frame.
+      @character = @arena_owner_character
+      super
+      @character = @arena_owner_character
+      self.x = @arena_owner_character.screen_x
+      self.y = @arena_owner_character.screen_y
+      self.z = @arena_owner_character.screen_z
+    end
+  end
+end
+
+if defined?(PEMK::BattleLauncher)
+  module ArenaDemo::FollowingBattleCleanup
+    def run_battle(*args)
+      ArenaDemo::FollowingIntegration.instance_variable_set(:@pvp_active, true)
+      super
+    ensure
+      ArenaDemo::FollowingIntegration.instance_variable_set(:@pvp_active, false)
+      ArenaDemo::FollowingIntegration.rebuild_after_battle
+    end
+  end
+  PEMK::BattleLauncher.singleton_class.prepend(ArenaDemo::FollowingBattleCleanup)
+end
+
 class ArenaRemotePokemon < Game_Character
+  attr_reader :owner_id
+  def bind_owner(id); @owner_id = id; @id = -id; end
   def initialize(leader, charset)
     super($game_map)
     @through = true
@@ -164,6 +220,7 @@ class ArenaRemotePokemon < Game_Character
 
   def follow_remote(leader, snap = false)
     return unless leader
+    return if @owner_id && leader.respond_to?(:player_id) && leader.player_id != @owner_id
     self.move_speed = leader.move_speed if leader.respond_to?(:move_speed)
     self.direction = leader.direction if [2, 4, 6, 8].include?(leader.direction)
     dx = (leader.direction == 6) ? -1 : (leader.direction == 4) ? 1 : 0
@@ -212,6 +269,7 @@ end
 
 module ArenaDemo::FollowingRemotes
   def apply_pos(message)
+    return if message[:id] == PEMK.self_id
     result = super
     ArenaDemo::FollowingIntegration.remote_position(message[:id], message) if message[:id]
     result

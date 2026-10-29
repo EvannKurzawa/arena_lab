@@ -31,6 +31,11 @@ module ArenaDemo
       require 'fiddle'
       return false unless defined?(Fiddle::Handle) && defined?(Fiddle::Function) &&
                           defined?(Fiddle::TYPE_INTPTR_T)
+      # The game's partial Fiddle module can expose Function but omit setters
+      # invoked internally by Function#call. Skip this optional optimization.
+      return false unless [:last_error=, :win32_last_error=, :win32_last_socket_error=].all? do |method|
+        Fiddle.respond_to?(method)
+      end
       # Ruby IO#ioctl is not implemented on Windows. Use Winsock's WSAIoctl
       # with the CRT descriptor-to-native-socket conversion.
       runtime = Fiddle::Handle.new(RUBY_PLATFORM.include?('ucrt') ? 'ucrtbase.dll' : 'msvcrt.dll')
