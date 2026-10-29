@@ -51,7 +51,14 @@ module ArenaDemo
       while (remaining = deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)) > 0
         readable = IO.select([socket], nil, nil, remaining)
         break unless readable
-        data, sender = socket.recvfrom(256)
+        begin
+          data, sender = socket.recvfrom(256)
+        rescue Errno::ECONNRESET, Errno::ECONNREFUSED
+          # On Windows, probing loopback when no responder is bound there can
+          # deliver an ICMP port-unreachable as WSAECONNRESET. That reply says
+          # only that this address has no host; keep listening for LAN replies.
+          next
+        end
         prefix, name = data.split("\t", 2)
         next unless prefix == PREFIX && name && name.match?(/\A[A-Za-z0-9_.-]{1,80}\z/)
         address = name == local_name ? '127.0.0.1' : sender[3]

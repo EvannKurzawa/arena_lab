@@ -1,5 +1,23 @@
 # Setup and implementation status
 
+## Cross-computer LAN discovery and follower visibility (v6.2.2)
+
+The user reported that same-PC multiplayer worked, but two-computer discovery
+failed with Windows' `recvfrom(2)` “existing connection was forcibly closed”
+error. The client probes `127.0.0.1` as well as LAN broadcasts; on a remote
+client with no local responder, Windows can report the loopback UDP probe as
+`WSAECONNRESET`. Discovery now ignores that expected reset and keeps listening
+for LAN replies. The fix passes Ruby syntax validation; it still needs a two-PC
+playtest.
+
+The friend has no follower because the third-party Following Pokemon EX archive
+was not installed. It is optional for starting or multiplayer; without it that
+machine renders no follower. Both players need version 2.5.1 for Essentials 21.1
+plus the matching assets if they want to see each other's walking followers.
+The archive is not redistributed; each player obtains it separately and puts
+`Following Pokemon EX.rar` in their Arena Lab root before launching. The current
+source asks for no installation when the archive is absent.
+
 ## Optional Following Pokemon EX dependency (v6.2.1)
 
 The user reported a friend could no longer start Play-Arena after updating from

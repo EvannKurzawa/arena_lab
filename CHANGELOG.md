@@ -1,5 +1,12 @@
 # Updates
 
+## v6.2.2 (2026-10-29)
+
+- Keep LAN arena discovery listening when Windows reports a UDP connection reset
+  for the loopback probe on a computer without a local host responder.
+- Clarify that both players need the optional Following Pokemon EX pack to see
+  each other's following sprites; no pack means no follower visuals on that PC.
+
 ## v6.2.1 (2026-10-29)
 
 - Make Following Pokemon EX optional during game preparation. An installation

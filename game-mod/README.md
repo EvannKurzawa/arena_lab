@@ -1,6 +1,6 @@
 # Arena Demo
 
-Repository snapshot **v6.2.1**, plugin **0.9.22 in source**: the previous manual-IP
+Repository snapshot **v6.2.2**, plugin **0.9.23 in source**: the previous manual-IP
 arena visit was confirmed between two physical computers. The updated automatic
 discovery flow still needs its two-computer retest. Follow the v4 test guidance
 in `SETUP_STATUS.md`. The first offline custom mode is implemented; the user
@@ -26,7 +26,7 @@ Plugin 0.9.8 writes live map/tile-renderer data to
 work but direct loads of an arena save are black. Plugin 0.9.9 reloads Map 100
 from generated data on save load while preserving position and saved edits.
 Plugin 0.9.10 restores the centered 25x25 floor and void outside it.
-## Current world generation (plugin 0.9.22)
+## Current world generation (plugin 0.9.23)
 
 `Play-Arena.bat` generates three connected playable maps: Arena Village
 (101), Arena Entrance (102), and Arena (100). The current generated 32x24
@@ -160,7 +160,8 @@ Following Pokemon EX is an optional third-party add-on. With its separately
 downloaded `Following Pokemon EX.rar` at the repo root, the launcher installs
 its plugin, sprites and safely merged animations into the private Essentials
 project. Without the archive, startup continues and follower visuals are simply
-disabled; the archive is excluded from GitHub.
+disabled; the archive is excluded from GitHub. Both players need the compatible
+plugin and assets installed to see each other's follower sprites.
 
 Use the root launcher with the game closed to install and generate the maps.
 New Game plus intro skip avoids cached maps in existing saves. The generation
