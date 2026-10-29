@@ -18,6 +18,14 @@ The archive is not redistributed; each player obtains it separately and puts
 `Following Pokemon EX.rar` in their Arena Lab root before launching. The current
 source asks for no installation when the archive is absent.
 
+Built and uploaded both installer EXEs pinned to
+`913784bd8fc876599ca4d66536a836aff722cd8a` at the [v6.2.2 GitHub
+release](https://github.com/EvannKurzawa/arena_lab/releases/tag/v6.2.2).
+SHA-256: Setup `6FD107DDC046C9CBDC6D9FEDDC8156476B811B5A599B28298B822767FEE8BC61`;
+Update `46170905B06C6BFDE5C4C6C687CDF18172064BE7E07FF63B529D68E895F831CD`.
+The new EXEs are published; discovery still needs a user playtest across two
+computers to confirm the Windows socket fix in the actual network environment.
+
 ## Optional Following Pokemon EX dependency (v6.2.1)
 
 The user reported a friend could no longer start Play-Arena after updating from
