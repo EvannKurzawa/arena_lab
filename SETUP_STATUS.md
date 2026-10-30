@@ -1,5 +1,34 @@
 # Setup and implementation status
 
+## v8.1 source snapshot (Arena Demo 0.13.4, 2026-10-30)
+
+Requested commit message: `v8.1`; branch: `main`; destination: `origin/main` at
+https://github.com/EvannKurzawa/arena_lab.git. This source snapshot contains the
+custom title integration, French catalogs/compiler, native regression runner
+and per-template audit described below. It is not a new installer build.
+
+Current behavior: direct custom title with centered start prompt and local music;
+normal Continue/New Game menu; original battle button graphics; French guides,
+NPC/follower dialogs, inventory/escape wording; ability popup shows its name
+alone. Existing save/network identifiers are preserved.
+
+Recorded passing checks: 3,310 Essentials literal templates with zero documented
+audit failures; 304 follower and 131 PEMK keys; 66 missing English core messages;
+standalone French title/format regression; 23 real native mkxp-z boot checks.
+The native runner loads/writes no save, substitutes the final NPC message UI
+sink and cleans up its temporary plugin/cache entry. No new two-client or full
+visual playthrough is claimed. The compiler path regression also passed again
+before this release commit (both slash formats and source paths with spaces).
+
+Excluded from source: private runtime files/caches, downloaded tools/audio, the
+French pack, title_screen.png and title_screen_design.pptx. Each other computer
+needs the separately supplied assets listed in README. Close game windows,
+update source, provide those files, then launch Play-Arena.bat.
+
+Upstream versions and dependencies are unchanged. Detailed commands, failed
+attempts and corrections follow in the historical entries; the v8.1 README
+describes the current behavior.
+
 ## v8 source snapshot (Arena Demo 0.12.2, 2026-10-30)
 
 This snapshot combines the new procedural wilderness, generation 1-5 visible
@@ -2227,3 +2256,200 @@ The user successfully ran the map generator and confirmed it wrote `Map100.rxdat
 The first attempted correction changed Map100 to map 3, but this was based on a mistaken map ID. Upstream `PBS/map_metadata.txt` identifies map 2 as Lappet Town and map 3 as the Player's House, matching the interior tiles visible in the user's screenshot. The corrected generator now derives Map100 from map 2 and reads the house exit's transfer command to determine the town spawn, writing it to `Data/ArenaDemoStart.txt`. The plugin reads this generated spawn file. These latest changes have **not yet been generated in the private runtime or tested in the game**.
 
 Added root `Launch-ArenaDemo.bat` so the user can double-click one launcher: it copies the current ArenaDemo plugin, rebuilds the local map, and calls the existing debug launcher. The updated generator and plugin pass Ruby syntax checks. The corrected map-2 build and in-game movement have not yet been verified. PEMK's `server/data` and loopback connection errors remain separate from the offline map test.
+# French title and localization — 2026-10-30 (Arena Demo 0.13.0)
+
+Resumed the interrupted work (`020_FrenchTitle.rb`, `compile_french_core.rb`,
+and title-copy preparation were already present). No upstream checkout changed.
+Added French presentation using Essentials' native translation files, plus
+Arena Lab dialogs, menu choices, map/item labels and variable messages. French
+is loaded at startup for new and existing saves. Saved object keys, species
+symbols and multiplayer protocol values remain unchanged.
+
+The user-provided PNG is copied to `Graphics/Titles/arena_title.png`, scaled to
+fit without cropping. Added a blinking French start prompt, music selection,
+fade and bitmap disposal. Confirm retains Essentials' Continue/New Game flow.
+Private title art and downloaded audio are not committed or bundled.
+
+Local translation source: Essentials v21.1 French core pack 1.2, downloaded in
+the earlier interrupted session from https://eeveeexpo.com/resources/1860/download
+and its MediaFire link
+https://www.mediafire.com/file/8fldcrs3faxseyj/Text_french.dat_core%25281.2%2529.zip/file.
+Compiled 10,691 entries into the ignored runtime's
+`Data/messages_french_core.dat`. Pack 1.2 contains a duplicated Darmanitan dex
+translation line; the compiler repairs that exact duplicate before validating
+pair counts. Third-party translations remain in the private runtime; no blanket
+redistribution permission is assumed. Core coverage audit: 68 of 3,305 default
+script keys absent from the pack, primarily compiler/developer diagnostics.
+Original upstream sample-story map dialogs are outside this core pack. A claim
+that every possible upstream/debug string is French would therefore be false.
+
+Music source verified through YouTube oEmbed: the requested video
+https://www.youtube.com/watch?v=yyhJCtAtw3g is “Pokémon Heart Gold & Soul Silver -
+Title Screen (HQ)” by Volipok. Downloaded using the local yt-dlp executable:
+`tools/runtime/yt-dlp.exe --no-playlist -f bestaudio -o tools/runtime/title-music.%(ext)s URL`.
+Converted with local FFmpeg 9.0.2:
+`ffmpeg.exe -nostdin -y -hide_banner -loglevel error -i tools/runtime/title-music.webm -codec:a libmp3lame -q:a 2 tools/runtime/arena-title.mp3`.
+The MP3 is copied to `Audio/BGM/Arena Title.mp3`. Tools and audio remain ignored.
+
+Commands/checks: bundled Ruby 3.3.12 with `--disable-gems` compiled the native
+French message file; `tools/runtime/finish-title.py` copied the PNG, MP3 and
+plugin scripts and ran `tools/sync-plugin-cache.rb` (23 Arena Demo scripts).
+Sandbox denied the runtime Data write; the approved elevated retry succeeded.
+`ruby --disable-gems game-mod/test/french_title_test.rb` verifies native French
+species/moves/menu text, accents, installed assets, dialog choices, nested
+variable messages, timer, multiplayer placeholders and title scene lifecycle
+against the original Essentials title class with mocked graphics/audio.
+This verifies code paths, not actual audio playback or rendered GUI appearance.
+No new GUI launch or two-client test is claimed.
+
+Changed files: `020_FrenchTitle.rb`, new `021_French.rb`, custom editor help
+localization in `009_ArenaCustomMode.rb`, plugin metadata, French compiler,
+`tools/install-french-title.ps1`, preparation hook, regression test, README,
+and this report. Close game windows and launch **Play-Arena.bat**; confirm the
+art/prompt/music, Continue an existing save, check Pokémon names and finish a
+battle in French. For another computer, separately supply the local PNG, MP3
+and French source pack described in README before launching.
+
+### Startup fix: Windows translation paths (2026-10-30)
+
+User reported `desktop-launcher-18440.log`: `No translated species found`.
+Reproduced with the exact absolute Windows source path passed by PowerShell.
+Ruby's `Dir.glob` interpreted the backslashes as escapes and found no translation
+files, although `File.directory?` succeeded. Normalize the source directory with
+`File.expand_path` before constructing the glob. No assets or saves changed.
+
+Verification: the previously failing absolute Windows path now compiles all
+10,691 French entries. New `game-mod/test/french_compiler_path_test.rb` passes
+both slash formats with spaces in the source folder. The 14 existing checks in
+`game-mod/test/french_title_test.rb` also pass. An initial regression fixture
+under the system temp directory was invisible to the sandboxed child process;
+the test now creates its disposable fixture under ignored `tools/runtime`.
+This checks the compiler/startup preparation issue; GUI startup is not claimed.
+
+### French presentation fixes from user playtest (2026-10-30, 0.13.1)
+
+User reports: guides/entrance choices and talents still English, battle buttons
+Fight/Run English, awkward enemy wording/past tense, no title screen. Inspection
+found Essentials `pbCallTitle` returns `Scene_DebugIntro` when `$DEBUG` is true;
+the launcher uses debug for compilation. Added a plugin entry hook returning
+`Scene_Intro` when the custom art exists, and removed the launcher's explicit
+`ARENA_AUTO_CONTINUE=1` setting. The normal Continue/New Game menu remains.
+
+Stock battle command labels are embedded in `cursor_command.png`. New
+`022_FrenchBattleMenu.rb` draws French buttons in memory, preserving the normal
+sprite selection/command behavior and disposing its bitmap. No stock image or
+engine source is overwritten. French presentation now also intercepts explicit
+Kernel message-display/command calls; ability accessors consult the installed
+French core data. Added exact narration overrides before placeholder formatting:
+“Le {1} ennemi”, “Le {1} sauvage”, “{1} utilise {2} !”, “{1} est K.O. !”.
+
+Validation: `ruby --disable-gems game-mod/test/french_title_test.rb` passes 25
+checks, including the actual ability accessor, Kernel guide/entrance paths,
+enemy/wild narration, debug title entry, French command sprite bitmaps and
+bitmap disposal. Rendering/audio are mocked in those scene checks, so these
+results do not establish a successful native GUI playthrough. The two-format
+Windows compiler path regression also passes. Changed `020_FrenchTitle.rb`,
+`021_French.rb`, added `022_FrenchBattleMenu.rb`, launcher, metadata (0.13.1),
+regression tests and documentation. Close the current session and relaunch
+Play-Arena.bat to load the updated scripts.
+
+### Title polish, original battle buttons and dialogue audit (2026-10-30, 0.13.2)
+
+User requested vertically centered title prompt, no stock splashes, original
+battle button artwork, and a search for untranslated guide/follower text.
+`020_FrenchTitle.rb` now routes stock `open_splash` straight to the custom art.
+Prompt drawing uses the full 44px panel and adds Bitmap.text_offset_y, cancelling
+the subtraction in Essentials' `001_MKXP_Compatibility.rb` draw_text wrapper.
+`022_FrenchBattleMenu.rb` is now a no-op: retaining its filename replaces the
+old redraw on existing installations, so stock button images are restored.
+
+The actual CustomModeReception guide method now contains French dialog/choices
+directly. Added `023_FrenchFollowers.rb`: follower reactions for all moods,
+weather and locations, found-item dialogs and follower option descriptions.
+Translations hook native MessageTypes.getFromHash before placeholders are
+formatted; this covers _INTL calls inside third-party modules. New
+`024_FrenchNetwork.rb` covers remaining PEMK account, battle, trade, shop and
+export messages without enabling any new network feature. New
+`025_FrenchEngineMessages.rb` covers all 66 missing English core messages;
+the other two omissions in the pack are nonlinguistic time-format strings.
+
+Validation executed with bundled Ruby 3.3.12 `--disable-gems`:
+`game-mod/test/french_title_test.rb` passes 31 checks, including the actual guide
+method/choices, native follower lookup/spinning, splash entry, baseline offset,
+and absence of battle button redraw. Graphics/audio are mocked.
+`game-mod/test/french_dialogue_coverage_test.rb` passes: 66 missing English core
+keys covered, 304/304 literal Following Pokemon EX _INTL keys translated,
+131/131 PEMK _INTL keys translated, with identical placeholder multisets.
+These audits inspect installed plugin sources and execute native translation
+lookup; they are not a complete GUI playthrough or verification of the original
+Essentials sample-story event dialogs. No new GUI/two-client test is claimed.
+Close all game windows and relaunch Play-Arena.bat to load 0.13.2.
+
+### Actual native localization failure fixed (2026-10-30, 0.13.3)
+
+The user's repeated report was valid: earlier standalone tests did not exercise
+Essentials' real PluginManager.runPlugins preprocessing. Upstream
+`001_Technical/005_PluginManager.rb:629` runs `code.gsub!("\t", "  ")` before
+eval. The tab-separated heredoc tables in 021/023/024/025 were consequently
+loaded as EMPTY dictionaries inside the game. This explains why unrelated
+NPCs, follower dialogs and choices all stayed English together. Replaced tab
+delimiters with ` ||| ` in all four catalogs. The main parser now rejects an
+invalid entry instead of silently discarding it. Added `{1}'s -> Talent de {1}`
+for the actual ability splash's separate name line (the second line already
+uses the translated ability name).
+
+The first diagnostic probe itself crashed on `.encoding` of the empty table's
+nil first key; the user supplied that backtrace. Removed that temporary plugin,
+fixed the diagnostic and reran it. Its final implementation catches assertion
+errors and writes a report, so test failures exit without an in-game error box.
+No diagnostic probe is left in the installed game or compiled plugin cache.
+
+Tests now preprocess catalog source exactly as PluginManager does before eval:
+`french_title_test.rb` passes 32 checks and
+`french_dialogue_coverage_test.rb` passes 66 missing English core keys plus
+304/304 follower and 131/131 PEMK literal _INTL keys, preserving placeholders.
+Installed the corrected source and regenerated the cache (27 Arena Demo scripts).
+
+Executed a real, hidden mkxp-z boot through its existing Game.ini/bootstrap and
+PluginManager, not a standalone Ruby substitute. Native report confirms 733
+catalog entries and passes 19 checks: global/Kernel/ArenaDemo/FollowingPkmn
+translation calls, ability name and popup syntax, all 435 optional-plugin keys,
+actual entrance attendant and choices, inside guide, outdoor scout/resident/
+house, and all four village-quest dialog branches. Only the final message UI
+sink, inventory setup and test quest flags were stubbed in that disposable
+process; real NPC methods and translation wrappers ran. No save was loaded or
+written. This proves native text generation, not a visual walk-through of every
+possible game screen or the original upstream sample-story events.
+
+Reusable native regression: `game-mod/test/native_french_boot_probe.rb` and
+`tools/test-native-french.py`. The runner installs the probe temporarily, starts
+its own hidden process, checks its exit/report and restores the cache in finally.
+Report: `tools/runtime/native-locale-probe.log`. Close the old game and relaunch
+Play-Arena.bat to pick up 0.13.3.
+
+### Essentials phrase audit (2026-10-30, 0.13.4)
+
+Fixed mixed-English inventory wording by removing pre-translation of English
+keys before native _INTL lookup. Added canonical matching for extraction/source
+line-break differences, targeted grammar/style/format corrections and an
+ability-only renderer in 026_FrenchCoreReview.rb. Resource IDs now bypass
+presentation translation. Inventory uses “Vous rangez … dans la poche … du Sac.”;
+successful escape uses “Vous avez pris la fuite !”.
+
+Browsed HGSS/BW references and consulted a private BW French corpus copy for
+brief wording checks. References and precise audit limitations are recorded in
+docs/FRENCH_LOCALIZATION_AUDIT.md. No corpus dump was added to tracked source.
+
+Executed audit_french_messages.rb: 3,310 literal Essentials templates individually
+recorded with source paths and effective French in ignored
+tools/runtime/french_messages_audit.json. Zero English/format/resource failures
+under its documented checks; 47 reviewed unchanged labels. This is automated
+per-template verification plus targeted semantic corrections, not manual review
+of every upstream story-map event.
+
+Installed 0.13.4 and regenerated the cache (28 Arena Demo scripts). Standalone
+translation/title and plugin coverage tests pass. tools/test-native-french.py
+passes 23 native checks: all 3,310 output strings, actual inventory template,
+escape message, ability-only drawing calls, 304 follower/131 PEMK templates and
+NPC quest branches. No save loaded/written. Probe removed and cache restored.
+Close the old game and relaunch Play-Arena.bat for 0.13.4.

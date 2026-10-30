@@ -56,6 +56,7 @@ function Prepare-Clients {
     }
     Copy-Item -Path "$projectRoot/game-mod/Plugins/ArenaDemo/*.rb" -Destination $pluginTarget -Force
     Copy-Item -LiteralPath "$projectRoot/game-mod/Plugins/ArenaDemo/meta.txt" -Destination $pluginTarget -Force
+    & "$PSScriptRoot/install-french-title.ps1" -GameRoot $gameRoot
     & "$PSScriptRoot/install-following-pokemon.ps1" -GameRoot $gameRoot
     if (!$?) { throw 'Following Pokemon EX setup failed.' }
     # Repair only the generated local junction after moving the workspace.

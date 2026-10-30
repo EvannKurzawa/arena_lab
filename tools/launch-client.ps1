@@ -4,7 +4,7 @@ if (!$SkipRuntimeSetup) { & "$PSScriptRoot/install-client-runtime.ps1" }
 $engineRoot = Join-Path $PSScriptRoot 'runtime/mkxp-official-test'
 $engine = Join-Path $engineRoot 'mkxp-z.x86_64.exe'
 $env:RUBY_THREAD_VM_STACK_SIZE = '16777216'
-$env:ARENA_AUTO_CONTINUE = '1'
+Remove-Item Env:ARENA_AUTO_CONTINUE -ErrorAction SilentlyContinue
 Remove-Item Env:ARENA_DIAGNOSTICS -ErrorAction SilentlyContinue
 Remove-Item Env:PEMK_GUEST -ErrorAction SilentlyContinue
 if ($Instance -eq 'primary') { Remove-Item Env:PEMK_INSTANCE -ErrorAction SilentlyContinue } else { $env:PEMK_INSTANCE = $Instance }

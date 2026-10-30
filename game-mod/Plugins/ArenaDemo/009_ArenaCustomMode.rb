@@ -946,6 +946,7 @@ module ArenaDemo
     window.x = [(Graphics.width - window.width) / 2, 0].max
     window.y = [(Graphics.height - window.height) / 2, 0].max
     window.z = viewport.z + 1
+    title = French.text(title) if defined?(French)
     help = Window_UnformattedTextPokemon.newWithSize(title, 0, 0, Graphics.width, 72, viewport)
     help.z = viewport.z + 1
     result = nil
@@ -1523,14 +1524,14 @@ ArenaDemo.singleton_class.prepend(ArenaDemo::CustomModeRefresh)
 module ArenaDemo::CustomModeReception
   def arena_reception
     if multiplayer?
-      pbMessage("Custom mode and trainer recruitment are available offline. I can still heal your team.")
-      heal_team if pbConfirmMessage("Would you like me to heal your team?")
+      pbMessage("La personnalisation et le recrutement sont disponibles hors ligne. Je peux toutefois soigner votre équipe.")
+      heal_team if pbConfirmMessage("Voulez-vous que je soigne votre équipe ?")
       return
     end
     ArenaDemo.ensure_custom_inventory
     loop do
-      choice = pbMessage("Welcome to your arena. What would you like to do?",
-                         ["Custom mode", "Recruit a trainer", "Heal my team", "Back"], -1)
+      choice = pbMessage("Bienvenue dans votre arène. Que souhaitez-vous faire ?",
+                         ["Personnalisation", "Recruter un Dresseur", "Soigner mon équipe", "Retour"], -1)
       case choice
       when 0 then ArenaDemo.custom_mode
       when 1 then ArenaDemo.recruit_trainer

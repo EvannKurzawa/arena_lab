@@ -1,5 +1,61 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## v8.1: French interface and custom title (Arena Demo 0.13.4)
+
+Close all game windows, update the source with **ArenaLab-Update.exe**, then
+launch **Play-Arena.bat**. The launcher installs the plugin and prepares the
+locally supplied translation and title assets. Existing saves are supported.
+
+The custom title opens directly, without the stock splash screens, and displays
+**APPUYEZ SUR ENTRÉE OU ESPACE** centered in its panel. Confirm opens the usual
+Continue/New Game menu; automatic continuation is disabled. The local title
+music is the requested HeartGold/SoulSilver theme. The original graphical battle
+buttons are retained.
+
+French is selected automatically for Pokémon names, moves, items, abilities,
+menus and battle messages. Arena Lab supplies French village/arena guides,
+customization, expeditions, follower interactions and multiplayer dialogs.
+Inventory wording and successful escape were corrected; the ability popup
+shows only the translated ability name. Saved layout keys, species IDs,
+multiplayer protocol values and player nicknames keep their existing format.
+
+This release fixes two localization defects: Essentials converts tabs to spaces
+before evaluating plugins, which emptied the previous tab-separated catalogs;
+and translating fragments of English lookup keys prevented native French
+matches. Catalog separators, Windows paths and line-break matching are fixed.
+Graphics/Audio/Data resource identifiers bypass presentation translation.
+
+### Local assets on each computer
+
+These personal/third-party files are not included in the source commit:
+
+- `title_screen.png` at the project root (title artwork).
+- `tools/runtime/arena-title.mp3` (title music).
+- Essentials v21.1 French pack source at
+  `tools/runtime/french-translation/Text_french.dat_core/`, or an already compiled
+  `tools/runtime/essentials-v21.1-base/Data/messages_french_core.dat`.
+
+The launcher copies the title assets when present and compiles the French pack.
+It reports a missing French pack rather than silently starting in English.
+Supply these files separately on another installation before launching.
+`title_screen_design.pptx` remains a local design document.
+
+### Verification and limits
+
+The audit checks all **3,310 literal Essentials script templates**, 304 follower
+templates and 131 PEMK templates. The native engine passes **23 checks**,
+including actual NPC quest branches, inventory/flee wording and ability-only
+text drawing. No save was loaded or written by the native probe. This is text
+generation/format verification, not a manual playthrough of every screen or
+certification of original upstream sample-map event dialogs.
+
+Run `ruby --disable-gems game-mod/tools/audit_french_messages.rb` with the bundled
+Ruby to regenerate the private per-phrase report. On Windows,
+`python tools/test-native-french.py` runs the disposable native boot check and
+removes its temporary plugin. Reports stay under ignored `tools/runtime/`.
+See [the audit, references and coverage limits](docs/FRENCH_LOCALIZATION_AUDIT.md)
+and [SETUP_STATUS.md](SETUP_STATUS.md) for executed checks and setup history.
+
 ## v8: procedural outings and running (Arena Demo plugin 0.12.2)
 
 Hold **Shift (Maj) + a direction** to run. **Space** opens the pause menu; when
