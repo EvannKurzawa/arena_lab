@@ -43,7 +43,7 @@ class OnlineNpcAudioTest < Minitest::Test
   end
 
   def test_blank_template_gets_installed_music_and_door_uses_existing_sound
-    Dir.mktmpdir('arena-audio-') do |directory|
+    Dir.mktmpdir('arena-audio-', File.expand_path('../..', __dir__)) do |directory|
       FileUtils.mkdir_p(File.join(directory, 'Audio/BGM'))
       FileUtils.mkdir_p(File.join(directory, 'Audio/SE'))
       File.binwrite(File.join(directory, 'Audio/BGM/Town.ogg'), '')

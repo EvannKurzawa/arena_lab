@@ -1,5 +1,331 @@
 # Setup and implementation status
 
+## v8 source snapshot (Arena Demo 0.12.2, 2026-10-30)
+
+This snapshot combines the new procedural wilderness, generation 1-5 visible
+encounters with a five-species limit per zone, Shift running, Space pause,
+three rolling-day outings, the 20-minute timer, and the 0.12.1/0.12.2 startup
+fixes below. Commit label: `v8`; target branch: `origin/main`.
+The updater fetches GitHub `main`. After it updates both computers, close all
+game windows and launch `Play-Arena.bat` to prepare local maps and plugin cache.
+The user reported the two errors fixed in source below, but an embedded-runtime
+launch of 0.12.2 and a full expedition/capture/reload playtest are still pending.
+No private saves, licensed game assets, runtime binaries, or credentials belong
+in this source snapshot.
+Release checks with bundled portable Ruby 3.3.12: the full outing/world suite
+passed **25 tests / 1,724 assertions**, controls passed **10 / 35**, terrain
+passed **4 / 1,012**, and map-template generation passed **2 / 100**. The
+`--disable-gems` startup smoke test passed, all five new plugin scripts passed
+`ruby -c`, and the staged diff passed `git diff --cached --check`. These are
+fixture and source checks, not an embedded-game GUI playtest.
+
+## Following Pokemon scene-update recursion fix (0.12.2, 2026-10-30)
+
+The user launched 0.12.1 and reported `SystemStackError: stack level too deep`
+with alternating `018_ExpeditionLimits.rb`, `019_PlayerControls.rb`, and
+`[Following Pokemon EX] Refresh.rb:122` frames. Following Pokemon EX aliases
+`Scene_Map#update` after Arena Demo loads. Its alias captured Arena Demo's
+prepended update hooks, causing `super` to re-enter Following's wrapper.
+Both Arena Demo scene-update hooks now use class-level aliases, so Following's
+wrapper reaches the prior method once. The separate `call_menu` hook remains a
+prepend. This changes the hook mechanism only; the outing timer and controls
+still run around the native scene update.
+
+Verification with portable Ruby 3.3.12: player control tests simulate the
+Following Pokemon alias and pass 10 tests/35 assertions; outing tests also
+simulate the alias and pass 15 tests/264 assertions, including expiry through
+`Scene_Map#update` and one return transfer. The no-stdlib startup smoke test
+passes. `git diff --check` reports no whitespace errors (only Git's existing
+CRLF conversion warnings). A fresh embedded-game launch remains to be verified
+by the user; no successful GUI launch is claimed here. The normal
+`Play-Arena.bat` preparation step copies the updated plugin and cache on start
+when no other client is running.
+
+## Embedded Ruby startup fix (0.12.1, 2026-10-30)
+
+The 0.12.0 game startup reported `LoadError: cannot load such file -- json`
+in `018_ExpeditionLimits.rb`. The embedded runtime does not provide the `json`
+standard library; `fileutils` was also an unnecessary runtime dependency.
+The outing ledger now uses Ruby's built-in Marshal format, as Essentials does
+for saves, in `SaveData::FILE_PATH + '.expeditions.dat'`. The save directory
+already exists when Essentials selects its save path. Malformed records still
+block departures instead of silently resetting the daily allowance.
+No successful GUI launch has been claimed for this fix; the user must retry
+the game and report any later startup error.
+Verified locally with portable Ruby 3.3.12:
+`ruby --disable-gems game-mod/test/expedition_boot_smoke.rb` passed while
+all `require` calls were rejected; the plugin loaded, recorded an outing,
+reloaded the deadline and allowance, and retained the ended state.
+`ruby game-mod/test/expedition_limits_test.rb --name /Outing/` passed
+14 tests/262 assertions. `ruby game-mod/test/player_controls_test.rb` passed
+9 tests/34 assertions. `git diff --check` found no whitespace errors.
+These checks use portable Ruby and fixtures, not the embedded mkxp-z game process.
+`Play-Arena.bat` runs Prepare on next start when no other client is active;
+Prepare copies these plugin files and refreshes the local plugin cache.
+
+## Running, timed allowance and five-species zones (0.12.0, 2026-10-30)
+
+Implemented in this working copy. Essentials v21.1, PEMK pins, the shipped
+mkxp-z binary, visit protocol and procedural terrain version 2 are unchanged.
+No new dependencies, services, payments, asset downloads or release publication.
+
+Hold either Shift/Maj while moving to use Essentials' native running movement
+and animation, without needing the running-shoes unlock. Terrain, bump/jump,
+scripted-route and battle/menu restrictions remain. Space now queues the pause
+menu after the current step, without also firing overworld interaction; Enter/Z
+still interact. Dialogues/battles retain native confirm/cancel. The obsolete
+Default Movement option is removed. This uses a scoped Input adapter and player/
+scene hooks, rather than replacing core engine files or F1 bindings.
+
+Each local profile has three free departures in a rolling 86,400 seconds. Each
+used slot replenishes exactly 24 hours after its departure. A cancelled prompt,
+failed generation/write/transfer does not consume an outing. Returning early
+still counts. OutingLedger persists timestamps and session deadlines atomically
+in `SaveData::FILE_PATH + '.expeditions.dat'`; loading an older save cannot restore
+slots or reopen an ended trip. An initially zero bonus-outing balance and credit
+method prepare for future extra outings; no payment or purchase UI is present.
+
+Each outing gets a 1,200-second absolute real-clock deadline after generation.
+A map HUD shows remaining time. Menus and closing the game do not stop time.
+After expiry, new voluntary movement, crossings and visible wild battles stop;
+ordinary menus unwind through cancel input. Running NPC scripts, capture/reward/
+evolution processing and active NPC/wild battles finish before return. Both the
+native in_battle/menu/message flags and the visible-wild busy flag are checked.
+Return occurs automatically before its acknowledgement dialog, not after waiting
+for confirmation. Normal blackout/healing travel also closes the outing.
+
+New generation resolves at most five weighted distinct generation 1-5 species
+per zone, without replacement, using a private seed derived from outing/zone.
+The selected weighted tables persist in the outing and are the only spawn pool
+for subsequent visits/reloads/respawns. Six visible individuals can still coexist
+because several may share a species. Legacy zone tables backfill deterministically.
+Old untimed saves receive one recorded twenty-minute migration outing, using an
+available slot, rather than a fresh timer on every load. No saved Pokemon are
+deleted. Rules and migration details: docs/EXPEDITION_RULES.md.
+
+Files for this revision: new 018_ExpeditionLimits.rb, 019_PlayerControls.rb,
+expedition_limits_test.rb, player_controls_test.rb and docs/EXPEDITION_RULES.md;
+updated 014_VisibleWildPokemon.rb, 016_ExpeditionWorld.rb, meta.txt, the existing
+world test fixtures, root/game-mod READMEs, generation documentation and this
+status. Earlier uncommitted terrain/world work remains intact.
+
+Executed with bundled Ruby 3.3.12:
+
+- `ruby game-mod/test/expedition_limits_test.rb`: **21 tests / 1,711 assertions
+  passed**, comprising the 10 existing world regressions and the initial limit
+  tests. Covers full-world navigation, generation, save continuity and encounters
+  alongside the quota/timer integration.
+- After final expiry-message ordering and additional failure/allowance cases,
+  `ruby game-mod/test/expedition_limits_test.rb --name /Outing/`:
+  **14 / 262 passed**. Covers exact rolling-day boundaries, profile isolation,
+  record reload/corruption/write failures, free/bonus refunds, declined/exhausted
+  departures, real-time save reload, active-battle/post-battle-script deferral,
+  movement/message deferral, automatic return before notice, closed/legacy-save
+  replay and frozen weighted five-species rosters over 100 respawns.
+- `ruby game-mod/test/expedition_world_test.rb --name /failed_transfer/`:
+  **1 / 3 passed** after adding the explicit quota-refund assertion.
+- `ruby game-mod/test/player_controls_test.rb`: **9 / 34 passed**. Runs the real
+  upstream Scene_Map input polling body with hardware-state fixtures; verifies
+  both Shift keys, Space versus Use priority, moving-menu queuing, Enter/Z,
+  terrain/scene/script locks, input-scope cleanup and expired-menu cancellation
+  without cancelling battle or NPC follow-up commands.
+- Other targeted regressions: visible_wild_test **9 / 126**,
+  expedition_map_build_test **2 / 100**, expedition_terrain_test filtered to
+  ExpeditionTerrainTest **4 / 1,012**, remote_follower_test **3 / 9** and
+  following_ownership_test **4 / 12**, all passed. Across these runs, **55 distinct
+  tests** were exercised; overlapping reruns above are not additional tests.
+- Syntax checks passed for 014, 016, 018 and 019; `git diff --check` passed.
+- Local upstream can_run?/Scene_Map/menu/battle lifecycle code was inspected.
+  The raw keyboard API was checked against the primary mkxp-z development source;
+  web fetches of the exact pinned commit failed with cache misses, and no runtime
+  upgrade was made. References are recorded in docs/EXPEDITION_RULES.md.
+
+These are automated engine-state/input/filesystem fixtures, not an actual
+keyboard, twenty-minute live battle or two-client GUI playtest. No client/server
+was launched, and no commit/push/updater upload was performed for this revision.
+
+Manual verification: close the games and run Play-Arena.bat from this working
+copy. Check Shift+movement, release-to-walk and Space pause while stationary or
+mid-step; use Enter/Z for NPCs/catching. At the village guide check allowance,
+decline a departure and confirm it stays unchanged. Depart and check the HUD,
+revisit a zone and reload a save to verify the same five-species selection and
+original deadline. Check menu expiry closes cleanly, and a wild battle spanning
+the deadline finishes capture/rewards before automatic return. NPC-battle grace
+also needs a real trainer-in-expedition check when such an NPC is placed. After
+three departures, check that another is denied and its next free time is shown.
+Existing untimed outings migrated on first load count as one outing. All timing
+uses the computer's real clock; allowance remains local to the profile.
+
+## Native-art terrain and generations 1-5 (0.11.0, 2026-10-30)
+
+The user rejected the 0.10.0 appearance. Replaced its ellipse stamping and
+rectangle-drawn textures with version 2 generation and native Essentials art.
+Existing Essentials v21.1/PEMK pins and multiplayer protocol are unchanged. The
+fixed biome rarity table remains unchanged. No web map pack or third-party
+generation library was imported; the researched procedural option was chosen.
+Sources, algorithm details and limits are in docs/EXPEDITION_GENERATION.md.
+
+Generation now uses independently seeded, warped, multi-octave value-noise
+fields for elevation, moisture and route costs; quantiles control biome feature
+coverage. Small components are pruned. A minimum spanning tree plus terrain-aware
+A* joins exits/camp/clearings with offset waypoints and necessary bridges. Paths
+are no longer a fixed central cross. Scenery blockers participate in encounter
+reachability checks. Native quarter-tile autotile tables choose shore/path/low
+vegetation edges. Native cliff faces surround separate summit interiors; actual
+full conifers replace the cuttable-shrub graphic used by the first version.
+Snow rocks, crystals, industrial floors and ruins use the installed artwork.
+Palette grading adapts native vegetation to snow/dry/ash and water to lava.
+Generation shows progress rather than leaving a frozen map with no feedback.
+
+Wild pools now require base species generations 1-5. Tests explicitly include
+matching generation 6/7/8 candidates and verify rejection. Existing trainer
+rosters, starter and local gifts were inspected and already use generations 1-5.
+Engine definitions/assets and previously caught Pokemon are retained for save
+compatibility; no destructive save cleanup was performed.
+
+Existing saved expedition plans retain their geography. Return to the village
+and depart again to create the version 2 layout. The new renderer supports the
+old terrain codes as well. Per-profile plans, map IDs and local-only scope remain.
+
+Files for this revision: 015_ExpeditionLayout.rb, 016_ExpeditionWorld.rb,
+017_ExpeditionTerrain.rb, meta.txt (0.11.0), expedition_world_test.rb,
+expedition_terrain_test.rb, README.md, game-mod/README.md and this status;
+new docs/EXPEDITION_GENERATION.md and game-mod/tools/expedition_preview.rb.
+The other uncommitted changes listed below belong to the preceding 0.10.0 task
+and were preserved. No upstream code, assets, saves or credentials were deleted.
+
+Executed with bundled Ruby 3.3.12:
+
+- `ruby game-mod/test/expedition_terrain_test.rb`: **14 tests / 2,470 assertions
+  passed**, including 10 world-generation/save/encounter tests. Eight complete
+  worlds were checked for path and encounter reachability with blocking scenery;
+  all 15 biome configurations were checked for meaningful terrain features.
+- After the final native scenery guard/prop adjustment,
+  `ruby game-mod/test/expedition_terrain_test.rb --name /ExpeditionTerrainTest/`:
+  **4 tests / 1,012 assertions passed**. Covers all native masks, source bounds,
+  scrolling, asset disposal and full-tree framing, including player/follower
+  characters without Game_Event's name method.
+- `ruby game-mod/test/visible_wild_test.rb`: **9 / 126 passed**.
+- `ruby game-mod/test/expedition_map_build_test.rb`: **2 / 100 passed**.
+- `ruby game-mod/test/remote_follower_test.rb`: **3 / 9 passed**;
+  `ruby game-mod/test/following_ownership_test.rb`: **4 / 12 passed**.
+  These are targeted fixture tests, not a new two-client game test.
+- Syntax checks passed for the three expedition scripts and preview tool.
+  `git diff --check` passed (Windows line-ending notices only).
+- The original old-table fixture failed after excluding gen 8 and was updated to
+  use gen 5 Roggenrola as its allowed Rock species, plus explicit gen 6-8 rejects.
+  The old fixed saved coordinate became rock under the new layout; its fixture
+  now uses the guaranteed camp clearing, preserving the save-continuity check.
+- Research consulted primary algorithm articles, the JCGT value-noise paper page
+  and the original WFC repository. No downloaded map/art pack was installed.
+- Native assets were read via the filesystem tool and copied only to ignored
+  `dist/expedition-qa` for independent visual verification. The production preview
+  tool rendered all 15 biome configurations to `dist/expedition-preview` with
+  full-sector and viewport images plus summary.json. All completed successfully.
+  Final snow/crystal prop crops were re-rendered under dist/expedition-final-preview.
+  These are deterministic renders of production terrain code, not game screenshots.
+
+No actual game/server/two-client session was launched for this revision, and no
+commit/push/updater publication was performed. The earlier private-runtime shell
+preparation stall is recorded below; this revision verified native artwork with
+read-only input copies rather than claiming a successful game launch.
+
+Manual steps: close the games, run Play-Arena.bat from this working copy, load
+the save, return to the village if outside, and leave through the south gate.
+Check full tree layering/collision, biome art/weather, grass contact/capture,
+sector crossings, bridges, save/reload, return home and another new departure.
+Existing owned Pokemon should remain intact; new wilderness spawns should be
+generations 1-5 only. Further authored landmarks and in-game aesthetic feedback
+remain useful; forest/bamboo still share woodland art and sectors fade on travel.
+
+## Procedural wilderness expeditions (0.10.0, 2026-10-30)
+
+Implemented in source; **not a user-confirmed GUI snapshot**. Existing Essentials
+v21.1 and PEMK repository/version pins below are unchanged. No new dependencies,
+downloaded assets, upstream patches, server protocol changes or release uploads.
+
+The south village gate starts a new offline expedition with 16 connected 64x64
+sectors, covering 256x256 tiles. The starting camp is grassland. Each other sector
+independently rolls the fixed percentages in README: grassland 52, forest 12,
+desert 5, volcano/snow/lake 4 each, swamp/canyon/meadow 3 each,
+crystal/ruins/storm/coast 2 each, bamboo/power station 1 each (total 100).
+Repeats are allowed; an outing need not contain every special biome. Grass is
+the most likely biome, rather than an enforced minimum count on every outing.
+
+Plans contain a version, seed, resolved biome choices, compact terrain strings
+and scenery coordinates in PokemonGlobal. Crossing sectors/loading retains the
+same plan; only a confirmed village departure replaces it. Runtime generation
+uses Essentials' on_game_map_setup hook. Per-player layouts never overwrite
+shared map files, so separate local profiles retain separate expeditions. The
+return guide and Expedition pause command return home; the existing healing
+return is set before departure. Generation carves connected clear paths and
+removes unreachable encounter grass from the spawn pool.
+
+Visible encounters now support these maps, scan nearby grass rather than all
+65,536 world tiles, and cap active wilderness Pokemon at six. Pools are selected
+from the installed generation 1-8 base species by habitat types, favoring the
+primary type and lower stat totals. Legendary/Mythical/Ultra Beast flags and
+Sea/Rare habitats are excluded from ordinary spawns. Levels scale from 3-7 at
+camp to 23-27 farthest away. Existing pbGenerateWildPokemon, walking-sprite/icon
+fallback and WildBattle retain battle/capture behavior. Populations are transient
+and not saved. The existing village table and cap of four remain.
+
+Source files changed: README.md, game-mod/README.md, this file, the map builder,
+014_VisibleWildPokemon.rb and meta.txt; new 015_ExpeditionLayout.rb,
+016_ExpeditionWorld.rb and 017_ExpeditionTerrain.rb. Added expedition_world_test.rb,
+expedition_map_build_test.rb and expedition_terrain_test.rb; extended visible wild
+tests. Two older sign/audio fixtures now explicitly create temporary directories
+inside the workspace because this sandbox cannot reliably enumerate files in
+the system temp folder. Their initial failures were reproduced and then passed
+with the fixture location corrected; production sign/audio behavior is unchanged.
+
+Commands/results (bundled tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe,
+Ruby 3.3.12; tests are lightweight engine fixtures, not a running RGSS game):
+
+- `ruby game-mod/test/expedition_terrain_test.rb`: **11 tests / 1,682 assertions
+  passed**, including the nine expedition world tests. Covers fixed rarity
+  intervals, deterministic plans, eight complete generated worlds' path/grass
+  reachability, save round trips/load recovery, new outing/cancel/online guards,
+  transfer rollback, runtime events, hazard collision, species pools, terrain
+  differentiation, shoreline masks and bitmap caching/disposal.
+- `ruby game-mod/test/expedition_map_build_test.rb`: **2 / 100 passed**. Executes
+  the production builder twice on renderable synthetic Marshal fixtures, checks
+  template/palette/village generation, original-map preservation and reserved-ID
+  collision refusal. This does not establish real map rendering.
+- `ruby game-mod/test/visible_wild_test.rb`: **9 / 126 passed**, including nearby
+  expedition population, movement/cleanup, habitat delegation and contact battle.
+- Existing targeted regressions: save_recovery_audio_test **3 / 11**,
+  entrance_refresh_test **2 / 5**, remote_follower_test **3 / 9**,
+  following_ownership_test **4 / 12**, sign_graphic_test **3 / 3**,
+  online_npc_audio_test **2 / 6**, all passed. Combined final targeted results:
+  **39 tests / 1,954 assertions**, counting the world tests only once.
+- Syntax checks passed for the changed runtime/generator scripts. Terrain
+  primitives were rendered with the test drawing surface to the ignored
+  `dist/expedition-terrain-preview.png` and visually inspected. This preview
+  confirms distinct colors/textures; it is not a screenshot of the running game.
+- `ruby game-mod/tools/build_arena_map.rb C:/arena-lab/tools/runtime/essentials-v21.1-base`
+  was attempted against the real private game. Local runtime/graphics access
+  stalled with no output; an elevated retry also stalled. The attempts were
+  cancelled without a successful completion result. Temporary inspection helpers
+  were removed. No successful local installation or client launch is claimed.
+
+Remaining limits: first-pass procedural art and themed cave/ruin/factory sectors
+without separate interiors; water/lava/cliffs are barriers, with no Surf or island
+travel; fixed crossing paths rather than seamless scrolling across sector edges.
+No multiplayer wilderness synchronization. No server, authenticated client or
+two-client playtest was run for this change; previous v7 reports remain below.
+No commit/push or installer publication was performed.
+
+Manual verification required: close all game windows, run Play-Arena.bat from
+this working copy, load the existing save, walk south to the gate and confirm.
+Check scenery, biome names/weather, hazard collision and sector crossings; touch
+or interact with a visible Pokemon and catch it. Save outside, quit/relaunch and
+check the same geography and position. Use Expedition -> Return to village,
+check the retained catch, then leave again and check the changed geography.
+Check an offline battle loss returns to the normal healing location. Repeat the
+existing LAN arena visit flow after returning home; expeditions themselves are
+offline. The updater will not contain this source until a later push/release.
+
 ## v7 — user-confirmed working snapshot (2026-10-29)
 
 After the outdoor fixes at `cefc527`, the user reported: "now everything works."

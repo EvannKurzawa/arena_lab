@@ -5,6 +5,7 @@
 # No upstream map/art assets are written to this source tree.
 require "fileutils"
 require_relative '../Plugins/ArenaDemo/000_ArenaMusicSelection'
+require_relative '../Plugins/ArenaDemo/015_ExpeditionLayout'
 
 class Table
   attr_reader :payload
@@ -507,6 +508,8 @@ town_events[7] = event(7, "South village house", 7, 18, "$VillageHouse", "ArenaD
 end
 town_events[8] = event(8, "Village resident", 10, 9, "trainer_LASS", "ArenaDemo.village_resident")
 town_events[9] = event(9, "Village resident", 21, 9, "trainer_YOUNGSTER", "ArenaDemo.village_resident")
+town_events[10] = touch_portal(10, "Wilderness expedition gate", 16, 22, "ArenaDemo::Expeditions.depart")
+town_events[11] = event(11, "Expedition guide", 18, 21, "trainer_YOUNGSTER", "ArenaDemo::Expeditions.guide")
 town_events[900] = follower_anchor
 town.instance_variable_set(:@events, town_events)
 town_start = [16, 12, 8]
@@ -535,6 +538,26 @@ map_infos[MAP_ID] = info
   map_infos[id] = set_fields(RPG::MapInfo.allocate,
     :@name => name, :@parent_id => 0, :@order => id, :@expanded => false,
     :@scroll_x => 320, :@scroll_y => 240)
+end
+
+# Reserve source-only templates, never individual players' randomized layouts.
+# Runtime generation uses on_game_map_setup and stores plans in local saves.
+expedition_templates = {}
+layout = ArenaDemo::ExpeditionLayout
+(layout::SIDE * layout::SIDE).times do |i|
+  id = layout::FIRST_MAP + i
+  name = "Expedition Sector #{i + 1}"
+  existing = map_infos[id]&.instance_variable_get(:@name)
+  abort "Map ID #{id} is already used; refusing to overwrite it." if existing && existing != name
+  map_infos[id] = set_fields(RPG::MapInfo.allocate,
+    :@name => name, :@parent_id => 0, :@order => id, :@expanded => false,
+    :@scroll_x => 320, :@scroll_y => 240)
+  template = Marshal.load(Marshal.dump(town))
+  template.instance_variable_set(:@width, layout::SIZE)
+  template.instance_variable_set(:@height, layout::SIZE)
+  template.instance_variable_set(:@events, {})
+  template.instance_variable_set(:@data, Table.build(layout::SIZE, layout::SIZE, 3) { |_x, _y, z| ground[z] })
+  expedition_templates[id] = template
 end
 
 # Put a short, explicit choice at the start of a new game. The full Essentials
@@ -586,6 +609,12 @@ written_center = 3.times.map { |z| written_data[field_x + 12, field_y + 12, z] }
 abort "Generated floor did not survive Map 100 serialization: #{written_center.inspect}" unless written_center == ground
 File.binwrite(File.join(DATA_DIR, "Map101.rxdata"), Marshal.dump(town))
 File.binwrite(File.join(DATA_DIR, "Map102.rxdata"), Marshal.dump(interior))
+expedition_templates.each do |id, template|
+  File.binwrite(File.join(DATA_DIR, format('Map%03d.rxdata', id)), Marshal.dump(template))
+end
+File.binwrite(File.join(DATA_DIR, 'ArenaExpeditionPalette.rxdata'), Marshal.dump({
+  'ground' => ground, 'grass' => grass, 'path' => path
+}))
 File.binwrite(MAP_INFOS, Marshal.dump(map_infos))
 floor_tiles = written_data.payload.byteslice(20..).unpack("v*").count { |tile_id| tile_id == ground[0] }
 puts "Built #{DEST_MAP}: 100x100 arena with centered 25x25 floor; floor tile IDs #{ground.inspect}; center verifies #{written_center.inspect}; base-floor count #{floor_tiles}/625."
@@ -594,4 +623,4 @@ puts "Arena start: #{start.join(',')}. Trainer: #{field_x + 12},#{field_y + 4}; 
 puts "Added an intro skip choice to #{INTRO_MAP} (or kept the existing choice)."
 puts "Built offline town (101) -> entrance with storage PC (102) -> arena (100)."
 puts "Built a fresh 32x24 Arena Village: stadium at (16,11), return/spawn at #{town_start.join(',')}, three houses, two residents, and an offline grass patch."
-puts "Map 103 is no longer generated or registered; world transfers stay among Maps 100-102."
+puts "Built 16 expedition templates (110-125). The south village gate generates a new saved local wilderness on each departure; Map 103 remains retired."

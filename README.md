@@ -1,9 +1,96 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Current snapshot: v7 (Arena Demo plugin 0.9.32)
+## v8: procedural outings and running (Arena Demo plugin 0.12.2)
+
+Hold **Shift (Maj) + a direction** to run. **Space** opens the pause menu; when
+moving, it waits for the current step to finish. **Enter/Z** interact. Space still
+confirms inside menus/dialogs. Running uses Essentials' movement/animations and
+respects walk-only terrain, scripted movement and battle/menu locks.
+
+Each local profile gets **three free departures in a rolling 24 hours**. A used
+slot returns exactly 24 hours after that departure. Cancelled or failed starts
+do not spend a slot; returning early still uses the outing. The guide and departure
+prompt show availability. There is no purchase UI; an extra-outing balance is
+reserved for a later feature.
+
+Each outing lasts **20 real minutes**, including menus and time with the game
+closed. A screen timer shows the remaining time. Expiry returns the player
+automatically; menus cancel cleanly, while an ongoing wild/NPC battle and its
+capture/reward/evolution/dialogue sequence finish before returning. Used slots
+and deadlines are recorded beside the profile save, so loading an earlier save
+does not reset them. See [outing rules](docs/EXPEDITION_RULES.md).
+
+Offline expeditions now leave through the **south village gate**. Each confirmed
+departure creates a new 4x4 wilderness of 64x64-tile sectors (256x256 tiles in
+total). Follow the clear paths between sectors. Talk to the return guide near
+the starting camp, or choose **Expedition -> Return to village** in the pause
+menu. Pokemon, items and normal progression stay with the player. Saving outside
+retains that expedition's geography; crossing sectors or loading does not reroll
+it. The next departure from the village replaces it.
+
+The starting sector is always grassland. Each of the other 15 sectors rolls
+independently with these fixed chances; duplicates are allowed and special areas
+are not guaranteed on every outing:
+
+| Area | Chance per random sector |
+| --- | ---: |
+| Grassland | 52% |
+| Dense forest | 12% |
+| Desert | 5% |
+| Volcanic fields | 4% |
+| Snow peaks | 4% |
+| Lake district | 4% |
+| Swamp | 3% |
+| Rocky canyon | 3% |
+| Flower meadow | 3% |
+| Crystal caverns | 2% |
+| Ancient ruins | 2% |
+| Storm plains | 2% |
+| Coast and islands | 2% |
+| Bamboo grove | 1% |
+| Abandoned power station | 1% |
+
+Visible wilderness Pokemon use only installed **generation 1-5** base species,
+weighted by habitat types and strength, with the primary habitat type favored.
+Legendaries, Mythicals, Ultra Beasts and ocean-only/rare habitats are excluded
+from ordinary roaming encounters. Levels range from 3-7 near camp up to 23-27
+in the farthest sector. Each zone selects **at most five distinct species** during
+generation; the saved selection stays fixed through revisits and reloads. Individual
+Pokemon can respawn, but no additional species join that zone during the outing.
+Approach or interact to battle and catch through
+Essentials. Up to six nearby Pokemon are active; village encounters keep their
+existing four-Pokemon cap. Walking graphics use installed follower sprites with
+the existing icon fallback. Populations are transient; terrain and zone species are saved.
+
+Generation 0.11.0 replaces ellipse stamps and rectangular pixel textures with
+multi-scale terrain noise, elevation/moisture fields, connected route planning
+and native Essentials artwork. Paths, vegetation and shores use real autotile
+transitions; full trees, snowy rocks and crystals use the installed art. Long
+paths take offset waypoints and avoid ridges/water. Necessary crossings have
+walkable bridges. Generation shows progress while building the 16 sectors.
+See [the method and research](docs/EXPEDITION_GENERATION.md).
+
+Return to the village and leave again to get the new layout; existing saved
+outings keep their geography. Generation 6-8 Pokemon no longer enter wild pools.
+Previously owned Pokemon and engine data are preserved. Caverns/ruins/power
+stations remain themed sectors without separate interiors. Water/lava/cliffs
+block walking except at bridges; Surf travel is not implemented. Snow, storm
+and swamp sectors use Essentials weather.
+Expeditions remain offline; multiplayer visit protocol and shared rooms are
+unchanged. The village itself still needs its planned visual redesign.
+
+For v8, close game windows, run **ArenaLab-Update.exe on both computers** to fetch
+GitHub `main`, then launch **Play-Arena.bat** to install the plugin and generate
+templates 110-125. An existing save is supported. Automated and native-art
+preview checks are recorded in SETUP_STATUS.md; a real GUI expedition, capture
+and save/reload playtest is still required. The reported 0.12.0 startup error and
+0.12.1 scene-update recursion are fixed in 0.12.2, but that version has not yet
+been confirmed in the game window.
+
+## Previous user-confirmed snapshot: v7 (Arena Demo plugin 0.9.32)
 
 On 2026-10-29, after the latest outdoor fixes, the user confirmed that everything
-now works. This is the current user-confirmed working snapshot. The recent test
+worked in v7. This is the latest user-confirmed working snapshot. The recent test
 cycle covered LAN hosting/visits, PvP and follower sprites, online trainer
 interactions, music/sounds, entrance objects, save recovery and visible village
 wild Pokemon. Codex did not operate the two clients or verify every feature.
@@ -31,8 +118,8 @@ The obsolete generated Founders' Path map (103) is removed from the registry.
 Close all game windows and run `Play-Arena.bat` to regenerate the current
 placeholder maps and copy the sprites.
 
-**Next world steps:** rebuild the village cleanly in RPG Maker XP, then expand
-from it into an open world with routes, lore and wild-Pokémon encounters.
+**Next visual step:** rebuild the village cleanly in RPG Maker XP and refine the
+procedural wilderness's terrain and landmarks after the first expedition playtest.
 
 For this local save, the next primary offline launch grants Zekrom and Dialga
 at level 100 directly to the party and saves automatically. Close all game

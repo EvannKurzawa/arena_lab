@@ -4,7 +4,7 @@ require 'fileutils'
 
 class SignGraphicTest < Minitest::Test
   def setup
-    @root = Dir.mktmpdir('arena-sign-')
+    @root = Dir.mktmpdir('arena-sign-', File.expand_path('../..', __dir__))
     @scope = Module.new
     @scope.const_set(:PROJECT, @root)
     source = File.read(File.expand_path('../tools/build_arena_map.rb', __dir__))

@@ -1,5 +1,55 @@
 # Arena Demo
 
+## v8: timed expeditions and running (0.12.2)
+
+Hold Shift/Maj to run while moving; Space opens pause and Enter/Z interact.
+The native confirm/cancel keys remain available inside dialogues and menus.
+Space queues pause until the current step ends. Walking-only terrain, scripted
+routes, NPC interactions and battle/menu movement locks are preserved.
+
+Each profile gets three free outings per rolling 24 hours; each outing lasts
+20 real minutes. Allowance/deadlines persist in a companion data file beside its save.
+Expired menus unwind normally. The world return waits for ongoing battles and
+NPC/capture/evolution follow-up, then transfers automatically before showing its
+notice. A map HUD shows time remaining. A future bonus-outing balance is supported
+without adding a purchase menu or payment service.
+
+New outings resolve at most five weighted, distinct generation 1-5 species per
+zone and save those tables. Respawns/revisits/load do not expand the selection.
+Legacy plans backfill the same tables deterministically. See
+[outing rules and migration](../docs/EXPEDITION_RULES.md).
+
+Leave through Arena Village's south gate to generate a fresh offline wilderness.
+Sixteen connected 64x64 sectors cover 256x256 tiles. The camp sector is fixed
+grassland; the other 15 use the fixed percentage table in the root README and
+`015_ExpeditionLayout.rb`. A saved expedition retains its geography across map
+transitions and save/load. Each subsequent village departure creates a new plan.
+The return guide and pause-menu **Expedition** command take the player home.
+
+Visible encounters extend the village implementation, using installed generation
+1-5 base species, habitat type weights, levels 3-27, and Essentials WildBattle/catching.
+Only nearby grass tiles are scanned and at most six wilderness Pokemon are active.
+Installed walking sprites fall back to Essentials icons when unavailable.
+No expedition layouts are written to shared map files; plans live in each
+player's PokemonGlobal save. Multiplayer expeditions are not implemented.
+
+`build_arena_map.rb` reserves templates 110-125 and writes a local ground/grass/path
+palette, refusing unrelated map IDs. Essentials' `on_game_map_setup` populates
+those templates for the active player's expedition. Version 2 plans use warped
+multi-octave value noise, terrain-aware A* routes and native Essentials autotiles,
+cliffs, trees and props. The previous rectangle-drawn textures are removed.
+Bridges connect necessary hazard crossings. Existing saved outings keep their
+layout; return home and depart again for a new version 2 plan. See
+[generation methods and research](../docs/EXPEDITION_GENERATION.md).
+Caverns and buildings currently have themed terrain rather than separate
+interiors; water travel is not implemented. Weather uses Essentials' own effects.
+
+Close the games, update both computers with `ArenaLab-Update.exe`, then run
+`Play-Arena.bat` to prepare this source. The 0.12.0 `json` startup error and
+0.12.1 Following Pokemon update recursion are fixed in 0.12.2. GUI expedition
+testing of this version is pending; see SETUP_STATUS.md for executed checks.
+The sections below describe older snapshots.
+
 Repository snapshot **v6.2.2**, plugin **0.9.23 in source**: the previous manual-IP
 arena visit was confirmed between two physical computers. The updated automatic
 discovery flow still needs its two-computer retest. Follow the v4 test guidance

@@ -39,6 +39,10 @@ module WildBattle
 end
 def pbGenerateWildPokemon(species, level); Struct.new(:species, :level).new(species, level); end
 require_relative '../Plugins/ArenaDemo/014_VisibleWildPokemon'
+require_relative '../Plugins/ArenaDemo/015_ExpeditionLayout'
+module ArenaDemo::Expeditions
+  def self.encounter(map); $encounter_map = map.map_id; [:ROOKIDEE, 5]; end
+end
 
 class VisibleWildTest < Minitest::Test
   Player = Struct.new(:x, :y, :direction) do
@@ -139,5 +143,38 @@ class VisibleWildTest < Minitest::Test
       assert row
       assert level.between?(row[2], row[3])
     end
+  end
+
+  class WildernessMap
+    def map_id; 123; end
+    def width; 64; end
+    def height; 64; end
+    def terrain_tag(*); Struct.new(:land_wild_encounters).new(true); end
+    def passableStrict?(*); true; end
+    def events; {}; end
+  end
+
+  def test_wilderness_limits_work_to_nearby_grass_and_uses_habitat_encounters
+    $game_map = WildernessMap.new
+    $game_player.x = $game_player.y = 32
+    set = Struct.new(:map).new($game_map)
+    def set.addUserSprite(*); end
+    @wild.context(set, Object.new)
+    8.times { @wild.update; $clock += 2 }
+    assert_equal 6, @wild.entries.length
+    assert_equal 123, $encounter_map
+    assert @wild.entries.all? { |entry| entry[:pokemon].species == :ROOKIDEE }
+    assert @wild.entries.all? { |entry| (entry[:character].x - 32).abs <= 12 && (entry[:character].y - 32).abs <= 10 }
+    $game_player.x = $game_player.y = 0
+    @wild.update
+    assert_empty @wild.entries
+    $clock += 2
+    @wild.update
+    assert_equal 1, @wild.entries.length
+    assert @wild.entries.all? { |entry| entry[:character].x <= 12 && entry[:character].y <= 10 }
+    entry = @wild.entries.first
+    $game_player.x, $game_player.y = entry[:character].x, entry[:character].y
+    @wild.update
+    assert_same entry[:pokemon], $battled
   end
 end
