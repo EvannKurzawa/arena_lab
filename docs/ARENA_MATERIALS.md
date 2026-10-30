@@ -1,18 +1,24 @@
 # Catalogue des sols et plateformes — 0.18.1
 
-## Eau surélevée et cascades (0.19.0)
+## Liquides surélevés, raccords et cascades (0.19.1)
 
-Peindre Eau sur une plateforme conserve sa hauteur et le matériau de ses
-murs. Une case d'eau dont le côté sud est une paroi visible affiche une
-cascade animée sur cette paroi ; les autres cases restent de l'eau normale.
+Peindre Eau, Lave, Eau de marécage, Déchets toxiques ou Boue sur une plateforme
+conserve sa hauteur et le matériau de ses murs. Une case dont le côté sud est
+une paroi visible affiche une coulée animée de la même couleur ; les autres
+cases conservent leur surface normale. Les liquides voisins se raccordent
+sans bordures internes ; les coins touchant une paroi restent pleins.
 La paroi reste bloquée, y compris avec Surf : aucun passage sous la plateforme
 ni descente/remontée de cascade. Meubles et Dresseurs restent interdits dans
-l'eau. Les autres liquides conservent leurs restrictions antérieures.
+l'eau, la lave, le marécage et les déchets. La boue reste praticable.
+
+Ajouter une case contre une plateforme reprend le style et le sol de base
+de ses voisines, sans recopier leurs liquides peints. Le style majoritaire
+des quatre voisins directs gagne ; égalité : haut, droite, bas, gauche.
 
 Dans l'arène, Entrée depuis une rive accessible propose Surf sans badge ni
 capacité dans l'équipe. Le véhicule et la sortie d'eau viennent d'Essentials.
 La rive doit être à la même hauteur ; Surf ne permet pas de monter une falaise.
-Les visites doivent utiliser des clients et un serveur au protocole 10.
+Les visites doivent utiliser des clients et un serveur au protocole 11.
 
 Dans **Personnalisation**, utilisez **Changer le sol** pour peindre des cases,
 au sol ou sur un plateau. La liste visuelle s'ouvre directement, sans familles.
@@ -61,7 +67,8 @@ par case : son fond bleu se raccorde en grandes zones continues.
 **L'eau et l'eau de marécage sont bloquées à pied et traversables avec Surf**.
 Ces liquides ne peuvent pas recevoir de meubles ou de Dresseurs. L'eau peinte
 sur un dessus de plateforme conserve sa hauteur et ses murs, avec une cascade
-sur une face sud exposée. Le marécage conserve sa restriction au niveau bas.
+sur une face sud exposée. Lave, marécage, déchets et boue peuvent aussi être
+peints sur un plateau existant et former leur propre coulée.
 Un liquide ne remplace pas un accès bas d'escalier encore utilisé. Leur forme
 est conservée par la sauvegarde et les visites.
 
@@ -135,7 +142,7 @@ vue globale de l'éditeur.
 
 Fermez le jeu et relancez **Play-Arena.bat**. Les sauvegardes existantes gardent
 leurs clés de matériaux ; aucune conversion manuelle n'est nécessaire.
-Les visites demandent les deux clients et le serveur au **protocole 10**.
+Les visites demandent les deux clients et le serveur au **protocole 11**.
 
 ## Retouches 0.18.1
 

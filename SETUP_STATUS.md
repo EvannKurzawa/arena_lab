@@ -1,5 +1,46 @@
 # Setup and implementation status
 
+## Liquid joins, all-material cascades and inherited extensions — 2026-10-30 (0.19.1)
+
+Screenshot showed internal rims between raised water cells and rounded notches
+where a lower summit abutted a south wall. Render joins used foot-movement
+checks, which reject liquid source cells. Rendering now tests height/stair
+geometry independently of movement permissions. Corner masks include adjacent
+wall faces without turning them into traversable summits. Animated cached
+variants preserve those masks. Reproduced screenshot geometry in native probe
+and visually inspected liquid-joins.png: continuous water strip and solid
+plateau/wall contact. Existing outer rounded silhouettes retained.
+
+Shared CASCADE_GROUNDS covers water, lava, marsh_water, toxic and mud. Painting
+these on existing summits retains height/style; all five draw animated south
+flows with material-colored highlights/foam, including mud. Mud surface remains
+solid/walkable; lava/toxic remain blocked and water/marsh require Surf. Flows
+remain impassable walls. Quicksand unchanged. Client/server snapshot validation
+supports these raised materials; protocol bumped to 11 in readiness and tests.
+
+New platform/stair cells touching existing elevated cells inherit their theme
+and theme's base floor. They do not copy liquid painted on a neighbor. Majority
+style wins; ties use N/E/S/W order. Isolated cells and edits to existing raised
+cells retain prior behavior. User trainer profiles unchanged.
+
+Executed portable Ruby:
+- game-mod/test/arena_relief_test.rb: 19 runs / 949 assertions, passing.
+- game-mod/test/arena_relief_server_test.rb: 7 runs / 118 assertions, passing.
+- game-mod/test/arena_visits_server_test.rb: 6 runs / 98 assertions, passing.
+Includes inherited theme/dry extension, all-material raised snapshot decode and
+actual TCP snapshot relay. No new manual two-GUI-client session claimed.
+Executed C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py --picker:
+405 native checks passed. Covers internal seam pixels, filled wall-adjacent
+corner, all five raised surfaces and distinct downward-flow frames, plus prior
+Surf/save/transfer coverage. Visually inspected native-material-picker-probe-
+liquid-joins.png and -all-cascades.png. Only disposable save used; probe removed
+and local plugin/cache restored as 0.19.1 (35 scripts).
+
+Changed 000/005/009/027/031/meta, server/ping, focused Ruby/native tests,
+readiness fixtures, README/material docs and status. Upstream/dependencies
+unchanged. Existing updater v6.2.8 fetches main: update both PCs, relaunch
+Play-Arena.bat and restart host for protocol 11. No separate EXE needed.
+
 ## Title repair, arena Surf, raised water and safe transfers — 2026-10-30 (0.19.0)
 
 User reported absent custom title on second PC, silent Surf interaction for

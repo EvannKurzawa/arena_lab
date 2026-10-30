@@ -3,6 +3,19 @@ require_relative 'arena_visit_harness'
 
 class ArenaReliefServerTest < Minitest::Test
   include ArenaVisitTestSupport
+  def test_every_cascade_material_is_preserved_in_raised_room_snapshot
+    host, guest = connect, connect
+    payload = relief_payload
+    ArenaMaterials::CASCADE_GROUNDS.each_with_index do |ground, i|
+      payload[:surface].setbyte(51 * 100 + 50 + i, ArenaMaterials::SURFACE_CODES.fetch(ground).ord)
+      payload[:relief].setbyte(51 * 100 + 50 + i, 49)
+    end
+    send_frame(host, payload)
+    room = until_type(host, :arena_state)
+    joined = join(host, guest, room)
+    assert_equal payload[:surface], joined[:surface]
+    assert_equal payload[:relief], joined[:relief]
+  end
   def test_water_on_platform_relays_height_and_blocks_waterfall_face
     host, guest = connect, connect
     payload = relief_payload
@@ -30,10 +43,10 @@ class ArenaReliefServerTest < Minitest::Test
     socket = TCPSocket.new('127.0.0.1', @backend.reactor.port)
     @clients << socket
     send_frame(socket, type: :arena_hello)
-    assert_equal 10, receive(socket)[:version]
+    assert_equal 11, receive(socket)[:version]
     send_frame(socket, type: :pos, map: 102, x: 4, y: 6)
     send_frame(socket, type: :ping, t: 1)
-    assert_equal 10, until_type(socket, :pong)[:arena_visits]
+    assert_equal 11, until_type(socket, :pong)[:arena_visits]
     socket
   end
   def relief_payload

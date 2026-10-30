@@ -86,7 +86,7 @@ module ArenaDemo
     MAP_HEIGHT.times do |y|
       MAP_WIDTH.times do |x|
         state = tile_surface_state(records, x, y)
-        water_top = state['floor'] == 'field' && state['height'] == 1 && !state['stair'] && state['ground'] == 'water'
+        water_top = state['floor'] == 'field' && state['height'] == 1 && !state['stair'] && ArenaMaterials::CASCADE_GROUNDS.include?(state['ground'])
         surface.setbyte(y * MAP_WIDTH + x, 48) if !water_top && (tile_is_void?(x, y, records) || state['ground'] == 'quicksand')
       end
     end
@@ -116,6 +116,16 @@ module ArenaDemo
       return false
     end
     record = tile_surface_state(records, x, y)
+    if code > 0 && relief_code(records, x, y).to_i == 0
+      neighbors = [[0, -1], [1, 0], [0, 1], [-1, 0]].filter_map do |dx, dy|
+        platform_style_at(records, x + dx, y + dy) if relief_code(records, x + dx, y + dy).to_i > 0
+      end
+      unless neighbors.empty?
+        style = neighbors.max_by { |candidate_style| neighbors.count(candidate_style) }
+        record['platform_style'] = style
+        record['ground'] = PLATFORM_STYLES.fetch(style)[1]
+      end
+    end
     record["height"] = code == 0 ? 0 : 1
     record["stair"] = code > 1 ? code : nil
     candidate = records.merge(tile_edit_key(x, y) => record)
@@ -134,7 +144,7 @@ module ArenaDemo
 
   def relief_code(records, x, y, surf = false)
     record = records[tile_edit_key(x, y)]
-    water_top = record.is_a?(Hash) && record['floor'] == 'field' && record['height'] == 1 && !record['stair'] && record['ground'] == 'water'
+    water_top = record.is_a?(Hash) && record['floor'] == 'field' && record['height'] == 1 && !record['stair'] && ArenaMaterials::CASCADE_GROUNDS.include?(record['ground'])
     return 1 if water_top
     return 0 if surf && surf_ground?(records, x, y)
     return nil if tile_is_void?(x, y, records)
@@ -142,8 +152,8 @@ module ArenaDemo
     record["stair"] || (record["height"] == 1 ? 1 : 0)
   end
 
-  def relief_step?(records, x, y, direction, surf = false)
-    return false if tile_is_void?(x, y, records) && !(surf && surf_ground?(records, x, y))
+  def relief_step?(records, x, y, direction, surf = false, geometry = false)
+    return false if !geometry && tile_is_void?(x, y, records) && !(surf && surf_ground?(records, x, y))
     return false if relief_wall?(records, x, y)
     offset = ArenaRelief::DIRECTIONS[direction]
     return true unless offset
@@ -247,7 +257,7 @@ module ArenaDemo
     @platform_floors[ground] = bitmap
   end
 
-  def draw_relief_cliff(image, mask, ground = 'rock', style = 'mountain')
+  def draw_relief_cliff(image, mask, ground = 'rock', style = 'mountain', corner_mask = mask)
     sheet = relief_cliff_sheet(style)
     image.blt(0, 0, platform_floor_bitmap(ground), Rect.new(0, 0, 32, 32))
     # Full summit tiles with thin, unscaled native stone lips. A continuous
@@ -256,7 +266,7 @@ module ArenaDemo
      [4, 30, 0, 2, 32, 80, 32]].each do |bit, x, y, w, h, sx, sy|
       image.blt(x, y, sheet, Rect.new(sx, sy, w, h)) if mask & bit == 0
     end
-    round_platform_corners(image, mask, sheet)
+    round_platform_corners(image, corner_mask, sheet)
   end
 
   def draw_relief_wall(image, left, right, style = 'mountain', ground = 'rock')
@@ -277,12 +287,12 @@ module ArenaDemo
     # The same arc continues into both ends of the rock face. Middle wall
     # segments keep their full width, with no repeated rounded seams.
     round_platform_corners(image, (left ? 64 : 0) | (right ? 4 : 0), sheet, false)
-    draw_arena_waterfall(image) if ground == 'water'
+    draw_arena_waterfall(image, ground) if ArenaMaterials::CASCADE_GROUNDS.include?(ground)
   end
 
-  def draw_arena_waterfall(image)
+  def draw_arena_waterfall(image, ground = 'water')
     # The rock face stays beneath a falling sheet; no new traversable tile.
-    water = platform_floor_bitmap('water')
+    water = platform_floor_bitmap(ground)
     phase = (@liquid_art_frame || 0) * 4
     (4..31).each do |y|
       (4..27).each do |x|
@@ -290,11 +300,12 @@ module ArenaDemo
         c = water.get_pixel(x, (y - phase) % 32)
         shine = (x % 7 == 0 && (y - phase) % 16 < 7) ? 30 : 0
         image.set_pixel(x, y, Color.new([c.red + shine, 255].min,
-          [c.green + 22 + shine, 255].min, [c.blue + 15 + shine, 255].min))
+          [c.green + shine, 255].min, [c.blue + shine, 255].min))
       end
     end
     [8, 15, 23].each do |x|
-      image.fill_rect(x, 29, 3, 2, Color.new(206, 238, 249))
+      foam = water.get_pixel(x, 16)
+      image.fill_rect(x, 29, 3, 2, Color.new([foam.red + 55, 255].min, [foam.green + 55, 255].min, [foam.blue + 55, 255].min))
     end
   end
 
@@ -319,7 +330,7 @@ module ArenaDemo
       neighbor = relief_code(records, x + dx, y + dy)
       connected = neighbor && neighbor > 0
       direction = ArenaRelief::DIRECTIONS.key([dx, dy])
-      connected &&= relief_step?(records, x, y, direction) if direction
+      connected &&= relief_step?(records, x, y, direction, false, true) if direction
       mask |= 1 << i if connected
     end
     # Stair rails join only to stairs ascending in the same direction.
@@ -329,12 +340,16 @@ module ArenaDemo
     end
     style = platform_style_at(records, x, y)
     ground = tile_surface_state(records, x, y)['ground']
-    key = [code, mask, sides, style, ground]
+    corner_mask = mask
+    { 1 => [0, -1], 4 => [1, 0], 16 => [0, 1], 64 => [-1, 0] }.each do |bit, (dx, dy)|
+      corner_mask |= bit if relief_wall?(records, x + dx, y + dy)
+    end
+    key = [code, mask, sides, style, ground, corner_mask]
     @relief_bitmaps ||= {}
     bitmap = @relief_bitmaps[key]
     return bitmap if bitmap && !bitmap.disposed?
     bitmap = Bitmap.new(32, 32)
-    draw_relief_cliff(bitmap, mask, ground, style)
+    draw_relief_cliff(bitmap, mask, ground, style, corner_mask)
     if code > 1
       sheet = ExpeditionTerrain.source('Tilesets/Caves')
       # Installed cave stone steps, turned to the selected ascent direction.

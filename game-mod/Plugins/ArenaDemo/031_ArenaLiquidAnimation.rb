@@ -31,7 +31,7 @@ module ArenaDemo
   end
 
   def animate_liquid_bitmap(bitmap, ground, key)
-    return unless bitmap && !bitmap.disposed? && LIQUID_GROUNDS.include?(ground)
+    return unless bitmap && !bitmap.disposed? && ArenaMaterials::CASCADE_GROUNDS.include?(ground)
     @liquid_frames ||= {}
     frames = @liquid_frames[key] ||= Array.new(4) do |frame|
       @liquid_art_frame = frame
@@ -40,7 +40,7 @@ module ArenaDemo
       image
     end
     # Slower heavy liquids, continuous movement independent of game FPS.
-    delay = { 'water' => 0.20, 'lava' => 0.40, 'marsh_water' => 0.32, 'toxic' => 0.26 }.fetch(ground)
+    delay = { 'water' => 0.20, 'lava' => 0.40, 'marsh_water' => 0.32, 'toxic' => 0.26, 'mud' => 0.40 }.fetch(ground)
     bitmap.clear
     bitmap.blt(0, 0, frames[(System.uptime / delay).floor % frames.length], Rect.new(0, 0, 32, 32))
   ensure
@@ -56,10 +56,10 @@ module ArenaDemo
       animate_liquid_bitmap(bitmap, ground, [:floor, ground]) { |image| draw_platform_floor(image, ground) }
     end
     (@relief_bitmaps || {}).each do |key, bitmap|
-      code, mask, sides, style, ground = key
+      code, mask, sides, style, ground, corner_mask = key
       next unless code == 1
       animate_liquid_bitmap(bitmap, ground, [:top, key]) do |image|
-        with_liquid_floor_frame(ground) { draw_relief_cliff(image, mask, ground, style) }
+        with_liquid_floor_frame(ground) { draw_relief_cliff(image, mask, ground, style, corner_mask) }
       end
     end
     (@relief_walls || {}).each do |key, bitmap|

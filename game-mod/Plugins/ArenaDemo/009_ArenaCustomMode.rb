@@ -2290,7 +2290,7 @@ module ArenaDemo
     state = tile_surface_state(surface_edits, x, y)
     state["floor"] = selected[:floor]
     state["ground"] = selected[:floor] == "void" ? "plain" : selected[:ground]
-    preserve_water_top = selected[:ground] == 'water' && state['height'] == 1 && !state['stair']
+    preserve_water_top = ArenaMaterials::CASCADE_GROUNDS.include?(selected[:ground]) && state['height'] == 1 && !state['stair']
     state["height"], state["stair"] = 0, nil if blocked && !preserve_water_top
     candidate = surface_edits.merge(tile_edit_key(x, y) => state)
     unless valid_relief_records?(candidate, placements)

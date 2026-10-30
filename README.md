@@ -1,5 +1,21 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Raccords, coulées et extensions (Arena Demo 0.19.1)
+
+Les liquides voisins sur une plateforme se raccordent sans bordure de pierre
+entre leurs cases. Les coins d'un plateau qui touchent une paroi sud ne créent
+plus d'encoche arrondie. Les coulées animées fonctionnent pour **l'eau, la lave,
+le marécage, les déchets toxiques et la boue**, avec leur couleur propre.
+Les liquides dangereux restent bloqués ; la boue reste praticable.
+
+Une case de plateforme ajoutée contre une plateforme reprend son style et
+son sol de base. Une case voisine peinte en liquide ne propage pas ce liquide
+sur l'extension. En cas de styles différents autour de la nouvelle case, le
+style le plus représenté est choisi (égalité : haut, droite, bas, gauche).
+
+Fermez les jeux, lancez l'updater sur les deux PC puis Play-Arena.bat et
+redémarrez le serveur. Les visites utilisent désormais le **protocole 11**.
+
 ## Correctifs arène (Arena Demo 0.19.0)
 
 L'image de l'écran titre est maintenant incluse dans les mises à jour ; le

@@ -541,6 +541,49 @@ module ArenaDemo::NativeReliefProbe
       end
       picker_shots << [cascade_canvas, path.sub(/\.log$/, '-waterfall.png')]
       # Execute the actual Scene_Map transfer with a step still interpolating.
+      # Reproduce connected liquid tiles and the lower summit beside a wall.
+      seams = {}
+      (43..46).each { |y| (43..49).each { |x| seams["#{x},#{y}"] = { 'floor' => 'field', 'height' => 1, 'ground' => 'desert', 'platform_style' => 'desert' } } }
+      (43..46).each { |y| seams["47,#{y}"]['ground'] = 'water' }
+      seams['48,47'] = { 'floor' => 'field', 'height' => 1, 'ground' => 'desert', 'platform_style' => 'desert' }
+      seams['49,47'] = seams['48,47'].dup
+      middle = ArenaDemo.relief_bitmap(seams, 47, 44)
+      floor = ArenaDemo.platform_floor_bitmap('water')
+      check.call((8..23).all? { |x| [0, 31].all? { |y|
+        a, b = middle.get_pixel(x, y), floor.get_pixel(x, y)
+        [a.red, a.green, a.blue, a.alpha] == [b.red, b.green, b.blue, b.alpha]
+      } }, 'liquid-to-liquid seams have no stone lips or repeated rounded borders')
+      beside_wall = ArenaDemo.relief_bitmap(seams, 48, 47)
+      check.call(beside_wall.get_pixel(0, 31).alpha == 255, 'summit beside south wall has no rounded notch at the join')
+      join_preview = Bitmap.new(288, 192)
+      (42..50).each do |x|
+        (42..47).each do |y|
+          join_preview.blt((x - 42) * 32, (y - 42) * 32, ArenaDemo.platform_floor_bitmap('plain'), Rect.new(0, 0, 32, 32))
+          art = ArenaDemo.relief_bitmap(seams, x, y)
+          join_preview.blt((x - 42) * 32, (y - 42) * 32, art, Rect.new(0, 0, 32, 32)) if art
+        end
+      end
+      picker_shots << [join_preview, path.sub(/\.log$/, '-liquid-joins.png')]
+      flow_preview = Bitmap.new(160, 96)
+      ArenaMaterials::CASCADE_GROUNDS.each_with_index do |ground, i|
+        isolated = { '40,40' => { 'floor' => 'field', 'height' => 1, 'ground' => ground } }
+        check.call(ArenaDemo.relief_code(isolated, 40, 40) == 1 && ArenaDemo.relief_wall?(isolated, 40, 41), "#{ground}: elevated surface keeps waterfall face")
+        top = ArenaDemo.relief_bitmap(isolated, 40, 40)
+        face = ArenaDemo.relief_bitmap(isolated, 40, 41)
+        flow_preview.blt(i * 32, 0, top, Rect.new(0, 0, 32, 32))
+        flow_preview.blt(i * 32, 32, face, Rect.new(0, 0, 32, 32))
+        versions = (0..3).map do |frame|
+          ArenaDemo.instance_variable_set(:@liquid_art_frame, frame)
+          image = Bitmap.new(32, 32)
+          ArenaDemo.draw_relief_wall(image, true, true, 'mountain', ground)
+          values = (4..31).flat_map { |y| (4..27).map { |x| c = image.get_pixel(x, y); [c.red, c.green, c.blue] } }
+          image.dispose
+          values
+        end
+        check.call(versions.uniq.length > 1, "#{ground}: cascade has downward moving animation frames")
+      end
+      ArenaDemo.instance_variable_set(:@liquid_art_frame, 0)
+      picker_shots << [flow_preview, path.sub(/\.log$/, '-all-cascades.png')]
       File.write(path, lines.join("\n") + "\nPreparing real transfer scene\n")
       transfer_scene = Scene_Map.new
       $scene = transfer_scene

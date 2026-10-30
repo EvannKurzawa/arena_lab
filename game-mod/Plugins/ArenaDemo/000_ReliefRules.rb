@@ -47,6 +47,7 @@ module ArenaMaterials
   SURFACE_CODES = { 'void' => '0' }.merge(FLOORS.keys.each_with_index.to_h { |key, i| [key, ALPHABET[i + 1]] }).freeze
   SURFACE_BYTES = SURFACE_CODES.values.map(&:ord).freeze
   SURF_GROUNDS = %w[water marsh_water].freeze
+  CASCADE_GROUNDS = %w[water lava marsh_water toxic mud].freeze
   BLOCKED_GROUNDS = %w[lava water toxic marsh_water].freeze
   # Quicksand is enterable, but cannot support occupants, relief or fixed exits.
   UNSAFE_GROUNDS = (BLOCKED_GROUNDS + ['quicksand']).freeze
@@ -138,7 +139,7 @@ module ArenaRelief
                         placements.any? { |p| p[-2] == i % SIZE && p[-1] == i / SIZE }
       end
       next if code == 0
-      water_top = code == 1 && ArenaMaterials.ground_at(surface, i % SIZE, i / SIZE) == 'water'
+      water_top = code == 1 && ArenaMaterials::CASCADE_GROUNDS.include?(ArenaMaterials.ground_at(surface, i % SIZE, i / SIZE))
       return false if blocked_surface?(surface, i % SIZE, i / SIZE) && !water_top
       x, y = i % SIZE, i / SIZE
       return false if reserved.include?([x, y])

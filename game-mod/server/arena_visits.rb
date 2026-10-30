@@ -26,7 +26,7 @@ module ArenaVisitsServer
   ].freeze
 
   def dispatch_frame(conn, env, type, authed, body)
-    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 10, arena_bind: @config.bind) if type == :ping
+    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 11, arena_bind: @config.bind) if type == :ping
     if conn.data[:arena_local_world] && type == :save
       return reply(conn, type: :save_err, seq: env[:seq], reason: 'local_world')
     end
@@ -37,7 +37,7 @@ module ArenaVisitsServer
       arena_detach_zone(conn)
       conn.data[:arena_cap] = true
       conn.data[:arena_local_world] ||= env[:local_world] == true
-      return reply(conn, type: :arena_ready, version: 10)
+      return reply(conn, type: :arena_ready, version: 11)
     end
     return arena_error(conn, 'Restart the updated client') unless conn.data[:arena_cap]
     case type

@@ -32,6 +32,36 @@ def pbMessage(message, choices = nil, *)
 end
 
 class ArenaReliefTest < Minitest::Test
+  def test_extensions_inherit_neighbor_theme_without_copying_liquid
+    assert edit(44, 44, 1)
+    assert ArenaDemo.editor_apply_platform_style(@records, 44, 44, 'desert')
+    assert ArenaDemo.editor_apply_ground(@records, [], 44, 44, floor: 'field', ground: 'water')
+    assert edit(45, 44, 1)
+    assert_equal 'desert', @records['45,44']['platform_style']
+    assert_equal 'desert', @records['45,44']['ground']
+    assert edit(46, 44, 1)
+    assert_equal 'desert', @records['46,44']['platform_style']
+    assert_equal 'desert', @records['46,44']['ground']
+  end
+
+  def test_all_cascade_materials_keep_their_platform_and_network_height
+    ArenaMaterials::CASCADE_GROUNDS.each_with_index do |ground, i|
+      x = 39 + i
+      assert edit(x, 40, 1)
+      assert ArenaDemo.editor_apply_ground(@records, [], x, 40, floor: 'field', ground: ground)
+      assert_equal 1, ArenaDemo.relief_code(@records, x, 40)
+      assert ArenaDemo.relief_wall?(@records, x, 41)
+    end
+    assert ArenaDemo.relief_step?(@records, 39, 40, 6, false, true), 'Visual geometry connects water to lava'
+    refute ArenaDemo.relief_step?(@records, 39, 40, 6), 'Rendering does not enable walking through liquid'
+    payload = ArenaDemo.visit_snapshot_payload
+    decoded = ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], payload[:relief], payload[:styles])
+    assert decoded
+    ArenaMaterials::CASCADE_GROUNDS.each_with_index do |ground, i|
+      assert_equal ground, decoded[:tile_edits]["#{39 + i},40"]['ground']
+      assert_equal 1, decoded[:tile_edits]["#{39 + i},40"]['height']
+    end
+  end
   def test_water_retains_platform_height_walls_and_visit_snapshot
     assert edit(40, 40, 1)
     assert edit(39, 40, 1)
@@ -385,7 +415,7 @@ class ArenaReliefTest < Minitest::Test
     refute ArenaDemo::Visits.ready?
     ArenaDemo::Visits.receive(type: :arena_ready, version: 7)
     refute ArenaDemo::Visits.ready?
-    ArenaDemo::Visits.receive(type: :arena_ready, version: 10)
+    ArenaDemo::Visits.receive(type: :arena_ready, version: 11)
     assert ArenaDemo::Visits.ready?
     ArenaDemo::Visits.receive(payload.merge(type: :arena_state, phase: :open,
       role: :guest, room: 'room-relief', host: 1, guest: 2,
