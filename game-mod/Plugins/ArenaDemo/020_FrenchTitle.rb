@@ -1,5 +1,5 @@
-# The player's private title image is installed by Prepare-Clients. Keep the
-# original art outside the distributable source tree.
+# The repository's title_screen.png is installed into the local game by
+# Prepare-Clients so source updates deliver the same title art to all players.
 if defined?(IntroEventScene)
   class IntroEventScene
     TITLE_ART_WIDTH = 3712

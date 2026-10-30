@@ -27,15 +27,19 @@ Graphics/Audio/Data resource identifiers bypass presentation translation.
 
 ### Local assets on each computer
 
-These personal/third-party files are not included in the source commit:
+`title_screen.png` is included in the repository. Other players receive it
+through ArenaLab-Update.exe, and Play-Arena.bat installs it automatically as
+`Graphics/Titles/arena_title.png` in their local game.
 
-- `title_screen.png` at the project root (title artwork).
+These third-party files still need to be supplied separately:
+
 - `tools/runtime/arena-title.mp3` (title music).
 - Essentials v21.1 French pack source at
   `tools/runtime/french-translation/Text_french.dat_core/`, or an already compiled
   `tools/runtime/essentials-v21.1-base/Data/messages_french_core.dat`.
 
-The launcher copies the title assets when present and compiles the French pack.
+The launcher copies the tracked title image, copies local music when present,
+and compiles the French pack.
 It reports a missing French pack rather than silently starting in English.
 Supply these files separately on another installation before launching.
 `title_screen_design.pptx` remains a local design document.

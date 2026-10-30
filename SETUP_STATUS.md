@@ -1,5 +1,19 @@
 # Setup and implementation status
 
+## v8.1 follow-up: distribute the title PNG (2026-10-30)
+
+The user explicitly requested including their title_screen.png in the commit
+so other players receive it. Added the PNG to tracked source. The existing
+install-french-title.ps1 preparation step already copies the root PNG into
+Graphics/Titles/arena_title.png, so an updater pull followed by Play-Arena.bat
+now delivers the artwork automatically. README and the title-plugin comment
+were corrected. This supersedes the PNG exclusion in the historical v8.1
+snapshot below. The design PPTX, music, runtime files and French source pack
+remain local. No game behavior or plugin version changed in this follow-up.
+
+Verification: inspected the existing installer copy path and staged file list;
+the follow-up commit includes the PNG and excludes the PPTX/private runtime.
+
 ## v8.1 source snapshot (Arena Demo 0.13.4, 2026-10-30)
 
 Requested commit message: `v8.1`; branch: `main`; destination: `origin/main` at
