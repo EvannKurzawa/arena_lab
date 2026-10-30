@@ -187,14 +187,14 @@ through ArenaLab-Update.exe, and Play-Arena.bat installs it automatically as
 These third-party files still need to be supplied separately:
 
 - `tools/runtime/arena-title.mp3` (title music).
-- Essentials v21.1 French pack source at
-  `tools/runtime/french-translation/Text_french.dat_core/`, or an already compiled
-  `tools/runtime/essentials-v21.1-base/Data/messages_french_core.dat`.
+- French data is downloaded, verified and compiled automatically by Update,
+  Setup or the launcher when missing (installer v6.2.8). An existing local
+  source pack or compiled `Data/messages_french_core.dat` is also supported.
 
 The launcher copies the tracked title image, copies local music when present,
 and compiles the French pack.
-It reports a missing French pack rather than silently starting in English.
-Supply these files separately on another installation before launching.
+The first French-data preparation requires Internet access if no local pack
+is available. Title music still needs to be supplied separately.
 `title_screen_design.pptx` remains a local design document.
 
 ### Verification and limits
@@ -404,9 +404,17 @@ all work in-game.
 
 ## Windows installers
 
-Installer/updater release: **v6.2.7**, for game source **v8.3**.
-[Download ArenaLab-Update.exe](https://github.com/EvannKurzawa/arena_lab/releases/download/v6.2.7/ArenaLab-Update.exe)
+Installer/updater release: **v6.2.8**, for game source **v8.3**.
+[Download ArenaLab-Update.exe](https://github.com/EvannKurzawa/arena_lab/releases/download/v6.2.8/ArenaLab-Update.exe)
 for an existing installation; it fetches the current GitHub `main`.
+
+Update and Setup automatically prepare missing French Essentials data. The
+v21.1 core translation pack 1.2 by YusukyDelta is downloaded from its
+[author's resource](https://eeveeexpo.com/resources/1860/), SHA256-verified and
+compiled locally. Existing compiled French data is kept. The launcher also
+repairs missing data after an older updater has fetched current source.
+Internet access is required on the first download; no translation pack is
+bundled in GitHub or in the EXEs.
 
 If the updater reports a generic Windows error immediately after selecting the
 folder, use a rebuilt updater containing the process-check fix. The updater now

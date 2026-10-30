@@ -86,6 +86,7 @@ try {
 
     & (Join-Path $root 'tools/install-client-runtime.ps1') -Download
     if ($LASTEXITCODE -ne 0) { throw 'The official mkxp-z client runtime did not install.' }
+    & (Join-Path $root 'tools/install-french-data.ps1') -GameRoot $gameRoot -Download
     & (Join-Path $root 'tools/local-multiplayer.ps1') -Action Prepare
     if ($LASTEXITCODE -ne 0) { throw 'Arena game preparation did not complete; see tools/runtime/desktop-prepare*.log.' }
     [IO.File]::WriteAllText((Join-Path $root 'arena-install.json'), (@{ appCommit=$appCommit; essentials='user-provided v21.1'; pemkCommit=$pemkCommit; installedUtc=[DateTime]::UtcNow.ToString('o') } | ConvertTo-Json), [Text.UTF8Encoding]::new($false))

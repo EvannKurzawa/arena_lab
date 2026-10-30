@@ -1,5 +1,29 @@
 # Setup and implementation status
 
+## Automatic French data preparation, installer v6.2.8 — 2026-10-30
+
+Second PC updated with v6.2.7 but launch failed because French data was absent.
+Added install-french-data.ps1 called by Update, Setup and missing-data launcher
+preparation. Downloads author YusukyDelta's Essentials v21.1 pack 1.2 directly
+from Eevee Expo resource 1860 -> MediaFire. SHA256 pinned to
+DC6857B594FB7AFE95DBAADE09BB1345116EE24056BE9831A5FBC32095F0A940.
+Stages/extracts/compiles before installing Data/messages_french_core.dat.
+Existing nonempty compiled data preserved; pack not redistributed in repo/EXEs.
+Resource https://eeveeexpo.com/resources/1860/ inspected; author/version
+confirmed. No separate licence file in downloaded pack.
+
+Executed tools/test-french-install.ps1 -Network: real fresh download, checksum,
+10,691 entries compiled in disposable folder, Ruby verification of Bulbizarre
+and script messages, existing data hash preserved on repeat, modified archive
+rejected. Fixture cleaned; no real save/game overwritten. Initial verification
+fixture failed on Ruby -e Windows quoting; temporary Ruby file fixed it and
+full rerun passed. tools/test-updater.ps1 also passed.
+
+Publisher and README updated for v6.2.8. Build: package-deliverables.ps1;
+publish: publish-installers.ps1 -Tag v6.2.8. Run the new Update on affected PC,
+then Play-Arena.bat. No second-PC launch or full GUI update claimed here.
+No changes to trainer catalogue or game rules.
+
 ## Installer publication v6.2.7 — 2026-10-30
 
 User authorized publishing the fixed updater on GitHub as v6.2.7, with rebuilt

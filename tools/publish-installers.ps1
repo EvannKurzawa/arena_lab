@@ -1,4 +1,4 @@
-param([string]$Tag = 'v6.2.7')
+param([string]$Tag = 'v6.2.8')
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $repo = 'EvannKurzawa/arena_lab'
@@ -38,7 +38,9 @@ Windows client bootstrap and source updater for Arena Lab $Tag (game source v8.3
 
 ArenaLab-Setup.exe installs the client from pinned public source/runtime dependencies and asks for the player's own Essentials v21.1 game folder. It does not contain Pokémon-derived assets or provision a fresh PostgreSQL host.
 
-ArenaLab-Update.exe downloads current GitHub main while preserving local assets, saves, accounts and server data. This release replaces the WMI/CIM running-game check that could fail immediately after selecting an installation folder. It also adds explicit STA mode for folder dialogs and step-specific errors with a diagnostic log in TEMP. The original failure has not been reproduced on the affected computer; process-check tests pass and both EXEs compile successfully.
+ArenaLab-Update.exe downloads current GitHub main while preserving local assets, saves, accounts and server data. Update and Setup now automatically download the missing Essentials v21.1 French core translation pack 1.2 from author YusukyDelta's source, verify its SHA256, and compile it locally. Existing compiled French data is preserved. The pack is not bundled in these EXEs or hosted in this repository. A real download and disposable installation compiled and verified 10,691 entries. The launcher also repairs missing French data after source updates using an older updater.
+
+Includes the v6.2.7 fix for the running-game check after folder selection, STA dialogs and step-specific diagnostics.
 
 Close all game windows before updating, then launch Play-Arena.bat. For multiplayer, update both clients and restart the updated host (visit protocol 9). The game source includes animated liquids, native Surf, quicksand traps and the expanded trainer catalogue from v8.3.
 "@
