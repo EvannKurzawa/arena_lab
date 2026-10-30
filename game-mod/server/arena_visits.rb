@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'securerandom'
+require_relative '../Plugins/ArenaDemo/000_ReliefRules'
 
 # Reactor-owned, temporary rooms. Loaded after PEMK by our launcher.
 module ArenaVisitsServer
@@ -25,7 +26,7 @@ module ArenaVisitsServer
   ].freeze
 
   def dispatch_frame(conn, env, type, authed, body)
-    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 3, arena_bind: @config.bind) if type == :ping
+    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 8, arena_bind: @config.bind) if type == :ping
     if conn.data[:arena_local_world] && type == :save
       return reply(conn, type: :save_err, seq: env[:seq], reason: 'local_world')
     end
@@ -36,7 +37,7 @@ module ArenaVisitsServer
       arena_detach_zone(conn)
       conn.data[:arena_cap] = true
       conn.data[:arena_local_world] ||= env[:local_world] == true
-      return reply(conn, type: :arena_ready, version: 3)
+      return reply(conn, type: :arena_ready, version: 8)
     end
     return arena_error(conn, 'Restart the updated client') unless conn.data[:arena_cap]
     case type
@@ -69,11 +70,16 @@ module ArenaVisitsServer
             objects.all? { |id| id.is_a?(Integer) && id.between?(0, 5) } &&
             layout.is_a?(Integer) && layout.between?(0, 2) &&
             difficulty.is_a?(Integer) && difficulty.between?(0, 2) &&
-            valid_arena_surface?(surface) && valid_arena_placements?(placements, surface)
+            valid_arena_surface?(surface) && valid_arena_placements?(placements, surface) &&
+            ArenaRelief.valid?(env[:relief], surface,
+              [ARENA_START, ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT], placements) &&
+            ArenaRelief.valid_styles?(env[:styles], env[:relief])
     return arena_error(conn, 'Invalid or oversized arena customization. Reopen the game and try again.') unless valid
     room = { token: SecureRandom.hex(12), host: conn, guest: nil,
              objects: objects.dup.freeze, layout: layout, difficulty: difficulty,
              surface: surface.dup.freeze,
+             relief: env[:relief].dup.freeze,
+             styles: env[:styles].dup.freeze,
              placements: placements.map { |entry| entry.dup.freeze }.freeze }
     arena_detach_zone(conn)
     conn.data[:arena_room] = room
@@ -87,14 +93,13 @@ module ArenaVisitsServer
           role: room[:host].equal?(conn) ? :host : :guest,
           host: room[:host].data[:account_id], guest: room[:guest]&.data&.fetch(:account_id),
           objects: room[:objects], layout: room[:layout], difficulty: room[:difficulty],
-          surface: room[:surface], placements: room[:placements])
+          surface: room[:surface], relief: room[:relief], styles: room[:styles], placements: room[:placements])
   end
 
   def valid_arena_surface?(surface)
-    return false unless surface.is_a?(String) && surface.bytesize == ARENA_SURFACE_BYTES
-    return false unless surface.match?(/\A[0-5]{#{ARENA_SURFACE_BYTES}}\z/)
+    return false unless ArenaMaterials.valid_surface?(surface)
     [ARENA_START, ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT].all? do |x, y|
-      surface.getbyte(y * ARENA_MAP_WIDTH + x) != 48
+      !ArenaRelief.blocked_surface?(surface, x, y)
     end
   end
 
@@ -110,7 +115,7 @@ module ArenaVisitsServer
                         y.is_a?(Integer) && y.between?(0, ARENA_MAP_HEIGHT - 1)
       point = [x, y]
       next false if occupied[point] || [ARENA_START, ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT].include?(point)
-      next false if surface.getbyte(y * ARENA_MAP_WIDTH + x) == 48
+      next false if ArenaRelief.blocked_surface?(surface, x, y)
       occupied[point] = true
     end
   end
@@ -339,7 +344,7 @@ module ArenaVisitsServer
     valid = MAPS.include?(map) && x.is_a?(Integer) && y.is_a?(Integer)
     valid &&= if map == 100
                 x.between?(0, ARENA_MAP_WIDTH - 1) && y.between?(0, ARENA_MAP_HEIGHT - 1) &&
-                  room[:surface].getbyte(y * ARENA_MAP_WIDTH + x) != 48 &&
+                  !ArenaRelief.blocked_surface?(room[:surface], x, y) &&
                   ![ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT].include?([x, y]) &&
                   room[:placements].none? { |_kind, _item, px, py| [px, py] == [x, y] }
               else
@@ -350,6 +355,7 @@ module ArenaVisitsServer
       valid &&= [map, x, y] == [102, 8, 10]
     elsif (previous = conn.data[:last_pos]) && previous[0] == map
       valid &&= (previous[1] - x).abs + (previous[2] - y).abs <= 1
+      valid &&= ArenaRelief.step?(room[:relief], previous[1], previous[2], x, y) if map == 100
     elsif previous && MAPS.include?(previous[0])
       valid &&= (map == 100 && [x, y] == ARENA_START) || (map == 102 && [x, y] == [7, 3])
     end

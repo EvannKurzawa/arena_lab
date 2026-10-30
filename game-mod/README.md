@@ -1,5 +1,119 @@
 # Arena Demo
 
+## Relief et catalogue de matières (0.17.4)
+
+Planches et le dessus Bois réutilisent le grain des ponts du tileset Outside
+(tuiles de pont à partir de 1616), recomposé en lames parallèles continues.
+La face sombre de Bois comporte poutres et renforts diagonaux. Métal et grilles
+est masqué dans le sélecteur de sols ; sa texture reste disponible pour
+Industrielle et les anciennes sauvegardes. Sol de base et Plaques métalliques
+sont les nouveaux libellés, sans changement d'identifiants.
+
+Le sol Tatami n'hérite plus du motif diagonal du parquet. Les libellés des sols
+restants utilisent des noms de matériaux : Améthyste, Quartz rose, Ardoise
+mauve, Obsidienne et Plaques métalliques. Le style Arène de combat est masqué
+par `VISIBLE_STYLES` ; son identifiant reste lisible pour les anciennes arènes.
+Les **11 styles visibles** gardent leur visualiseur.
+
+Les faces des murs Bois et Industrielle réutilisent les textures natives avec
+grain/joints verticaux, poutres contrastées, panneaux et rivets. Cristal réutilise
+une texture minérale bleutée et trois petits points cyan par case, sur le sol
+et le mur, sans grand emblème. Le fond Améthyste conserve son ancienne texture.
+
+Changer le sol ouvre directement le sélecteur visuel : **22 sols et le vide**,
+sans sous-familles. Combat est renommé Tatami. Boue, Poison, Ténèbres, Spectre
+et Psy n'ont plus de motifs de premier plan, y compris les surimpressions
+héritées de leurs textures de base.
+`ArenaMaterials::VISIBLE_FLOORS` définit les choix proposés ; `RETIRED_FLOORS`
+masque les 16 retraits demandés. La table complète et les codes restent stables
+pour les anciennes sauvegardes, les visites et les styles de plateformes.
+
+Les sols et styles utilisent maintenant un sélecteur visuel natif : vignettes
+dans la liste, aperçu agrandi de la sélection, statut du sol dans le panneau
+latéral. Les styles montrent le sommet et les murs. Les listes défilent par
+lignes complètes et s'adaptent aux fenêtres 640×480 et 512×384.
+Entrée choisit, X annule. Les sélecteurs de meubles/Dresseurs sont conservés.
+029_ArenaMaterialPicker.rb génère les aperçus depuis les mêmes textures que la
+map, avec un cache de 34 aperçus proposés (22 sols, vide et 11 plateformes).
+Les fenêtres et bitmaps d'interface sont libérés à la fermeture ; le cache
+des textures n'est pas détruit. Protocole de visite 8 inchangé.
+
+`tools/test-native-relief.py --picker` exporte les captures UI dans les fichiers
+ignorés `tools/runtime/native-material-picker-probe-picker-*.png`.
+
+La table compatible comprend 38 identifiants de sol et 12 styles historiques ;
+22 sols et 11 styles sont proposés. Les thèmes comprennent Désert, Forêt,
+Ruines, Cristal, Industrielle, Bois et Marécage, même si certains de leurs
+matériaux ne sont plus proposés séparément.
+Les sols disponibles se peignent case par case dans une liste unique.
+L'eau réelle (`water`) est bloquée en attendant Surf ; elle garde son propre
+identifiant. Les sols décoratifs conservés restent praticables.
+Voir [le catalogue complet](../docs/ARENA_MATERIALS.md).
+
+Le catalogue partagé est défini dans `000_ReliefRules.rb` (ArenaMaterials), les
+textures et mosaïques dans `028_ArenaMaterialsArt.rb`. Le codec alphanumérique
+conserve les anciens codes numériques et couvre tous les nouveaux sols/styles.
+
+Les arrondis continuent dans les extrémités des murs, sans arrondir les raccords
+entre segments. La couche de fond des sommets garde le sol inférieur pour que
+l'alpha laisse réellement apparaître le terrain, au lieu du même sol de sommet.
+
+Changer le sol propose aussi **Lave (infranchissable)** et **Sol volcanique**
+(praticable). La lave suit les protections du vide : pas de placement, de montée
+ou de marche, et pas de suppression d'un accès d'escalier encore utilisé.
+Le style **Volcanique** transforme le groupe entier en sol et murs volcaniques.
+Les textures utilisent Red cave floor et la roche native recolorée en mémoire ;
+la lave réutilise la texture Sea deep avec la palette lave des expéditions.
+Le protocole 8 valide tous les codes via le catalogue partagé client/serveur.
+Les sauvegardes existantes restent compatibles.
+
+Les coins extérieurs sont arrondis sur 6 pixels, en gardant le centre de la
+case et la position des pieds opaques. Changer le sol peint aussi les sommets
+(sol de base, herbe, sable, roche, glace ou neige), sans remplacer leurs murs.
+Le mode **Style de plateforme entière** propose les 11 styles visibles du catalogue.
+Il parcourt les cases surélevées reliées par un côté, escaliers compris, puis
+applique le sol et le matériau des murs à ce seul groupe. Les occupants restent
+en place. Les modifications passent par le brouillon et la validation habituels.
+
+`ground` sélectionne la texture visible et le terrain. `platform_style` choisit
+les murs : terre/herbe, roche grise issue du relief natif ou famille neige native.
+Le sol neige utilise White path et ne glisse pas. Les murs empruntent le style
+de la case haute immédiatement au-dessus. Les clés de cache incluent sol/style.
+Le protocole 8 transmet également une grille `styles` de 10 000 octets, validée
+par client et serveur ; les anciennes sauvegardes utilisent Montagne par défaut.
+
+Les directions affichées sont haut/droite/bas/gauche. Le relief est dessiné sur
+la couche 1, au-dessus du sol natif conservé sur la couche 0. Le sommet forme
+des cases complètes ; la face sud se dessine dans la case inférieure, bloquée.
+Les raccords utilisent les tuiles de pierre à leur taille native, sans réduction
+des coins. Seul le fond noir exact du crop de falaise privé est détouré en
+mémoire ; les ressources partagées des expéditions ne sont pas modifiées.
+
+Dans Personnalisation, Entrée ouvre **Plateformes et escaliers**. Peignez les
+plateformes sur le sol existant, puis remplacez une case du bord par un escalier.
+Sa flèche indique la montée : sol bas derrière, plateforme devant. Des segments
+de même orientation côte à côte se raccordent sans bordure intérieure.
+Les quatre orientations montent et descendent ; les autres bords sont bloqués.
+X quitte l'outil, puis permet de valider/sauvegarder ou d'annuler les modifications.
+Retirez les occupants avant le relief, et les escaliers avant leurs appuis.
+Les meubles et Dresseurs se placent sur le plateau, jamais sur les marches.
+
+`000_ReliefRules.rb` définit le format et les règles partagés avec le serveur.
+`027_ArenaRelief.rb` utilise les collisions de Game_Map et TilemapRenderer,
+ainsi que les ressources Caves/Brown cave floor de l'installation locale via
+ExpeditionTerrain. Aucun fichier graphique n'est distribué. Les anciens sols
+sans hauteur restent au niveau 0. `height` et `stair` sont enregistrés dans les
+enregistrements de cases et dans le brouillon transactionnel existant.
+Le protocole de visite 8 utilise des grilles de 10 000 octets ; la hauteur des
+personnages est déduite de leur case sur cette unique map. Tous les participants
+et le serveur doivent être mis à jour. Personnalisation verrouillée en visite.
+
+Tests avec Ruby portable : `game-mod/test/arena_relief_test.rb`,
+`game-mod/test/arena_relief_server_test.rb`, `game-mod/test/arena_visits_server_test.rb`.
+Sous Windows, `tools/test-native-relief.py` installe le plugin courant, lance
+mkxp-z caché, utilise uniquement une sauvegarde jetable puis retire sa sonde.
+Le rapport et l'aperçu local restent sous `tools/runtime/native-relief-probe.*`.
+
 ## v8: timed expeditions and running (0.12.2)
 
 Hold Shift/Maj to run while moving; Space opens pause and Enter/Z interact.

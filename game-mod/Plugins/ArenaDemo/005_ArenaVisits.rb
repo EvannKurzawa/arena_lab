@@ -119,7 +119,7 @@ module ArenaDemo
     def receive(message)
       case message[:type]
       when :arena_ready
-        return unless message[:version] == 3
+        return unless message[:version] == 8
         @ready = true
         @phase ||= :closed
         @refresh = true
@@ -132,7 +132,7 @@ module ArenaDemo
           @visit_request = nil
         elsif message[:phase] == :open
           ids, layout, difficulty = message.values_at(:objects, :layout, :difficulty)
-          decoded_snapshot = ArenaDemo.decode_visit_snapshot(message[:surface], message[:placements])
+          decoded_snapshot = ArenaDemo.decode_visit_snapshot(message[:surface], message[:placements], message[:relief], message[:styles])
           return unless [:host, :guest].include?(message[:role]) &&
                         message[:room].is_a?(String) && message[:room].length <= 32 &&
                         ids.is_a?(Array) && ids.length <= 6 && ids.uniq == ids &&

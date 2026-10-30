@@ -15,11 +15,8 @@ module ArenaDemo
   INITIAL_FIELD_Y = (MAP_HEIGHT - INITIAL_FIELD_SIZE) / 2
   SURFACE_TAGS = { "grass" => :Grass, "desert" => :Sand,
                    "ice" => :Ice, "rock" => :Rock }.freeze
-  SURFACE_NAMES = { "plain" => "Concrete / plain", "grass" => "Grass",
-                    "desert" => "Desert / sand", "ice" => "Ice",
-                    "rock" => "Rock" }.freeze
-  VISIT_SURFACE_CODES = { "void" => "0", "plain" => "1", "grass" => "2",
-                          "desert" => "3", "ice" => "4", "rock" => "5" }.freeze
+  SURFACE_NAMES = ArenaMaterials::FLOORS.transform_values(&:first).freeze
+  VISIT_SURFACE_CODES = ArenaMaterials::SURFACE_CODES
   FURNITURE_STOCK = {
     :ARENA_FURNITURE_BOULDER => ["Boulder", "Object boulder", 2],
     :ARENA_FURNITURE_ROCK    => ["Rock", "Object rock", 2],
@@ -335,7 +332,7 @@ module ArenaDemo
   def recover_player_from_void(map)
     return unless map && map.map_id == MAP_ID && $game_player
     return unless tile_is_void?($game_player.x, $game_player.y) ||
-                  !map.passableStrict?($game_player.x, $game_player.y, 2, $game_player)
+                  !map.passableStrict?($game_player.x, $game_player.y, 0, $game_player)
     start = map_start
     candidates = [[start[0], start[1]]]
     INITIAL_FIELD_SIZE.times do |dy|
@@ -347,7 +344,7 @@ module ArenaDemo
       MAP_WIDTH.times { |x| candidates << [x, y] }
     end
     destination = candidates.uniq.find do |x, y|
-      !tile_is_void?(x, y) && map.passableStrict?(x, y, 2, $game_player)
+      !tile_is_void?(x, y) && map.passableStrict?(x, y, 0, $game_player)
     end
     $game_player.moveto(*destination) if destination
   end
@@ -430,7 +427,10 @@ module ArenaDemo
     end
     floor = record["floor"] == "void" ? "void" : "field"
     ground = SURFACE_NAMES.key?(record["ground"]) ? record["ground"] : "plain"
-    { "floor" => floor, "ground" => ground }
+    { "floor" => floor, "ground" => ground,
+      "height" => record["height"] == 1 ? 1 : 0,
+      "stair" => ArenaRelief::DIRECTIONS.key?(record["stair"]) ? record["stair"] : nil,
+      "platform_style" => ArenaRelief::STYLES.include?(record["platform_style"]) ? record["platform_style"] : "mountain" }
   end
 
   # Network snapshot: 10,000 one-byte surface codes and at most 96 placements.
@@ -455,14 +455,14 @@ module ArenaDemo
       next unless kind == 0 ? FURNITURE_STOCK.key?(item.to_sym) : TRAINER_PROFILES.key?(item.to_sym)
       [kind, item, x, y]
     end.first(MAX_ARENA_FURNITURE + MAX_ARENA_TRAINERS)
-    { :surface => surface, :placements => placements }
+    { :surface => surface, :placements => placements, :relief => relief_grid(records), :styles => platform_style_grid(records) }
   end
 
-  def decode_visit_snapshot(surface, placements)
+  def decode_visit_snapshot(surface, placements, relief = "0" * (MAP_WIDTH * MAP_HEIGHT), styles = "0" * (MAP_WIDTH * MAP_HEIGHT))
     return nil unless surface.is_a?(String) && surface.bytesize == MAP_WIDTH * MAP_HEIGHT
     codes = VISIT_SURFACE_CODES.invert
     bytes = surface.bytes
-    return nil unless bytes.all? { |byte| byte.between?(48, 53) }
+    return nil unless ArenaMaterials.valid_surface?(surface)
     return nil unless placements.is_a?(Array) && placements.length <= MAX_ARENA_FURNITURE + MAX_ARENA_TRAINERS
     tile_edits = {}
     bytes.each_with_index do |byte, index|
@@ -493,10 +493,22 @@ module ArenaDemo
       known = kind == "furniture" ? FURNITURE_STOCK.key?(item.to_sym) : TRAINER_PROFILES.key?(item.to_sym)
       point = [x, y]
       return nil unless known && !seen[point] && !reserved.include?(point)
-      return nil if (bytes[y * MAP_WIDTH + x] - 48) == 0
+      return nil if ArenaRelief.blocked_surface?(surface, x, y)
       seen[point] = true
       { "kind" => kind, "item" => item, "x" => x, "y" => y }
     end
+    return nil unless ArenaRelief.valid?(relief, surface, reserved, placements)
+    return nil if reserved.any? { |x, y| ArenaRelief.blocked_surface?(surface, x, y) }
+    return nil unless ArenaRelief.valid_styles?(styles, relief)
+    relief.bytes.each_with_index do |byte, index|
+      next if byte == 48
+      key = tile_edit_key(index % MAP_WIDTH, index / MAP_WIDTH)
+      record = tile_edits[key] ||= { "floor" => "field", "ground" => "plain" }
+      record["height"] = 1
+      record["stair"] = byte > 49 ? byte - 48 : nil
+      record["platform_style"] = ArenaRelief::STYLES[ArenaMaterials::ALPHABET.index(styles[index])]
+    end
+    tile_edits.each_value(&:freeze)
     { :tile_edits => tile_edits.freeze, :placements => decoded_placements.freeze }
   rescue StandardError
     nil
@@ -511,7 +523,7 @@ module ArenaDemo
     return true unless x.is_a?(Integer) && y.is_a?(Integer)
     return true unless x.between?(0, MAP_WIDTH - 1) && y.between?(0, MAP_HEIGHT - 1)
     record = records[tile_edit_key(x, y)]
-    return record["floor"] == "void" if record.is_a?(Hash) && record.key?("floor")
+    return record["floor"] == "void" || ArenaMaterials::BLOCKED_GROUNDS.include?(record["ground"]) if record.is_a?(Hash) && record.key?("floor")
     return !initial_field_tile?(x, y)
   end
 
@@ -593,11 +605,7 @@ module ArenaDemo
   end
 
   def surface_options(map = $game_map)
-    options = [[SURFACE_NAMES["plain"], "plain"]]
-    SURFACE_TAGS.each do |key, terrain_id|
-      options << [SURFACE_NAMES[key], key]
-    end
-    options
+    SURFACE_NAMES.map { |key, name| [name, key] }
   end
 
   def surface_stack(map, ground)
@@ -615,6 +623,10 @@ module ArenaDemo
     return unless map && map.map_id == MAP_ID && map.data
     stack = if record["floor"] == "void"
               [0, 0, 0]
+            elsif record["height"] == 1 || record["stair"]
+              # The transparent summit contour must reveal the lower field,
+              # rather than another copy of the summit material underneath.
+              base_ground_stack(map)
             else
               surface_stack(map, record["ground"] || "plain")
             end
@@ -742,18 +754,16 @@ module ArenaDemo
   end
 
   def editor_choose_mode
-    choice = pbMessage("What would you like to edit?", ["Change ground", "Handle trainers", "Handle furniture", "Done"], -1)
-    return nil unless choice && choice >= 0 && choice <= 2
-    [:ground, :trainer, :furniture][choice]
+    choice = pbMessage("Que souhaitez-vous modifier ?", ["Changer le sol", "Dresseurs", "Meubles", "Plateformes et escaliers", "Style de plateforme entière", "Terminer"], -1)
+    return nil unless choice && choice >= 0 && choice <= 4
+    [:ground, :trainer, :furniture, :relief, :platform_style][choice]
   end
 
   def editor_choose_ground
-    options = surface_options
-    labels = options.map(&:first) + ["Make tiles void", "Cancel"]
-    choice = pbMessage("Choose the ground to paint.", labels, -1)
-    return nil if choice < 0 || choice >= options.length + 1
-    return { :floor => "void" } if choice == options.length
-    { :floor => "field", :ground => options[choice][1] }
+    entry = choose_material_catalog(material_floor_entries, 'Choisissez le sol à appliquer.')
+    return nil unless entry
+    return { :floor => 'void' } if entry[:ground] == 'void'
+    { :floor => 'field', :ground => entry[:ground] }
   end
 
   def editor_choose_placement(kind, placements)
@@ -767,14 +777,23 @@ module ArenaDemo
   end
 
   def editor_apply_ground(surface_edits, placements, x, y, selected)
+    return editor_apply_platform_style(surface_edits, x, y, selected[:platform_style]) if selected.key?(:platform_style)
+    return editor_apply_relief(surface_edits, placements, x, y, selected[:relief]) if selected.key?(:relief)
     return false unless editor_selectable_tile?(x, y)
-    if selected[:floor] == "void" && (editor_occupied(placements, x, y) || fixed_event_tile?(x, y))
+    blocked = selected[:floor] == "void" || ArenaMaterials::BLOCKED_GROUNDS.include?(selected[:ground])
+    if blocked && (editor_occupied(placements, x, y) || fixed_event_tile?(x, y) || relief_reserved.include?([x, y]))
       pbMessage("Remove the occupant or move the arena event before making this tile void.")
       return false
     end
     state = tile_surface_state(surface_edits, x, y)
     state["floor"] = selected[:floor]
     state["ground"] = selected[:floor] == "void" ? "plain" : selected[:ground]
+    state["height"], state["stair"] = 0, nil if blocked
+    candidate = surface_edits.merge(tile_edit_key(x, y) => state)
+    unless valid_relief_records?(candidate, placements)
+      pbMessage("Retirez d'abord l'escalier qui utilise cette case.")
+      return false
+    end
     surface_edits[tile_edit_key(x, y)] = state
     apply_tile_surface($game_map, x, y, state)
     true
@@ -793,7 +812,11 @@ module ArenaDemo
       refresh_custom_placements(placements)
       return
     end
-    if tile_surface_state(surface_edits, x, y)["floor"] == "void"
+    if tile_surface_state(surface_edits, x, y)["stair"] || relief_wall?(surface_edits, x, y)
+      pbMessage("Les escaliers et les parois doivent rester libres. Choisissez le sol ou le dessus d'une plateforme.")
+      return
+    end
+    if tile_is_void?(x, y, surface_edits)
       pbMessage("Make this tile a normal field before placing a trainer or furniture.")
       return
     end
@@ -879,7 +902,7 @@ module ArenaDemo
 
   def place_from_bag(placements, kind, x, y, surface_edits = tile_edit_records)
     return unless valid_editor_tile?(x, y)
-    if tile_surface_state(surface_edits, x, y)["floor"] == "void"
+    if tile_is_void?(x, y, surface_edits)
       pbMessage("Make this tile a normal field before placing an object or trainer.")
       return
     end
@@ -1024,14 +1047,15 @@ module ArenaDemo
       "grass" => Color.new(64, 151, 78),
       "desert" => Color.new(207, 157, 75),
       "ice" => Color.new(100, 187, 220),
-      "rock" => Color.new(115, 117, 125)
+      "rock" => Color.new(115, 117, 125),
+      "volcanic" => Color.new(127, 61, 48), "lava" => Color.new(245, 104, 28)
     }
     bitmap.clear
     MAP_HEIGHT.times do |y|
       MAP_WIDTH.times do |x|
         state = tile_surface_state(surface_edits, x, y)
         key = state["floor"] == "void" ? "void" : state["ground"]
-        bitmap.fill_rect(x * 2, y * 2, 2, 2, colors[key] || colors["plain"])
+        bitmap.fill_rect(x * 2, y * 2, 2, 2, colors[key] || Color.new(*material_overview_color(key)))
       end
     end
     # Subtle ten-tile guides make large edits easier to orient, while a bright
@@ -1167,7 +1191,7 @@ module ArenaDemo
     $game_temp.in_menu = true
     refresh_custom_placements(draft)
     editor_dialog(viewport, map_viewport, false) do
-      pbMessage("Choose a tile with the arrows. Press U to change zoom. Press Enter to choose ground, trainer, or furniture mode, then Enter on tiles to apply it. Press X to leave the mode or finish editing.")
+      pbMessage("Choisissez une case avec les flèches. U change le zoom. Entrée choisit le mode sol, relief, style de plateforme, Dresseur ou mobilier, puis applique votre choix aux cases. X quitte le mode ou termine les modifications.")
     end
     zoom_index = 0
     active_tool = nil
@@ -1220,11 +1244,21 @@ module ArenaDemo
         editor_dialog(viewport, map_viewport, zoom_index == 2) do
           if active_tool.nil?
             mode = editor_choose_mode
-            if mode == :ground
-              selected = editor_choose_ground
+            if [:ground, :relief, :platform_style].include?(mode)
+              selected = case mode
+                         when :relief then editor_choose_relief
+                         when :platform_style then editor_choose_platform_style
+                         else editor_choose_ground
+                         end
               if selected
                 active_tool = { :kind => :ground, :selection => selected }
-                label = selected[:floor] == "void" ? "void" : SURFACE_NAMES[selected[:ground]]
+                label = if selected[:platform_style]
+                          "style de plateforme : #{PLATFORM_STYLES[selected[:platform_style]][0]}"
+                        elsif selected.key?(:relief)
+                          relief_tool_name(selected[:relief])
+                        else
+                          selected[:floor] == "void" ? "void" : SURFACE_NAMES[selected[:ground]]
+                        end
                 pbMessage("Painting #{label}. Move with the arrows and press Enter on each tile. Press X to choose another mode.")
               end
             elsif mode == :trainer || mode == :furniture
@@ -1668,8 +1702,8 @@ if defined?(TilemapRenderer)
       map_x = x + map_display_x / TilemapRenderer::DISPLAY_TILE_WIDTH
       map_y = y + map_display_y / TilemapRenderer::DISPLAY_TILE_HEIGHT
       state = ArenaDemo.tile_surface_state(ArenaDemo.surface_records_for_render, map_x, map_y)
-      return unless state["floor"] == "field" && state["ground"] == "ice"
-      tile.bitmap = ArenaDemo.ice_surface_bitmap
+      return unless state["floor"] == "field" && state["height"] != 1 && ArenaMaterials::FLOORS.key?(state["ground"]) && !["plain", "grass", "desert", "rock"].include?(state["ground"])
+      tile.bitmap = state["ground"] == "ice" ? ArenaDemo.ice_surface_bitmap : ArenaDemo.platform_floor_bitmap(state["ground"])
       tile.src_rect = Rect.new(0, 0, Game_Map::TILE_WIDTH, Game_Map::TILE_HEIGHT)
       tile.animated = false
       tile.is_autotile = false

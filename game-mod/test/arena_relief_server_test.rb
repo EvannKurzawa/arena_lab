@@ -1,0 +1,141 @@
+# Real PEMK reactor, wire codec, zones and socket relay; fixture authentication.
+require_relative 'arena_visit_harness'
+
+class ArenaReliefServerTest < Minitest::Test
+  include ArenaVisitTestSupport
+  def connect
+    socket = TCPSocket.new('127.0.0.1', @backend.reactor.port)
+    @clients << socket
+    send_frame(socket, type: :arena_hello)
+    assert_equal 8, receive(socket)[:version]
+    send_frame(socket, type: :pos, map: 102, x: 4, y: 6)
+    send_frame(socket, type: :ping, t: 1)
+    assert_equal 8, until_type(socket, :pong)[:arena_visits]
+    socket
+  end
+  def relief_payload
+    surface = '0' * 10000
+    (37..61).each { |y| (37..61).each { |x| surface.setbyte(y * 100 + x, 49) } }
+    relief = '0' * 10000
+    relief.setbyte(51 * 100 + 50, 49)
+    relief.setbyte(51 * 100 + 51, 49)
+    relief.setbyte(52 * 100 + 50, 56)
+    { type: :arena_open, objects: [], layout: 0, difficulty: 1,
+      surface: surface, relief: relief, styles: '0' * 10000, placements: [] }
+  end
+  def test_relief_snapshot_relay_and_authoritative_stair_collisions
+    host, guest = connect, connect
+    payload = relief_payload
+    payload[:surface].setbyte(51 * 100 + 50, 54)
+    payload[:styles].setbyte(51 * 100 + 50, 50)
+    send_frame(host, payload)
+    room = until_type(host, :arena_state)
+    assert_equal payload[:relief], room[:relief]
+    joined = join(host, guest, room)
+    assert_equal payload.values_at(:surface, :relief), joined.values_at(:surface, :relief)
+    assert_equal payload[:styles], joined[:styles]
+    send_frame(guest, type: :pos, map: 100, x: 49, y: 53)
+    send_frame(guest, type: :ping, t: 2)
+    until_type(guest, :pong)
+    # Enter at the reserved ground spawn, then approach the raised edge sideways.
+    [[49, 53], [49, 52]].each do |x, y|
+      send_frame(host, type: :pos, map: 100, x: x, y: y)
+      assert_equal [x, y], until_type(guest, :pos).values_at(:x, :y)
+    end
+    send_frame(host, type: :pos, map: 100, x: 50, y: 52)
+    assert_equal [49, 52], until_type(host, :pos_correct).values_at(:x, :y)
+    # Use the stairs from below; then descend along the same route.
+    [[49, 53], [50, 53], [50, 52], [50, 51], [51, 51]].each do |x, y|
+      send_frame(host, type: :pos, map: 100, x: x, y: y)
+      assert_equal [x, y], until_type(guest, :pos).values_at(:x, :y)
+    end
+    send_frame(host, type: :pos, map: 100, x: 51, y: 52)
+    assert_equal [51, 51], until_type(host, :pos_correct).values_at(:x, :y), 'South wall is not summit'
+    [[50, 51], [50, 52], [50, 53], [51, 53]].each do |x, y|
+      send_frame(host, type: :pos, map: 100, x: x, y: y)
+      assert_equal [x, y], until_type(guest, :pos).values_at(:x, :y)
+    end
+    send_frame(host, type: :pos, map: 100, x: 51, y: 52)
+    assert_equal [51, 53], until_type(host, :pos_correct).values_at(:x, :y), 'Ground cannot enter wall'
+    send_frame(host, type: :arena_close)
+    assert_equal :closed, until_type(guest, :arena_state)[:phase]
+  end
+  def test_relief_server_rejects_malformed_or_unsupported_layouts
+    host = connect
+    payload = relief_payload
+    [nil, 'x' * 10000, '2' * 10000].each do |invalid|
+      send_frame(host, payload.merge(styles: invalid))
+      assert_equal :arena_error, receive(host)[:type]
+    end
+    [nil, '1', 'x' * 10000].each do |invalid|
+      send_frame(host, payload.merge(relief: invalid))
+      assert_equal :arena_error, receive(host)[:type]
+    end
+    broken = payload[:relief].dup
+    broken.setbyte(51 * 100 + 50, 48)
+    send_frame(host, payload.merge(relief: broken))
+    assert_equal :arena_error, receive(host)[:type]
+    send_frame(host, payload.merge(placements: [[0, 'ARENA_FURNITURE_ROCK', 50, 52]]))
+    assert_equal :arena_error, receive(host)[:type]
+    send_frame(host, payload.merge(placements: [[0, 'ARENA_FURNITURE_ROCK', 50, 51]]))
+    assert_equal :arena_state, receive(host)[:type]
+  end
+  def test_lava_rejects_movement_placements_and_stair_landings_while_volcano_syncs
+    host, guest = connect, connect
+    payload = relief_payload
+    payload[:surface].setbyte(53 * 100 + 48, 56)
+    payload[:surface].setbyte(51 * 100 + 50, 55)
+    payload[:styles].setbyte(51 * 100 + 50, 51)
+    bad_spawn = payload[:surface].dup
+    bad_spawn.setbyte(53 * 100 + 49, 56)
+    send_frame(host, payload.merge(surface: bad_spawn))
+    assert_equal :arena_error, receive(host)[:type]
+    bad_landing = payload[:surface].dup
+    bad_landing.setbyte(53 * 100 + 50, 56)
+    send_frame(host, payload.merge(surface: bad_landing))
+    assert_equal :arena_error, receive(host)[:type]
+    send_frame(host, payload.merge(placements: [[0, 'ARENA_FURNITURE_ROCK', 48, 53]]))
+    assert_equal :arena_error, receive(host)[:type]
+    send_frame(host, payload)
+    room = until_type(host, :arena_state)
+    joined = join(host, guest, room)
+    assert_equal payload.values_at(:surface, :styles), joined.values_at(:surface, :styles)
+    send_frame(guest, type: :pos, map: 100, x: 49, y: 53)
+    send_frame(guest, type: :ping, t: 5)
+    until_type(guest, :pong)
+    send_frame(host, type: :pos, map: 100, x: 49, y: 53)
+    until_type(guest, :pos)
+    send_frame(host, type: :pos, map: 100, x: 48, y: 53)
+    assert_equal [49, 53], until_type(host, :pos_correct).values_at(:x, :y)
+    [[50, 53], [50, 52], [50, 51]].each do |x, y|
+      send_frame(host, type: :pos, map: 100, x: x, y: y)
+      assert_equal [x, y], until_type(guest, :pos).values_at(:x, :y)
+    end
+  end
+  def test_water_and_new_material_codes_relay_and_block_water_until_surf_is_implemented
+    host, guest = connect, connect
+    payload = relief_payload
+    ArenaMaterials::FLOORS.each_key.with_index do |key, i|
+      payload[:surface].setbyte(40 * 100 + 37 + i % 25 + (i / 25) * 100, ArenaMaterials::SURFACE_CODES[key].ord)
+    end
+    payload[:surface].setbyte(53 * 100 + 48, ArenaMaterials::SURFACE_CODES['water'].ord)
+    payload[:styles].setbyte(51 * 100 + 50, ArenaMaterials::ALPHABET[ArenaRelief::STYLES.index('arena')].ord)
+    invalid = payload[:surface].dup
+    invalid.setbyte(53 * 100 + 49, ArenaMaterials::SURFACE_CODES['water'].ord)
+    send_frame(host, payload.merge(surface: invalid))
+    assert_equal :arena_error, receive(host)[:type]
+    send_frame(host, payload.merge(placements: [[0, 'ARENA_FURNITURE_ROCK', 48, 53]]))
+    assert_equal :arena_error, receive(host)[:type]
+    send_frame(host, payload)
+    room = until_type(host, :arena_state)
+    joined = join(host, guest, room)
+    assert_equal payload.values_at(:surface, :styles), joined.values_at(:surface, :styles)
+    send_frame(guest, type: :pos, map: 100, x: 49, y: 53)
+    send_frame(guest, type: :ping, t: 8)
+    until_type(guest, :pong)
+    send_frame(host, type: :pos, map: 100, x: 49, y: 53)
+    until_type(guest, :pos)
+    send_frame(host, type: :pos, map: 100, x: 48, y: 53)
+    assert_equal [49, 53], until_type(host, :pos_correct).values_at(:x, :y)
+  end
+end

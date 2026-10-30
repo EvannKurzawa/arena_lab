@@ -1,5 +1,529 @@
 # Setup and implementation status
 
+## Livraison v8.2 — 2026-10-30
+
+Release groups the accumulated relief/editor/material changes: two logical
+heights on one map, four stair directions with compatible joins, blocked edges,
+rounded summit/wall corners, furniture/trainers on platforms, whole-platform
+styling, flat visual material selector, 22 selectable floors plus void and 11
+selectable styles. Includes latest bridge-like Wood, Industrial and Crystal
+artwork, renamed labels and retired floor/style choices. Internal plugin version
+is 0.17.4; visit protocol is 8. Legacy catalogue IDs remain readable.
+
+README and material documentation describe final behaviour and restart steps.
+Release includes plugin code, server validation/relay, shared test harness,
+focused relief tests and native probe runner. Local runtime assets, generated
+captures, saves and unrelated title_screen_design.pptx are excluded.
+
+Verification executed with tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe:
+- game-mod/test/arena_relief_test.rb: 14 runs / 820 assertions, passing (latest art change).
+- game-mod/test/arena_relief_server_test.rb: 4 runs / 70 assertions, passing (release check).
+- game-mod/test/arena_visits_server_test.rb: 6 runs / 98 assertions, passing (release check).
+
+Native runner C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py --picker:
+315 checks passed during the latest art change; Wood picker visually inspected.
+Socket tests exercise the actual PEMK reactor/codec with fixture authentication;
+they do not establish a new manual two-GUI-client session. No upstream version,
+dependency, credential or private save change is part of this release.
+
+User requested commit message v8.2 and push to origin/main. Restart
+Play-Arena.bat after closing the game; update both clients and server together
+for protocol 8 visits. Previous integration evidence and manual limits follow.
+
+## Planches de pont et simplification des sols — 2026-10-30 (0.17.4)
+
+Removed Métal et grilles from the floor selector (22 floors plus void remain).
+Renamed Sol habituel to Sol de base and Plaques rivetées to Plaques métalliques.
+The full 38 ground keys, 12 historical style IDs and protocol 8 remain stable;
+the industrial platform and old saved metal floors still render normally.
+
+Wood no longer samples the gym parquet or draws staggered brick-like joints.
+It samples clean timber grain from the installed Outside bridge tiles (bridge
+terrain tag 15, first tile 1616), recomposing four continuous horizontal boards
+with dark gaps and small nail heads. The Wood platform shares this deck and
+has a darker front with posts, beams and diagonal timber braces. Art is composed
+in memory; installed source atlases are untouched. Picker and map share art.
+
+Executed bundled Ruby game-mod/test/arena_relief_test.rb: 14 runs, 820 assertions,
+zero failures/errors/skips. Executed C:/msys64/mingw64/bin/python.exe
+tools/test-native-relief.py --picker: 315 native relief checks passed, including
+continuous opaque wood boards without parquet overlays, wall contrast, filtered
+picker, collision/stair joins, placement/removal, disposable save/load and
+legacy snapshot round trips. Visually inspected the actual Wood picker capture
+at tools/runtime/native-material-picker-probe-picker-wood.png. No manual
+two-client multiplayer session was executed for this visual/catalogue change.
+
+Changed 000 catalogue, 028 art, meta.txt, focused editor/native tests and docs.
+Local plugin installed as 0.17.4; probe and disposable save removed and compiled
+cache restored to 32 Arena Demo scripts. No personal save read or written.
+No new dependency, upstream version change, commit or push. Close the game and
+relaunch Play-Arena.bat to load the updated plugin.
+
+## Tatami, noms et refonte des murs/cristal — 2026-10-30 (0.17.3)
+
+Removed the inherited parquet diagonal overlay from Tatami while retaining its
+horizontal/vertical weave. Retained former monotype floors now display material
+names: Améthyste, Quartz rose, Ardoise mauve, Obsidienne, Plaques rivetées, plus
+Tatami. Saved ground keys and wire IDs remain unchanged. Arène de combat is
+retired from style selection using RETIRED_STYLES/VISIBLE_STYLES, leaving **11
+visible styles** and compatibility with the old twelfth style in saved layouts.
+
+Industrial and Wood now have distinct vertical front faces: native texture
+grain/seams turned upright, stronger shadow than the summit, upper/lower beams,
+steel panels/bolts or timber posts. The collider, lip and rounded silhouette
+are unchanged. Crystal floor/wall replace large diamond symbols with dark blue
+native stone and three discreet cyan cores/halos per tile. An internal legacy
+crystal source preserves Améthyste's existing base texture rather than changing
+that floor as an unintended effect of the crystal redesign. Shared assets are
+untouched; all rendering/palette composition is in memory.
+
+Executed bundled Ruby arena_relief_test.rb: **14 tests / 818 assertions**, passing
+including material labels, removed style and all legacy data round trips.
+`C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py --picker`: **313
+native checks passed**. Includes no parquet motif in Tatami, exactly three bright
+cyan crystal cores and no large crystal motif, measured front/summit contrast
+for Wood/Industrial, exclusion of Arena from the selector, actual picker choices
+and cleanup, save/load, all original terrain/stair collisions and compact UI.
+Real picker screenshots for Industrial, Wood and Crystal and the visible-floor
+contact sheet were visually inspected. Private files remain under
+tools/runtime/native-material-picker-probe-picker-{industrial,wood,crystal}.png.
+Only disposable save data was used; temporary probe/save cleaned and cache
+restored (32 Arena Demo scripts). No personal save read or written.
+
+Changed catalogue labels/style visibility, 028 material art, 029 style picker,
+metadata 0.17.3, focused editor/native tests and docs. Protocol 8, upstream
+versions/dependencies and collision/save formats unchanged. Local test game
+updated. Close the game and relaunch Play-Arena.bat. No commit/push/publication
+or manual two-GUI-client visit claimed.
+
+## Liste de sols simplifiée et suppression des motifs — 2026-10-30 (0.17.2)
+
+User requested specific floor removals, Tatami naming, plain backgrounds for
+five materials and direct access to the preview list. Changer le sol now calls
+the visual picker immediately, with **23 floors plus void** and no family menu.
+Hidden from that list: parquet, moss, court tiles, type_normal, type_fire,
+type_water, type_ice, type_electric, type_grass, type_ground, type_flying,
+type_bug, type_rock, type_dragon and type_fairy. Actual blocked water, sliding
+ice and ordinary rock remain. type_fighting displays Tatami. Poison, Dark,
+Ghost and Psychic labels no longer advertise removed motifs.
+
+Removed the added mud rings and all foreground motifs from Poison/Dark/Ghost/
+Psychic. For those four tinted floors, base-material motif overlays are also
+disabled, so a crystal diamond or ruin/paving overlay does not remain behind
+the removed type emblem. Native texture/color remain; preview and map share
+the same renderer. Styles/placed objects/geometry/collisions unchanged.
+
+Retirement affects the floor picker, not existing saved placements. The full
+38-key catalogue and original wire IDs stay stable for old saves, snapshots
+and platform-style dependencies. VISIBLE_FLOORS/RETIRED_FLOORS define visibility.
+All 12 platform styles remain available. Protocol remains 8.
+
+Executed bundled Ruby arena_relief_test.rb: **14 tests / 816 assertions**, all
+passing. Includes direct one-step choice/cancel, exact retained/retired menu,
+Tatami label, water and sliding ice, plus round trips for every legacy/new ID.
+`C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py --picker` passes
+**297 native checks**: no foreground draw calls for the five requested floors,
+the flat list has only the retained entries, real picker selection/scrolling/
+cancel in regular and compact windows, preview disposal, unchanged metadata
+while browsing, save/load and legacy catalogue/render/collision coverage.
+Poison, Dark and the retained-floor contact sheet were visually inspected;
+private captures remain under tools/runtime/native-material-picker-probe*.
+Only a disposable save was used; temporary probe/save removed and normal cache
+restored (32 Arena Demo scripts). No personal save read/written.
+
+Changed shared catalogue labels/visibility, 009 ground entry, 028 motif drawing,
+029 filtered picker, metadata 0.17.2, editor/native tests and docs. No upstream
+or shared asset changes, no commit/push/publication and no new two-GUI-client
+visit claimed. Local game updated. Close the game and relaunch Play-Arena.bat.
+
+## Sélecteur visuel des sols et plateformes — 2026-10-30 (0.17.1)
+
+User requested previews while choosing floors, similar to furniture/trainers.
+Added 029_ArenaMaterialPicker.rb using native Window_CommandPokemon windows:
+each row has a thumbnail, and selection shows a larger repeated-floor sample
+on the right. Platform styles show both summit and wall in that preview.
+Descriptions distinguish ordinary, sliding and blocked floors, including
+future-Surf water versus walkable type-water ceramic. Ground family menus stay;
+the second-level lists and all platform styles use the visual picker.
+Furniture/trainer pickers are unchanged. Enter confirms and X/Back cancels.
+
+Uses the actual material rendering helpers and a bounded shared cache of 51
+96x96 previews (38 floors, void, 12 styles). Interface windows, sample canvas,
+backdrop and viewport are disposed in ensure; cached art survives closing so
+it can still be used by the next picker. Browsing does not change metadata,
+inventory or saves. Names wrap onto two lines, the list uses whole rows and
+its outer width is fixed to avoid overlap with the right panel. The compact
+512x384 view uses smaller list text; the regular 640x480 view keeps larger text.
+No map/collision/save format or visit protocol change (still protocol 8).
+
+Executed with bundled Ruby 3.3.12:
+`game-mod/test/arena_relief_test.rb` passes **14 tests / 811 assertions**,
+including ground/style selection and cancellation, complete preview metadata
+and correct water/ice descriptions alongside existing material tests.
+
+`C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py --picker` passes
+**306 native engine checks**: all 51 previews, actual picker confirmation after
+scrolling, cancellation, window disposal and live cached artwork, unchanged
+arena metadata while browsing, separate list/preview areas and complete rows,
+plus compact 512x384 selection. Only confirm/cancel input is injected in those
+UI checks; the real native picker/window/drawing methods run. Map frames are
+disabled during the disposable UI portion. Screenshots of Dragon, Snow platform,
+blocked Water and compact Dark floor were visually inspected:
+tools/runtime/native-material-picker-probe-picker-{ground,style,water,compact}.png.
+This includes the existing native material/collision/save-load regression.
+It is not a manual keyboard/two-game-client playthrough.
+
+The first native export failed with Errno::EINVAL while overwriting the old
+floor-atlas diagnostic PNG, after its UI checks passed. The runner's --picker
+option gives these tests separate report/capture paths; subsequent exports pass.
+No personal assets/saves were removed to resolve that diagnostic write failure.
+The temporary probe/save were cleaned, plugin cache restored (32 Arena Demo
+scripts), and the local game contains 0.17.1.
+
+Changed 009_ArenaCustomMode.rb and 027_ArenaRelief.rb selectors, new 029 picker,
+plugin metadata, editor/native tests, native runner and docs. No upstream or
+third-party resources changed. No commit/push or publication. Close the game
+and relaunch Play-Arena.bat to use the previews; existing saves are compatible.
+
+## Catalogue complet, monotypes et eau — 2026-10-30 (Arena Demo 0.17.0)
+
+User requested all eight proposed platform themes, all proposed materials,
+water reserved for future Surf, and original monotype floors. Added **38 floors
+and 12 platform styles**, including the previous four. New platforms: Desert,
+Forest, Ancient ruins, Crystal, Industrial, Wood, Swamp and Battle arena. Added
+pavers, parquet, metal, packed dirt, moss, planks, mud, roots, ruins/crystal/court
+tiles and one decorative mosaic for each of the 18 standard types. Dragon has
+mineral scales, Dark obsidian crescents, Electric circuits, Psychic rings, etc.
+Natural/material/monotype/hazard menu families keep floor selection navigable.
+Full French catalogue and behavioral distinctions: docs/ARENA_MATERIALS.md.
+
+Water is a dedicated `water` material, visible but blocked like lava/void.
+It cannot receive placements, platforms or stair landings. Even an active
+Essentials surfing flag cannot bypass this until Surf is implemented. The
+saved identity is reserved for that future feature; no Surf travel was enabled.
+Decorative type_water ceramic remains walkable; decorative type_ice is not
+slippery. Monotype mosaics do not change battles, encounters or type bonuses.
+
+ArenaMaterials in 000_ReliefRules.rb shares immutable IDs/catalogue with the
+server. Protocol **8** uses bounded 10,000-byte alphanumeric grids (all previous
+0-8 surface and 0-3 style codes retained) to accommodate the expanded catalogue.
+Unknown surface/style bytes and hazard placements/reserved cells are rejected.
+Every material/style round-trips through snapshots; existing saves retain their
+string keys without manual conversion. Snapshot rooms remain transient.
+
+028_ArenaMaterialsArt.rb reuses installed Essentials autotiles and Gyms/Factory
+floor art with in-memory palettes, small mosaics and wall finishes. All 12 styles
+have distinct summit and wall artwork, with existing rounded geometry/blocked
+faces unchanged. No shared graphic was overwritten and no third-party assets
+downloaded, bundled or committed. The first wood preview included a metal edge
+from Gyms tile 425; inspection selected the plain native wood tile 426 instead.
+Overview colors include new materials and monotype palettes.
+
+Executed with bundled portable Ruby 3.3.12:
+
+- arena_relief_test.rb: **13 tests / 798 assertions**, passing. Every floor and
+  style round-trips, including letter codes; grouped styling, occupied summit
+  painting, menu families/cancellation, water identity and walkable type-water
+  ceramic, protected stairs/occupants, invalid IDs and Marshal persistence.
+- arena_relief_server_test.rb: **4 / 70**, passing via actual PEMK wire/reactor
+  and TCP peers with fixture authentication. Expanded mixed-surface snapshots,
+  style B, water correction and reserved/occupied hazard refusal are covered.
+- arena_visits_server_test.rb: **6 / 98**, passing with protocol-8 fixtures.
+- save_recovery_audio_test.rb: **3 / 11**, passing.
+- french_title_test.rb: all reported checks passing.
+
+`C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py`: **240 native checks
+passed**. It exercises every
+floor's artwork, editor paint and actual player collision, every platform tool,
+native save/load and snapshot preservation, standing geometry and zoom. Water
+remains blocked with surfing=true. It exports/visually verifies the 12-platform
+contact sheet and all 38 floor samples, with an index, plus the real player frame.
+Files remain ignored under tools/runtime/native-relief-probe{,-floors,-player}.*.
+Only a disposable game/save is used. Probe/save removed and normal cache restored
+(31 Arena Demo scripts). No personal save loaded/written. No new manual
+two-GUI-client visit or publication is claimed.
+
+Changed shared rules/catalogue, 009/027 editor/render integration, new 028 art,
+visit client/server/readiness protocol, metadata 0.17.0, focused editor/network/
+native tests, docs/ARENA_MATERIALS.md and README files. Upstream versions/licenses
+and dependencies unchanged. Close the game and launch Play-Arena.bat; update
+both clients and restart the server for protocol 8. No commit/push performed.
+
+## Arrondis des murs, lave et style volcanique — 2026-10-30 (0.16.0)
+
+Read project instructions/current status and inspected the user's close-up.
+The previous summit alpha exposed a duplicate summit texture on layer 0,
+masking the round-over; the wall cap also remained square. Raised cells now
+keep the lower base field underneath the overlay, and the low-floor snow/ice
+renderer skips raised cells. Matching 6-pixel outside alpha arcs continue into
+both exposed wall ends, including the upper cap and lower corner. Connected
+middle segments remain seamless and the existing blocked face footprint stays.
+
+Added ground choices Lave (infranchissable) and Sol volcanique (walkable).
+Lava uses the existing expedition lava palette on installed Sea deep native
+artwork. It is visible while following void collision/placement rules, cannot
+replace occupied/fixed/spawn cells or an active stair support/landing, and
+cannot receive furniture/trainers or platforms. Painting lava, like void,
+clears the cell's elevation/stair. Volcanic ground uses native Red cave floor
+with a charcoal/red palette. Whole-platform style Volcanique paints the joined
+summits and wall material while preserving placements and stair geometry.
+Native sources are not overwritten; no assets downloaded or committed.
+
+Visit protocol **7** adds surface codes 7 volcanic / 8 lava and style 3 volcano.
+Shared validation treats lava as blocked for raised supports/landings; client
+and server reject lava placements/reserved cells, and the authoritative presence
+audit corrects attempts to enter it. Snapshot/Marshal round trips preserve both
+new surfaces and the style. Update and restart both clients and server together.
+
+Executed with bundled portable Ruby 3.3.12:
+
+- arena_relief_test.rb: **11 tests / 576 assertions**, passing. Includes lava
+  visibility/state, four approach directions, strict standing checks, protected
+  occupants/guide/landing, replacing lava with volcanic ground, whole-volcano
+  styling, snapshot and Marshal round trips.
+- arena_relief_server_test.rb: **3 / 57**, passing. Actual PEMK reactor/wire/TCP
+  with fixture authentication: lava movement correction, lava placement/spawn/
+  landing refusal and volcanic style/surface relay.
+- arena_visits_server_test.rb: **6 / 98**, passing with protocol-7 fixtures.
+- save_recovery_audio_test.rb: **3 / 11**, passing.
+
+`C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py`: **94 native
+checks passed**. Actual Game_Player cannot move into lava; volcanic ground is
+walkable. Real frame pixels verify visible lava and underlying ground at the
+rounded wall cap, in addition to summit painting, save/load, renderer zoom and
+all stair orientations. Every style's wall ends are transparent at the outer
+corners while connected middle wall pixels remain opaque. Comparison preview
+(Herbe/Montagne/Neige/Volcanique, with lava below the volcanic wall) and actual
+player frame were visually inspected under ignored tools/runtime. Probe/save
+cleaned and normal plugin cache restored (30 Arena Demo scripts). No personal
+save was read/written. No manual two-GUI-client visit or public push is claimed.
+
+Changed shared rules, surface/editor/renderer plugin integration, relief art,
+style metadata 0.16.0, server adapter/readiness protocol, native/editor/network
+tests and docs. Local runtime updated. Close the game and launch Play-Arena.bat;
+existing platforms repaint automatically, with no save conversion required.
+
+## Coins arrondis, sols et styles de plateforme — 2026-10-30 (0.15.0)
+
+User confirmed 0.14.2's direction and requested rounded corners, editable summit
+floors and a whole-platform floor/wall style tool. Implemented small 6-pixel
+outside arcs with native rim colors: standing centers/feet remain on the summit,
+and the separate blocked wall footprint is unchanged. No resized cave corner
+caps or large diagonal cut-outs were reintroduced.
+
+The renderer now honors each raised cell's stored ground: plain, grass, desert,
+rock, ice and new snow. Snow uses installed White path and ordinary walking;
+ice retains the existing terrain-tag sliding. Painting individual floors leaves
+the selected wall material intact. Existing saved ground choices become visible.
+
+New editor category Style de plateforme entière selects Herbe/Montagne/Neige.
+An iterative bounded flood fill visits only cardinally connected raised cells,
+including stairs; disconnected/diagonal-only islands and ordinary ground stay
+unchanged. It changes every selected cell's ground and platform_style in the
+existing draft, retaining occupants, height and stairs. Cancel restores the
+original draft/save; normal validation saves all fields. Grass uses native
+Light grass over warm earth faces, Mountain uses Gravel and a grey palette of
+the native rock family, Snow uses White path and the installed Caves snow family.
+All modifications are in-memory composition; no source bitmap is overwritten.
+
+Visit protocol **6** adds a 10,000-byte styles grid alongside surface and relief.
+Shared pure validation rejects unknown codes, malformed grids and styles on low
+cells. Server relays the frozen style snapshot; guest records retain both floor
+and wall style without overwriting the guest's personal arena. Added snow surface
+code 6. Clients/server/readiness CLI and their fixtures require protocol 6.
+No upstream dependency/version/license changes or external art downloads.
+
+Executed checks with bundled portable Ruby 3.3.12:
+
+- arena_relief_test.rb: **10 tests / 547 assertions**, passing. Includes grouped
+  style changes, stairs, occupied summit floor painting, diagonal island isolation,
+  unchanged height/placement data, invalid selections, Marshal persistence and
+  snapshot round trips with styles and mixed floors.
+- arena_relief_server_test.rb: **2 / 40**, passing over actual PEMK wire/reactor
+  and TCP peers with fixture authentication: snow surface/style relay, malformed
+  styles rejection, authoritative wall/stair movement and visit closure.
+- arena_visits_server_test.rb: **6 / 98**, passing with updated v6 fixtures.
+- save_recovery_audio_test.rb: **3 / 11**, passing.
+- french_title_test.rb: all reported checks pass.
+
+`C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py`: **81 native checks
+passed** through mkxp-z and the real PluginManager, including whole-style tools,
+draft isolation, individual grass painting while retaining snow walls, actual
+Game.save/Game.load to a disposable path, renderer/zoom, all stair directions,
+player movement before the face and a pixel check of the real frame's repainted
+summit. Checks also compare distinct floor and wall colors for all three styles
+and rounded corners that leave the standing center/foot position intact.
+The comparison preview (left to right Herbe/Montagne/Neige) and real player frame
+were visually inspected: tools/runtime/native-relief-probe.png and -player.png.
+Reports/assets remain ignored. Temporary probe/save removed, normal plugin cache
+restored (30 Arena Demo scripts). No personal save read/written.
+
+Changed 000_ReliefRules.rb, 005_ArenaVisits.rb, 009_ArenaCustomMode.rb,
+027_ArenaRelief.rb, metadata 0.15.0, server/arena_visits.rb, readiness CLI,
+editor/network/native tests, fixture harness and README files. Local test game
+updated. Close the game and relaunch Play-Arena.bat; no save conversion needed.
+Update both computers and restart the server for visits. No commit/push, public
+publication or new manual two-GUI-client visit is claimed. Scope remains one map
+and two heights; touching raised cells form one group for the whole-style tool.
+
+## Surface praticable et paroi séparées — 2026-10-30 (0.14.2)
+
+The user's second screenshot showed that 0.14.1 still looked wrong: reduced
+corner caps made artificial notches, and a playable cell contained the south
+cliff face, letting the player's feet stand over the drop. Alpha/mask tests
+alone did not verify that the visible summit matched the playable footprint.
+
+Replaced that composition in 027_ArenaRelief.rb. Summit cells now contain full
+32x32 native stone floor with thin, unscaled stone lips. Removed all resized
+corner caps and diagonal holes. The full-size native south wall is drawn in
+the lower cell, with a lip extending beyond the last standing position.
+That derived wall cell is blocked from the summit, below and either side;
+stairs replace it with their usable passage. Adjacent wall segments join at
+native size. There is no character sprite offset or change to saved heights.
+
+000_ReliefRules.rb and the server use the same derived wall footprint. New
+construction cannot cover fixed/spawn cells, furniture/trainers or the player
+with a wall; wall cells cannot receive placements. Native occupancy recovery
+handles a saved player standing in a newly reserved wall cell. Client/server
+visits now require protocol **5**, since the collision meaning has changed.
+Update and restart the host/server and all clients together.
+
+Executed editor tests: **9 / 515 assertions**, network relief **2 / 36** with
+two real TCP peers and authoritative correction at the summit/ground face,
+historical server visits **6 / 98**. Native probe passes **68 checks** and executes actual Game_Player
+movement at the last summit row, strict occupancy and ground/side approaches,
+all staircase directions, save/load, the actual TilemapRenderer and player
+Sprite_Character. The new report includes a real Graphics.snap_to_bitmap
+frame, not only tile composition: tools/runtime/native-relief-probe-player.png.
+That frame and the stepped-shape composition were visually inspected. The
+player's feet stay on the summit before the wall. The existing all-mask checks
+now require full summit corners rather than alpha holes.
+
+Commands: bundled ruby game-mod/test/{arena_relief_test,
+arena_relief_server_test,arena_visits_server_test}.rb and
+C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py.
+Only a disposable game/save was used; temporary probe/save cleaned and plugin
+cache restored. No personal save, shared asset or upstream engine was edited.
+Updated local plugin 0.14.2, shared rules/server protocol/readiness CLI, editor
+placement guard, regression tests and documentation. No commit/push and no
+manual two-GUI-client visit claimed. Close the game and relaunch Play-Arena.bat;
+existing platforms repaint without conversion. The case below a south edge is
+now reserved for its wall; objects there can be removed with the editor.
+
+## Coins des plateformes et libellés — 2026-10-30 (0.14.1)
+
+User screenshot reproduced two defects in 0.14.0: the cave atlas has opaque
+black outside cliff silhouettes, and the four-cardinal quarter selection
+ignored missing diagonal neighbors at inside corners. The earlier native
+preview also used a matching cave floor, which did not adequately reveal the
+ground/relief boundary. These visual issues were not caught by those checks.
+
+027_ArenaRelief.rb now keys only exact black pixels in its private 96x96 native
+cliff crop, leaving shared expedition sources and dark rock intact. Relief is
+rendered as a transparent layer-1 overlay over the normal layer-0 ground; its
+z order is retained when the screen scrolls. Native quarter end caps join the
+four missing-diagonal inside corners. Stairs/rails use the same keyed crop.
+Menu entries and active-tool labels now say haut/droite/bas/gauche, retaining
+the direction IDs, saves, collisions and visit protocol 4.
+
+Tests: arena_relief_test.rb passes **8 tests / 501 assertions**, including the
+four menu labels and their original direction mapping. The native probe passes
+**62 checks**. It now loads the renderer's actual tileset/autotiles as Scene_Map
+does, checks the opaque native ground below the overlay, scans all 256 neighbor
+masks for opaque black, and checks the four missing-diagonal inside corners.
+The exported stepped platform resembles the user screenshot on the installed
+arena floor; its preview was visually inspected. The initial native retry
+exposed a missing tileset registration in the probe fixture, now corrected.
+Commands use the bundled Ruby and
+`C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py`.
+Native report/preview remain ignored under tools/runtime/native-relief-probe.*;
+the temporary probe/save were removed and plugin cache restored by the runner.
+No personal save was read or written, and no upstream assets were changed.
+
+Changed 027_ArenaRelief.rb, metadata (0.14.1), editor/native tests and README
+files. Close the game and relaunch Play-Arena.bat. Existing platforms repaint
+automatically; no rebuilding or save conversion is required. Local installation
+updated; no commit/push and no new two-GUI-client visit test.
+
+## Plateformes et escaliers — 2026-10-30 (Arena Demo 0.14.0)
+
+Read AGENTS.md, README.md and this status before inspecting the current editor,
+visit adapter, Essentials collision/renderer code and installed Caves/Outside
+artwork. The Priority 1 integration attempt recorded below remains completed;
+upstream checkouts, licenses, server dependencies and credentials are unchanged.
+No new engine, art download, upstream patch or production service was added.
+
+Map 100 retains one coordinate plane and now supports logical heights 0/1.
+The editor has platform add/remove and four ascent directions. A one-cell stair
+must have flat ground below and a platform above. Parallel stair cells connect
+laterally to form wide stairs; exposed sides block passage. Native stone cliff
+quarters join neighboring platforms and native cave steps are rotated in memory.
+Furniture/trainers use the existing event slots on raised tiles. Stair cells,
+fixed arena events, the spawn and the player's current tile remain protected.
+Changing a support/low landing into void or removing a stair support is refused
+until the stair is removed. Existing saves default to height zero. Relief uses
+the editor's existing draft/cancel/commit/save-failure restoration path.
+
+Visit protocol 4 includes a 10,000-byte relief grid, validated by client and
+server. Invalid directions, missing supports, void relief, reserved elevated
+tiles and stair occupants are rejected. Guest snapshots drive rendering and
+collision without overwriting personal arena records. Server position auditing
+checks the same stair ports and edges before relaying presence. Heights derive
+from coordinates; no persistent online storage or stacked maps were introduced.
+Both clients and the server must update together. The readiness CLI checks v4.
+
+Files changed: 000_ReliefRules.rb (shared pure rules), 005_ArenaVisits.rb,
+009_ArenaCustomMode.rb (editor/persistence/snapshot integration),
+027_ArenaRelief.rb (tools, native artwork, map collision, renderer/overview),
+meta.txt, server/arena_visits.rb, tools/ping_multiplayer.rb, README files,
+this status, editor/server/native regression tests, tools/test-native-relief.py.
+The existing server-test reactor helpers were extracted to arena_visit_harness.rb
+and their old protocol-2/uncentered-map fixtures updated to the current map/v4.
+
+Executed with tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe:
+
+- `game-mod/test/arena_relief_test.rb`: **7 tests / 488 assertions**, passing.
+  Includes all four ascents/descents, edge rejection, side joins/removal,
+  invalid edits, furniture/trainer placement/removal, Marshal persistence,
+  malformed snapshots, guest isolation and version mismatch rejection.
+- `game-mod/test/arena_relief_server_test.rb`: **2 / 31**, passing with real
+  PEMK reactor/wire and two TCP clients, injected authentication (no database).
+  Verifies snapshot relay, actual stairs, correction of a side-entry attempt,
+  malformed layout rejection, placed objects and visit closing.
+- `game-mod/test/arena_visits_server_test.rb`: **6 / 98**, passing after fixing
+  obsolete fixtures. A first unfiltered run exposed those old fixtures and an
+  inherited-test duplication; the shared harness removes that duplication.
+- `game-mod/test/save_recovery_audio_test.rb`: **3 / 11**, passing.
+- `game-mod/test/player_controls_test.rb`: **10 / 35**, passing.
+- `game-mod/test/entrance_refresh_test.rb`: **2 / 5**, passing.
+- `game-mod/test/french_title_test.rb`: all reported checks passed.
+
+`C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py` boots the actual
+installed mkxp-z and Essentials PluginManager, with local Following Pokemon EX.
+The native probe passes **54 checks**: actual editor methods and native player
+collision in all four orientations, furniture and trainer event placement,
+Game.save to Data/arena-relief-probe-save.rxdata, SaveData disk read, Game.load
+and map reconstruction, TilemapRenderer artwork/zoom/removal, plus native bitmap
+composition exported for inspection. The fixture save and temporary plugin are
+removed, and the normal cache restored (30 Arena Demo scripts). The player's
+save is neither loaded nor written. Private report/preview:
+tools/runtime/native-relief-probe.log and .png.
+
+The first native run found Following Pokemon EX's alias of Game_Character#passable?
+recursing through a prepend. Removed that character hook and use Game_Map's
+normal/strict collision methods instead; subsequent native checks pass.
+Void recovery now uses direction 0 (occupancy), so an impassable south edge
+does not relocate a player correctly saved on a platform. The first elevated
+shell could not resolve Python; the explicit installed executable works.
+
+Local source is installed in the ignored test game. No commit/push or installer
+publication performed. Manual remaining check: close game windows, launch
+Play-Arena.bat, open Personnalisation → Plateformes et escaliers, make a small
+plateau and a wide staircase, walk around it, save/continue, then host a visit
+from an equally updated second computer. The executed two-socket test is not
+a two-GUI-client visual playthrough. This limited version has a stone platform
+top and no overlapping floors or automatic route/reachability guarantees.
+
 ## v8.1 follow-up: distribute the title PNG (2026-10-30)
 
 The user explicitly requested including their title_screen.png in the commit

@@ -1,5 +1,111 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Version v8.2
+
+Cette version regroupe l'éditeur de plateformes à deux hauteurs, les escaliers
+dans les quatre directions, les bordures et murs arrondis, le placement sur
+les plateaux et leur synchronisation lors des visites multijoueurs (protocole 8).
+Le catalogue final propose **22 sols plus le vide et 11 styles de plateformes**,
+avec vignettes et aperçu agrandi. Les dernières retouches incluent les planches
+de pont, les murs Bois/Industrielle et les points cyan du Cristal.
+Version interne du plugin : **Arena Demo 0.17.4**.
+
+Vérifications : 14 tests éditeur / 820 assertions, 10 tests serveur / 168
+assertions et 315 vérifications dans le moteur local. Les tests serveur
+utilisent des clients socket ; aucune nouvelle visite manuelle à deux fenêtres
+n'est revendiquée. Fermez le jeu et relancez **Play-Arena.bat** ; les deux clients
+et le serveur doivent être à jour pour les visites.
+
+## Plateformes et sols (Arena Demo 0.17.4)
+
+Le sol **Planches** et la plateforme **Bois** utilisent de longues lames
+parallèles inspirées des ponts d'Essentials, avec des supports sombres et
+contreventés. **Métal et grilles** est retiré de la liste des sols.
+**Sol de base** et **Plaques métalliques** remplacent les anciens libellés.
+
+Le tatami conserve son tressage sans diagonales claires. Les anciens noms de
+types ont été remplacés par **Améthyste, Quartz rose, Ardoise mauve, Obsidienne
+et Plaques métalliques**. Le sol et les murs Cristal utilisent une roche bleutée
+sombre avec de petits points cyan lumineux. Les murs Industrielle et Bois ont
+une face verticale plus sombre, avec panneaux/rivets ou poutres/montants.
+
+Les listes de sols affichent une **vignette sur chaque ligne** et un **aperçu
+agrandi à droite** quand la sélection change. Les styles de plateformes montrent
+le sol et les murs ensemble. Le panneau précise si le sol est praticable,
+glissant ou infranchissable. Flèches pour parcourir, Entrée pour choisir,
+X pour revenir ; parcourir les aperçus ne modifie pas l'arène.
+
+Le sélecteur ouvre directement une **liste unique de 22 sols, plus le vide**,
+avec ses vignettes et son aperçu agrandi. Les sous-familles ont été retirées.
+Parquet, mousse, dalles de combat et les sols monotype Normal, Feu, Eau, Glace,
+Électrik, Plante, Sol, Vol, Insecte, Roche, Dragon et Fée n'y sont plus proposés.
+L'eau infranchissable et la glace glissante sont conservées.
+
+Le catalogue propose **11 styles de plateformes**. Les thèmes
+proposés sont disponibles : Herbe, Montagne, Neige, Volcanique, Désert, Forêt,
+Ruines anciennes, Cristal, Industrielle, Bois et Marécage. La plateforme
+Arène de combat a été retirée du sélecteur.
+Pavés, terre battue, planches, boue et racines complètent les sols
+précédents. **Changer le sol** ouvre immédiatement le visualiseur.
+
+Les sols **Tatami, Boue, Améthyste, Obsidienne, Ardoise mauve et Quartz rose**
+conservent leurs textures sans les motifs retirés. Plaques métalliques reste
+disponible. Ces sols décoratifs ne changent pas les combats.
+Voir [le catalogue complet et son utilisation](docs/ARENA_MATERIALS.md).
+
+Les escaliers sont proposés vers **le haut, la droite, le bas et la gauche**.
+Le dessus a de petits coins extérieurs arrondis, avec des rebords fins.
+La paroi basse occupe une case bloquée juste en dessous : le joueur s'arrête
+sur le plateau, avant la face rocheuse. Les anciennes découpes miniatures des
+coins ont été supprimées. Les raccords suivent le contour de la plateforme.
+Les arrondis se poursuivent aussi sur les extrémités des murs. Le sol inférieur
+reste visible dans les coins transparents, y compris sur une plateforme enneigée.
+
+**Changer le sol** fonctionne maintenant aussi sur les plateformes : sol
+de base, herbe, sable, roche, glace, neige et tous les nouveaux matériaux. La retouche ne change pas le
+matériau de leurs murs. La neige est un sol normal ; la glace conserve la glisse.
+L'**eau et la lave sont infranchissables comme le vide** : aucun meuble, Dresseur ou
+escalier ne peut y être posé. Elle ne peut pas remplacer un accès d'escalier
+encore utilisé. Le **sol volcanique** est praticable.
+L'eau garde une identité distincte pour l'ajout futur de Surf ; Surf n'est pas
+encore implémenté. Les identifiants des sols retirés sont conservés pour lire
+les anciennes sauvegardes ; leurs cases existantes ne sont pas effacées.
+
+Pour transformer une grande plateforme d'un coup, choisissez **Personnalisation
+→ Style de plateforme entière**, puis l'un des **11 styles** et
+cliquez une case de son dessus ou un escalier. Toutes les cases surélevées
+reliées par un côté, escaliers compris, reçoivent le sol et les murs du style.
+Les plateformes séparées et les contacts seulement en diagonale sont épargnés.
+Vous pouvez ensuite retoucher quelques sols avec Changer le sol. Validez et
+sauvegardez normalement ; Annuler restaure aussi les changements de style.
+
+Dans l'arène hors ligne, ouvrez **Personnalisation**, puis **Entrée → Plateformes
+et escaliers**. Ajoutez des plateformes sur les cases de sol existantes. Les
+bordures de pierre se raccordent automatiquement. Un escalier occupe une case
+haute : sa flèche pointe vers une plateforme et son côté opposé vers le sol bas.
+Quatre orientations sont disponibles ; des escaliers parallèles côte à côte
+forment un escalier plus large. Les autres bordures bloquent le passage.
+
+Les outils Meubles et Dresseurs fonctionnent sur les plateformes. Les escaliers
+restent libres. Retirez les occupants avant de modifier leur hauteur, puis les
+escaliers avant leurs appuis. **X → Valider et sauvegarder** conserve les
+modifications ; l'annulation restaure l'arène précédente. **U** conserve les
+trois vues de l'éditeur, avec le relief indiqué dans la vue globale.
+
+Une seule map et deux hauteurs : aucun étage superposé ni passage sous une
+plateforme. Les textures proviennent des ressources locales d'Essentials ; les
+types de terrain et les matériaux des murs sont enregistrés séparément.
+Les visites transmettent le relief et le serveur vérifie les passages.
+Fermez les jeux et relancez **Play-Arena.bat** pour installer la version locale.
+Pour jouer ensemble, mettez à jour **les deux clients et le serveur** : le
+protocole de visite passe à **8**. Aucune publication GitHub n'a été effectuée.
+
+Vérification : tests de l'éditeur et du réseau PEMK avec deux connexions TCP,
+plus chargement dans le vrai moteur mkxp-z, collisions, rendu/zoom, placement,
+sauvegarde et rechargement d'une partie jetable. Une visite manuelle entre deux
+fenêtres de jeu avec ce nouveau relief reste à faire. Résultats et commandes
+dans [SETUP_STATUS.md](SETUP_STATUS.md).
+
 ## v8.1: French interface and custom title (Arena Demo 0.13.4)
 
 Close all game windows, update the source with **ArenaLab-Update.exe**, then
