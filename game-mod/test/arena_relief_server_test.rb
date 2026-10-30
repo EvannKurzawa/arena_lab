@@ -3,14 +3,37 @@ require_relative 'arena_visit_harness'
 
 class ArenaReliefServerTest < Minitest::Test
   include ArenaVisitTestSupport
+  def test_water_on_platform_relays_height_and_blocks_waterfall_face
+    host, guest = connect, connect
+    payload = relief_payload
+    payload[:surface].setbyte(51 * 100 + 51, ArenaMaterials::SURFACE_CODES.fetch('water').ord)
+    send_frame(host, payload)
+    room = until_type(host, :arena_state)
+    joined = join(host, guest, room)
+    assert_equal payload[:surface], joined[:surface]
+    assert_equal payload[:relief], joined[:relief]
+    [[49, 53], [50, 53], [50, 52], [50, 51]].each do |x, y|
+      send_frame(host, type: :pos, map: 100, x: x, y: y)
+      # Synchronize via ping without relying on remote map interest.
+      send_frame(host, type: :ping, t: 4)
+      until_type(host, :pong)
+    end
+    send_frame(host, type: :pos, map: 100, x: 51, y: 51, mode: :walk)
+    assert_equal [50, 51], until_type(host, :pos_correct).values_at(:x, :y)
+    send_frame(host, type: :pos, map: 100, x: 51, y: 51, mode: :surf)
+    send_frame(host, type: :ping, t: 5)
+    until_type(host, :pong)
+    send_frame(host, type: :pos, map: 100, x: 51, y: 52, mode: :surf)
+    assert_equal [51, 51], until_type(host, :pos_correct).values_at(:x, :y)
+  end
   def connect
     socket = TCPSocket.new('127.0.0.1', @backend.reactor.port)
     @clients << socket
     send_frame(socket, type: :arena_hello)
-    assert_equal 9, receive(socket)[:version]
+    assert_equal 10, receive(socket)[:version]
     send_frame(socket, type: :pos, map: 102, x: 4, y: 6)
     send_frame(socket, type: :ping, t: 1)
-    assert_equal 9, until_type(socket, :pong)[:arena_visits]
+    assert_equal 10, until_type(socket, :pong)[:arena_visits]
     socket
   end
   def relief_payload

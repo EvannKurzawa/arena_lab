@@ -86,7 +86,8 @@ module ArenaDemo
     MAP_HEIGHT.times do |y|
       MAP_WIDTH.times do |x|
         state = tile_surface_state(records, x, y)
-        surface.setbyte(y * MAP_WIDTH + x, 48) if tile_is_void?(x, y, records) || state['ground'] == 'quicksand'
+        water_top = state['floor'] == 'field' && state['height'] == 1 && !state['stair'] && state['ground'] == 'water'
+        surface.setbyte(y * MAP_WIDTH + x, 48) if !water_top && (tile_is_void?(x, y, records) || state['ground'] == 'quicksand')
       end
     end
     positions = placements.map { |p| [p["x"], p["y"]] }
@@ -132,9 +133,11 @@ module ArenaDemo
   end
 
   def relief_code(records, x, y, surf = false)
+    record = records[tile_edit_key(x, y)]
+    water_top = record.is_a?(Hash) && record['floor'] == 'field' && record['height'] == 1 && !record['stair'] && record['ground'] == 'water'
+    return 1 if water_top
     return 0 if surf && surf_ground?(records, x, y)
     return nil if tile_is_void?(x, y, records)
-    record = records[tile_edit_key(x, y)]
     return 0 unless record.is_a?(Hash)
     record["stair"] || (record["height"] == 1 ? 1 : 0)
   end
@@ -274,6 +277,25 @@ module ArenaDemo
     # The same arc continues into both ends of the rock face. Middle wall
     # segments keep their full width, with no repeated rounded seams.
     round_platform_corners(image, (left ? 64 : 0) | (right ? 4 : 0), sheet, false)
+    draw_arena_waterfall(image) if ground == 'water'
+  end
+
+  def draw_arena_waterfall(image)
+    # The rock face stays beneath a falling sheet; no new traversable tile.
+    water = platform_floor_bitmap('water')
+    phase = (@liquid_art_frame || 0) * 4
+    (4..31).each do |y|
+      (4..27).each do |x|
+        next if image.get_pixel(x, y).alpha == 0
+        c = water.get_pixel(x, (y - phase) % 32)
+        shine = (x % 7 == 0 && (y - phase) % 16 < 7) ? 30 : 0
+        image.set_pixel(x, y, Color.new([c.red + shine, 255].min,
+          [c.green + 22 + shine, 255].min, [c.blue + 15 + shine, 255].min))
+      end
+    end
+    [8, 15, 23].each do |x|
+      image.fill_rect(x, 29, 3, 2, Color.new(206, 238, 249))
+    end
   end
 
   def relief_bitmap(records, x, y)

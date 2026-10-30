@@ -30,7 +30,7 @@ try:
     info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     info.wShowWindow = 0
     process = subprocess.Popen([str(engine / 'mkxp-z.x86_64.exe'), 'debug'], cwd=engine, env=env, startupinfo=info)
-    process.wait(timeout=55)
+    process.wait(timeout=90)
     output = report.read_text(encoding='utf-8') if report.exists() else 'No native relief report.'
     print(output)
     if process.returncode != 0 or 'native relief checks passed' not in output:

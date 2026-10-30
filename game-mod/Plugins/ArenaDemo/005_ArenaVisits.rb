@@ -119,7 +119,7 @@ module ArenaDemo
     def receive(message)
       case message[:type]
       when :arena_ready
-        return unless message[:version] == 9
+return unless message[:version] == 10
         @ready = true
         @phase ||= :closed
         @refresh = true

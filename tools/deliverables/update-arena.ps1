@@ -54,7 +54,7 @@ try {
     $stage = 'Extracting source archive'
     Expand-Archive -LiteralPath $zip -DestinationPath (Join-Path $work 'source')
     $source = Get-ChildItem -LiteralPath (Join-Path $work 'source') -Directory | Select-Object -First 1
-    $topLevel = @('.gitignore','AGENTS.md','CHANGELOG.md','Play-Arena.bat','README.md','SETUP_STATUS.md')
+    $topLevel = @('.gitignore','AGENTS.md','CHANGELOG.md','Play-Arena.bat','README.md','SETUP_STATUS.md','title_screen.png')
     $files = [Collections.Generic.List[string]]::new()
     foreach ($item in $topLevel) { if (Test-Path -LiteralPath (Join-Path $source.FullName $item)) { $files.Add($item) } }
     foreach ($directory in @('game-mod','tools')) {

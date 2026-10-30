@@ -32,6 +32,22 @@ def pbMessage(message, choices = nil, *)
 end
 
 class ArenaReliefTest < Minitest::Test
+  def test_water_retains_platform_height_walls_and_visit_snapshot
+    assert edit(40, 40, 1)
+    assert edit(39, 40, 1)
+    assert ArenaDemo.editor_apply_ground(@records, [], 40, 40, floor: 'field', ground: 'water')
+    assert_equal 1, @records['40,40']['height']
+    assert_equal 1, ArenaDemo.relief_code(@records, 40, 40)
+    assert ArenaDemo.relief_wall?(@records, 40, 41)
+    assert ArenaDemo.relief_step?(@records, 39, 40, 6, true)
+    refute ArenaDemo.relief_step?(@records, 40, 40, 2, true), 'Cascade is blocked'
+    refute ArenaDemo.relief_step?(@records, 41, 40, 4, true), 'Cannot Surf up a cliff'
+    payload = ArenaDemo.visit_snapshot_payload
+    snapshot = ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], payload[:relief], payload[:styles])
+    assert snapshot
+    assert_equal 1, snapshot[:tile_edits]['40,40']['height']
+    assert_equal 'water', snapshot[:tile_edits]['40,40']['ground']
+  end
   def setup
     $relief_choice = nil
     $relief_choice_queue = nil
@@ -369,7 +385,7 @@ class ArenaReliefTest < Minitest::Test
     refute ArenaDemo::Visits.ready?
     ArenaDemo::Visits.receive(type: :arena_ready, version: 7)
     refute ArenaDemo::Visits.ready?
-    ArenaDemo::Visits.receive(type: :arena_ready, version: 9)
+    ArenaDemo::Visits.receive(type: :arena_ready, version: 10)
     assert ArenaDemo::Visits.ready?
     ArenaDemo::Visits.receive(payload.merge(type: :arena_state, phase: :open,
       role: :guest, room: 'room-relief', host: 1, guest: 2,

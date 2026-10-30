@@ -138,7 +138,8 @@ module ArenaRelief
                         placements.any? { |p| p[-2] == i % SIZE && p[-1] == i / SIZE }
       end
       next if code == 0
-      return false if blocked_surface?(surface, i % SIZE, i / SIZE)
+      water_top = code == 1 && ArenaMaterials.ground_at(surface, i % SIZE, i / SIZE) == 'water'
+      return false if blocked_surface?(surface, i % SIZE, i / SIZE) && !water_top
       x, y = i % SIZE, i / SIZE
       return false if reserved.include?([x, y])
       next if code == 1

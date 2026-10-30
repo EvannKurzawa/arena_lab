@@ -1,5 +1,19 @@
 # Catalogue des sols et plateformes — 0.18.1
 
+## Eau surélevée et cascades (0.19.0)
+
+Peindre Eau sur une plateforme conserve sa hauteur et le matériau de ses
+murs. Une case d'eau dont le côté sud est une paroi visible affiche une
+cascade animée sur cette paroi ; les autres cases restent de l'eau normale.
+La paroi reste bloquée, y compris avec Surf : aucun passage sous la plateforme
+ni descente/remontée de cascade. Meubles et Dresseurs restent interdits dans
+l'eau. Les autres liquides conservent leurs restrictions antérieures.
+
+Dans l'arène, Entrée depuis une rive accessible propose Surf sans badge ni
+capacité dans l'équipe. Le véhicule et la sortie d'eau viennent d'Essentials.
+La rive doit être à la même hauteur ; Surf ne permet pas de monter une falaise.
+Les visites doivent utiliser des clients et un serveur au protocole 10.
+
 Dans **Personnalisation**, utilisez **Changer le sol** pour peindre des cases,
 au sol ou sur un plateau. La liste visuelle s'ouvre directement, sans familles.
 **Style de plateforme entière** applique le sol et les murs au groupe de cases
@@ -45,23 +59,24 @@ par case : son fond bleu se raccorde en grandes zones continues.
 
 **La lave et les déchets toxiques sont toujours bloqués**, comme le vide.
 **L'eau et l'eau de marécage sont bloquées à pied et traversables avec Surf**.
-Ces liquides ne peuvent pas recevoir
-de meubles, de Dresseurs ou de plateformes ; elles ne peuvent pas remplacer
-l'appui ou l'arrivée d'un escalier encore utilisé. Les remplacer par un autre
-sol les rend de nouveau praticables. Comme le vide, les peindre retire le relief
-de la case. Leur forme est conservée par la sauvegarde et les visites.
+Ces liquides ne peuvent pas recevoir de meubles ou de Dresseurs. L'eau peinte
+sur un dessus de plateforme conserve sa hauteur et ses murs, avec une cascade
+sur une face sud exposée. Le marécage conserve sa restriction au niveau bas.
+Un liquide ne remplace pas un accès bas d'escalier encore utilisé. Leur forme
+est conservée par la sauvegarde et les visites.
 
 L'eau possède son propre identifiant `water` et le marécage `marsh_water`.
 Depuis la rive, interagissez face à l'eau ou utilisez Surf depuis le menu Pokémon.
-La capacité, les badges et les restrictions de compagnons suivent Essentials.
+Dans l'arène, aucun badge ni capacité n'est exigé depuis la rive ; les
+restrictions de compagnons suivent Essentials.
 Le saut d'entrée, la nage, la sortie et le véhicule utilisent le Surf natif.
 Le marécage liquide est marron avec de petites rides ; la Boue classique reste
 un sol solide. Les déchets toxiques sont jaune fluorescent, avec des bulles.
 La neige, la boue et les autres matériaux décoratifs n'ajoutent
 pas de glisse ni de ralentissement ; la glace glissante conserve son effet.
 
-Les **sables mouvants** sont un piège accessible à pied. Une spirale ocre
-annonce le danger. En entrant dessus, le joueur tourne, s'enfonce et disparaît
+Les **sables mouvants** sont un piège accessible à pied. Le sable est seulement
+4 % plus sombre. En entrant dessus, le joueur tourne, s'enfonce et disparaît
 en 1,25 seconde, puis revient à l'entrée de l'arène. Les contrôles et l'affichage
 sont restaurés, même après une glissade. Aucun dégât ni perte d'argent.
 Les sables mouvants restent au niveau bas, sans occupant ni escalier ; ils ne
@@ -120,7 +135,7 @@ vue globale de l'éditeur.
 
 Fermez le jeu et relancez **Play-Arena.bat**. Les sauvegardes existantes gardent
 leurs clés de matériaux ; aucune conversion manuelle n'est nécessaire.
-Les visites demandent les deux clients et le serveur au **protocole 9**.
+Les visites demandent les deux clients et le serveur au **protocole 10**.
 
 ## Retouches 0.18.1
 

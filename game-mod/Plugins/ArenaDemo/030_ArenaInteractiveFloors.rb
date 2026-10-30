@@ -37,7 +37,16 @@ module ArenaDemo
     accessible = with_surf_probe do
       $game_player.passable?($game_player.x, $game_player.y, $game_player.direction)
     end
-    pbSurf if accessible
+    arena_start_surf if accessible
+  end
+
+  def arena_start_surf
+    return false unless $game_player.can_ride_vehicle_with_follower?
+    return false unless pbConfirmMessage('Utiliser Surf pour traverser cette eau ?')
+    # Arena testing has no badge progression. Keep the native vehicle, jump,
+    # follower checks and dismount rather than silently failing a story gate.
+    pbStartSurfing
+    true
   end
 
   def quicksand_at?(x, y)
@@ -122,7 +131,9 @@ if defined?(HiddenMoveHandlers::CanUseMove)
   native_surf_check = HiddenMoveHandlers::CanUseMove[:SURF]
   HiddenMoveHandlers::CanUseMove.add(:SURF, proc do |move, pokemon, showmsg|
     if $game_map && $game_map.map_id == ArenaDemo::MAP_ID
-      ArenaDemo.with_surf_probe { native_surf_check.call(move, pokemon, showmsg) }
+      next false if $PokemonGlobal.surfing || !$game_player.can_ride_vehicle_with_follower?
+      next false unless $game_player.pbFacingTerrainTag.can_surf_freely
+      ArenaDemo.with_surf_probe { $game_player.passable?($game_player.x, $game_player.y, $game_player.direction) }
     else
       native_surf_check.call(move, pokemon, showmsg)
     end

@@ -1,5 +1,23 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Correctifs arène (Arena Demo 0.19.0)
+
+L'image de l'écran titre est maintenant incluse dans les mises à jour ; le
+lanceur la récupère aussi si un ancien updater l'avait omise. Surf se propose
+depuis la rive dans l'arène sans badge ni Pokémon connaissant Surf, avec le
+véhicule et la sortie d'eau natifs d'Essentials. Hors de l'arène, les conditions
+habituelles restent applicables.
+
+Peindre de l'eau sur le dessus d'une plateforme conserve sa hauteur et ses
+murs. Une case d'eau au bord sud crée une cascade animée sur la paroi ; une
+case intérieure reste de l'eau normale. La cascade bloque le passage.
+Les transferts entre village, entrée et arène réinitialisent l'interpolation
+et les mouvements forcés pour éviter la traversée visuelle du vide.
+
+Fermez les jeux puis lancez l'updater et **Play-Arena.bat** sur les deux PC.
+Redémarrez le serveur : les visites passent au **protocole 10** pour accepter
+l'eau surélevée et vérifier ses collisions.
+
 ## Dernière version publiée : v8.3
 
 Cette version ajoute les sols interactifs et animés, ainsi que le catalogue

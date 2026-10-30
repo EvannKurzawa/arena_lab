@@ -1,5 +1,61 @@
 # Setup and implementation status
 
+## Title repair, arena Surf, raised water and safe transfers — 2026-10-30 (0.19.0)
+
+User reported absent custom title on second PC, silent Surf interaction for
+both players, water flattening platforms and intermittent void traversal on
+return to foyer. Updater's root copy list omitted title_screen.png. Added it;
+launcher also downloads the tracked image at d5ba6b9 when absent, verifies
+SHA256 810E7FAC8CE653F2CC938E7528F0B38D61F69D12C8D53909B2430D58C0571CF1
+and installs it. Older updater EXEs can fetch these launcher scripts and repair
+their missing root image. No private music or game assets downloaded.
+
+Native pbSurf silently refuses missing story badge/move prerequisites. Arena
+shore interaction now offers Surf without that progression, using native
+pbStartSurfing, vehicle, follower restriction and dismount. Party Surf check
+is similarly scoped to arena; outside maps retain native restrictions. No
+debug mode, added badges or changed party needed.
+
+Painting water on a summit now retains height and wall style. Geometry/render
+rules preserve raised water, and an exposed south wall below water draws an
+animated cascade over the retained rock face. Interior water has no cascade.
+The wall remains impassable even when surfing. Other liquid restrictions and
+occupant protection remain. Shared server validation accepts raised water;
+visit protocol 10 in client/server/ping/test fixtures rejects outdated peers.
+Snapshot/disk round trips retain height. Previously flattened tiles cannot
+have their former height inferred automatically.
+
+Added 032_ArenaTravelSafety.rb around native Scene_Map transfers involving
+maps 100/101/102. Clears forced routes/ice/waterfall state and old movement/jump
+timers and origins, then synchronizes real position and terrain at landing.
+This prevents the previous map's partial-step interpolation crossing the void.
+User trainer catalogue in 009 is untouched (only water-height edit changed).
+
+Executed portable Ruby:
+- game-mod/test/arena_relief_test.rb: 17 runs / 907 assertions, passing.
+- game-mod/test/arena_relief_server_test.rb: 6 runs / 107 assertions, passing.
+- game-mod/test/arena_visits_server_test.rb: 6 runs / 98 assertions, passing.
+Server checks use real sockets, not a new two-window visit.
+Executed C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py --picker:
+393 checks passed, including actual shore Surf with DEBUG false and no move/
+badges, elevated Surf, blocked cascade, save/reload, and two real Scene_Map
+round trips with a deliberately unfinished old step and ice sliding. Visually
+inspected native-material-picker-probe-waterfall.png. Only disposable save used;
+probe removed, plugin cache restored (35 scripts), local plugin 0.19.0 installed.
+Native fixture first used Game.load with a path instead of SaveData hash;
+corrected that fixture. Extended runner deadline from 55 to 90 seconds for
+the additional scenes, round trips and image exports after initial timeout.
+Executed tools/test-title-install.ps1: real missing-art download/hash/install
+in isolated fixture, then cached run with networking stubbed to fail; passed.
+Executed tools/test-updater.ps1 and git diff --check: passed.
+
+Changed README/material docs, 000/005/009/027/030/meta, new 032, visit server,
+ping, focused tests, updater root copy list, title-preparation script, native
+runner deadline, new title installer test and this status. Upstream versions
+unchanged. No new manual launch on friend's PC or manual two-client visit.
+Update source on both PCs, close/relaunch Play-Arena.bat and restart the host
+for protocol 10. Existing v6.2.8 updater can fetch source and title repair.
+
 ## Automatic French data preparation, installer v6.2.8 — 2026-10-30
 
 Second PC updated with v6.2.7 but launch failed because French data was absent.

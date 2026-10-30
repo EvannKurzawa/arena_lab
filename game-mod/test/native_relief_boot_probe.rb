@@ -106,18 +106,17 @@ module ArenaDemo::NativeReliefProbe
       $game_player.direction = 6
       check.call($game_player.pbFacingTerrainTag.can_surf_freely, 'marsh exposes the native freely surfable terrain tag')
       debug_before_surf = $DEBUG
-      $DEBUG = true
+      $DEBUG = false
       check.call(HiddenMoveHandlers.triggerCanUseMove(:SURF, nil, false), 'native party-menu Surf access accepts marsh bank')
       check.call(!$PokemonGlobal.surfing && !ArenaDemo.surf_probe?, 'Surf access probe restores state and never starts surfing')
-      original_surf = Object.instance_method(:pbSurf)
-      $native_surf_requests = 0
-      Object.send(:define_method, :pbSurf) { $native_surf_requests += 1 }
-      ArenaDemo.try_arena_surf
-      check.call($native_surf_requests == 1, 'interact on marsh bank invokes the native Surf prompt')
-      Object.send(:define_method, :pbSurf, original_surf)
       $PokemonEncounters = PokemonEncounters.new
       $PokemonEncounters.setup(100)
-      pbStartSurfing
+      original_confirm = Object.instance_method(:pbConfirmMessage)
+      $native_surf_requests = 0
+      Object.send(:define_method, :pbConfirmMessage) { |*| $native_surf_requests += 1; true }
+      ArenaDemo.try_arena_surf
+      Object.send(:define_method, :pbConfirmMessage, original_confirm)
+      check.call($native_surf_requests == 1, 'shore Surf actually starts without debug, badges or a Surf Pokemon')
       check.call($PokemonGlobal.surfing && [$game_player.x, $game_player.y] == [40, 40], 'native Surf jump enters marsh water')
       $game_player.moveto(40, 40)
       $game_player.direction = 4
@@ -505,6 +504,68 @@ module ArenaDemo::NativeReliefProbe
       end
       check.call(Marshal.dump($PokemonGlobal) == picker_state, 'preview browsing never edits or saves the arena')
       $native_picker_action = nil
+      $scene = picker_scene
+      # Water keeps its summit and only exposed south faces become waterfalls.
+      records = ArenaDemo.tile_edit_records
+      [[45, 46], [43, 47]].each do |x, y|
+        check.call(ArenaDemo.editor_apply_ground(records, [], x, y, floor: 'field', ground: 'water'), 'paint water without removing platform')
+        check.call(records["#{x},#{y}"]['height'] == 1, 'water retains summit height')
+      end
+      check.call(!ArenaDemo.relief_wall?(records, 45, 47) && ArenaDemo.relief_wall?(records, 43, 48),
+        'interior water has no waterfall; exposed south water keeps blocked wall')
+      wall = ArenaDemo.relief_bitmap(records, 43, 48)
+      wall_sample = wall.get_pixel(16, 16)
+      check.call(wall_sample.blue > wall_sample.red, 'south face displays blue falling water over retained wall')
+      $game_player.moveto(44, 47)
+      $game_player.direction = 4
+      $PokemonGlobal.surfing = false
+      old_confirm = Object.instance_method(:pbConfirmMessage)
+      Object.send(:define_method, :pbConfirmMessage) { |*| true }
+      ArenaDemo.try_arena_surf
+      Object.send(:define_method, :pbConfirmMessage, old_confirm)
+      check.call($PokemonGlobal.surfing && [$game_player.x, $game_player.y] == [43, 47], 'native Surf enters water at platform height')
+      check.call(!$game_player.passable?(43, 47, 2), 'Surf cannot descend waterfall face')
+      payload = ArenaDemo.visit_snapshot_payload
+      decoded = ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], payload[:relief], payload[:styles])
+      check.call(decoded && decoded[:tile_edits]['43,47']['height'] == 1, 'raised water survives visit decode')
+      check.call(Game.save(fixture), 'raised water saved to disposable slot')
+      Game.load(SaveData.read_from_file(fixture))
+      check.call(ArenaDemo.tile_edit_records['43,47']['height'] == 1, 'raised water survives disk save reload')
+      cascade_canvas = Bitmap.new(192, 96)
+      (42..47).each do |x|
+        (46..48).each do |y|
+          cascade_canvas.blt((x - 42) * 32, (y - 46) * 32, ArenaDemo.platform_floor_bitmap('plain'), Rect.new(0, 0, 32, 32))
+          art = ArenaDemo.relief_bitmap(ArenaDemo.tile_edit_records, x, y)
+          cascade_canvas.blt((x - 42) * 32, (y - 46) * 32, art, Rect.new(0, 0, 32, 32)) if art
+        end
+      end
+      picker_shots << [cascade_canvas, path.sub(/\.log$/, '-waterfall.png')]
+      # Execute the actual Scene_Map transfer with a step still interpolating.
+      File.write(path, lines.join("\n") + "\nPreparing real transfer scene\n")
+      transfer_scene = Scene_Map.new
+      $scene = transfer_scene
+      transfer_scene.createSpritesets
+      File.write(path, lines.join("\n") + "\nReal transfer scene ready\n")
+      2.times do
+        $game_player.moveto(49, 55)
+        $game_player.instance_variable_set(:@move_timer, 0.01)
+        $game_player.instance_variable_set(:@move_initial_x, 49)
+        $game_player.instance_variable_set(:@move_initial_y, 54)
+        $PokemonGlobal.ice_sliding = true
+        $game_temp.player_new_map_id = ArenaDemo::ENTRANCE_MAP_ID
+        $game_temp.player_new_x, $game_temp.player_new_y, $game_temp.player_new_direction = 7, 3, 2
+        transfer_scene.transfer_player
+        File.write(path, lines.join("\n") + "\nTransferred to foyer\n")
+        3.times { Graphics.update; $game_player.update }
+        check.call($game_map.map_id == ArenaDemo::ENTRANCE_MAP_ID && [$game_player.x, $game_player.y] == [7, 3], 'actual return transfer remains on foyer landing')
+        check.call($game_player.real_x == 7 * Game_Map::REAL_RES_X && $game_player.real_y == 3 * Game_Map::REAL_RES_Y,
+          'return transfer never interpolates through void from previous-map coordinates')
+        check.call(!$PokemonGlobal.ice_sliding && !$game_player.move_route_forcing, 'return clears forced movement')
+        $game_temp.player_new_map_id = ArenaDemo::MAP_ID
+        $game_temp.player_new_x, $game_temp.player_new_y, $game_temp.player_new_direction = *ArenaDemo.map_start
+        transfer_scene.transfer_player
+      end
+      transfer_scene.dispose
       $scene = picker_scene
       # Export both a tile composition and the real renderer/player frame.
       [[canvas, path.sub(/\.log$/, '.png')], [screenshot, path.sub(/\.log$/, '-player.png')],
