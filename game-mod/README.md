@@ -1,6 +1,16 @@
 # Arena Demo
 
-## Relief et catalogue de matières (0.17.4)
+## Relief et catalogue de matières (0.18.0)
+
+Nouveaux sols : Déchets toxiques (jaune fluorescent, infranchissable), Eau de
+marécage (marron, Surf), Acier bleuté, Hexagones holographiques et Sables mouvants.
+Dalles hantées remplace Ardoise mauve sous le même identifiant `type_ghost`.
+La glace n'a plus de cadre par case. `030_ArenaInteractiveFloors.rb` utilise
+les callbacks de pas et le Surf natif : animation de rotation/aspiration de
+1,25 seconde puis retour à `map_start`, entrée/sortie de Surf, conditions natives
+du menu Pokémon. Les sondes d'accès ne changent pas le véhicule du joueur.
+Le serveur accepte le retour seulement depuis une case de sables mouvants du
+plan partagé et valide les liquides suivant le mode de déplacement transmis.
 
 Planches et le dessus Bois réutilisent le grain des ponts du tileset Outside
 (tuiles de pont à partir de 1616), recomposé en lames parallèles continues.
@@ -10,8 +20,8 @@ Industrielle et les anciennes sauvegardes. Sol de base et Plaques métalliques
 sont les nouveaux libellés, sans changement d'identifiants.
 
 Le sol Tatami n'hérite plus du motif diagonal du parquet. Les libellés des sols
-restants utilisent des noms de matériaux : Améthyste, Quartz rose, Ardoise
-mauve, Obsidienne et Plaques métalliques. Le style Arène de combat est masqué
+restants utilisent des noms de matériaux : Améthyste, Quartz rose, Dalles
+hantées, Obsidienne et Plaques métalliques. Le style Arène de combat est masqué
 par `VISIBLE_STYLES` ; son identifiant reste lisible pour les anciennes arènes.
 Les **11 styles visibles** gardent leur visualiseur.
 
@@ -20,8 +30,8 @@ grain/joints verticaux, poutres contrastées, panneaux et rivets. Cristal réuti
 une texture minérale bleutée et trois petits points cyan par case, sur le sol
 et le mur, sans grand emblème. Le fond Améthyste conserve son ancienne texture.
 
-Changer le sol ouvre directement le sélecteur visuel : **22 sols et le vide**,
-sans sous-familles. Combat est renommé Tatami. Boue, Poison, Ténèbres, Spectre
+Changer le sol ouvre directement le sélecteur visuel : **27 sols et le vide**,
+sans sous-familles. Combat est renommé Tatami. Boue, Poison, Ténèbres
 et Psy n'ont plus de motifs de premier plan, y compris les surimpressions
 héritées de leurs textures de base.
 `ArenaMaterials::VISIBLE_FLOORS` définit les choix proposés ; `RETIRED_FLOORS`
@@ -34,20 +44,20 @@ latéral. Les styles montrent le sommet et les murs. Les listes défilent par
 lignes complètes et s'adaptent aux fenêtres 640×480 et 512×384.
 Entrée choisit, X annule. Les sélecteurs de meubles/Dresseurs sont conservés.
 029_ArenaMaterialPicker.rb génère les aperçus depuis les mêmes textures que la
-map, avec un cache de 34 aperçus proposés (22 sols, vide et 11 plateformes).
+map, avec un cache de 39 aperçus proposés (27 sols, vide et 11 plateformes).
 Les fenêtres et bitmaps d'interface sont libérés à la fermeture ; le cache
-des textures n'est pas détruit. Protocole de visite 8 inchangé.
+des textures n'est pas détruit. Protocole de visite 9.
 
 `tools/test-native-relief.py --picker` exporte les captures UI dans les fichiers
 ignorés `tools/runtime/native-material-picker-probe-picker-*.png`.
 
-La table compatible comprend 38 identifiants de sol et 12 styles historiques ;
-22 sols et 11 styles sont proposés. Les thèmes comprennent Désert, Forêt,
+La table compatible comprend 43 identifiants de sol et 12 styles historiques ;
+27 sols et 11 styles sont proposés. Les thèmes comprennent Désert, Forêt,
 Ruines, Cristal, Industrielle, Bois et Marécage, même si certains de leurs
 matériaux ne sont plus proposés séparément.
 Les sols disponibles se peignent case par case dans une liste unique.
-L'eau réelle (`water`) est bloquée en attendant Surf ; elle garde son propre
-identifiant. Les sols décoratifs conservés restent praticables.
+L'eau réelle (`water`) et le marécage (`marsh_water`) nécessitent Surf ; ils
+gardent leurs propres identifiants. Les sols décoratifs restent praticables.
 Voir [le catalogue complet](../docs/ARENA_MATERIALS.md).
 
 Le catalogue partagé est défini dans `000_ReliefRules.rb` (ArenaMaterials), les
@@ -64,7 +74,7 @@ ou de marche, et pas de suppression d'un accès d'escalier encore utilisé.
 Le style **Volcanique** transforme le groupe entier en sol et murs volcaniques.
 Les textures utilisent Red cave floor et la roche native recolorée en mémoire ;
 la lave réutilise la texture Sea deep avec la palette lave des expéditions.
-Le protocole 8 valide tous les codes via le catalogue partagé client/serveur.
+Le protocole 9 valide tous les codes via le catalogue partagé client/serveur.
 Les sauvegardes existantes restent compatibles.
 
 Les coins extérieurs sont arrondis sur 6 pixels, en gardant le centre de la
@@ -79,7 +89,7 @@ en place. Les modifications passent par le brouillon et la validation habituels.
 les murs : terre/herbe, roche grise issue du relief natif ou famille neige native.
 Le sol neige utilise White path et ne glisse pas. Les murs empruntent le style
 de la case haute immédiatement au-dessus. Les clés de cache incluent sol/style.
-Le protocole 8 transmet également une grille `styles` de 10 000 octets, validée
+Le protocole 9 transmet également une grille `styles` de 10 000 octets, validée
 par client et serveur ; les anciennes sauvegardes utilisent Montagne par défaut.
 
 Les directions affichées sont haut/droite/bas/gauche. Le relief est dessiné sur
@@ -104,7 +114,7 @@ ainsi que les ressources Caves/Brown cave floor de l'installation locale via
 ExpeditionTerrain. Aucun fichier graphique n'est distribué. Les anciens sols
 sans hauteur restent au niveau 0. `height` et `stair` sont enregistrés dans les
 enregistrements de cases et dans le brouillon transactionnel existant.
-Le protocole de visite 8 utilise des grilles de 10 000 octets ; la hauteur des
+Le protocole de visite 9 utilise des grilles de 10 000 octets ; la hauteur des
 personnages est déduite de leur case sur cette unique map. Tous les participants
 et le serveur doivent être mis à jour. Personnalisation verrouillée en visite.
 

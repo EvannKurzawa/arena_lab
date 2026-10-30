@@ -26,7 +26,7 @@ module ArenaVisitsServer
   ].freeze
 
   def dispatch_frame(conn, env, type, authed, body)
-    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 8, arena_bind: @config.bind) if type == :ping
+    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 9, arena_bind: @config.bind) if type == :ping
     if conn.data[:arena_local_world] && type == :save
       return reply(conn, type: :save_err, seq: env[:seq], reason: 'local_world')
     end
@@ -37,7 +37,7 @@ module ArenaVisitsServer
       arena_detach_zone(conn)
       conn.data[:arena_cap] = true
       conn.data[:arena_local_world] ||= env[:local_world] == true
-      return reply(conn, type: :arena_ready, version: 8)
+      return reply(conn, type: :arena_ready, version: 9)
     end
     return arena_error(conn, 'Restart the updated client') unless conn.data[:arena_cap]
     case type
@@ -344,7 +344,7 @@ module ArenaVisitsServer
     valid = MAPS.include?(map) && x.is_a?(Integer) && y.is_a?(Integer)
     valid &&= if map == 100
                 x.between?(0, ARENA_MAP_WIDTH - 1) && y.between?(0, ARENA_MAP_HEIGHT - 1) &&
-                  !ArenaRelief.blocked_surface?(room[:surface], x, y) &&
+                  ArenaMaterials.traversable?(room[:surface], x, y, env[:mode]) &&
                   ![ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT].include?([x, y]) &&
                   room[:placements].none? { |_kind, _item, px, py| [px, py] == [x, y] }
               else
@@ -354,8 +354,13 @@ module ArenaVisitsServer
     if conn.data[:arena_arriving]
       valid &&= [map, x, y] == [102, 8, 10]
     elsif (previous = conn.data[:last_pos]) && previous[0] == map
-      valid &&= (previous[1] - x).abs + (previous[2] - y).abs <= 1
-      valid &&= ArenaRelief.step?(room[:relief], previous[1], previous[2], x, y) if map == 100
+      trapped = map == 100 && ArenaMaterials.ground_at(room[:surface], previous[1], previous[2]) == 'quicksand'
+      if trapped
+        valid &&= [x, y] == ARENA_START || [x, y] == previous[1, 2]
+      else
+        valid &&= (previous[1] - x).abs + (previous[2] - y).abs <= 1
+        valid &&= ArenaRelief.step?(room[:relief], previous[1], previous[2], x, y) if map == 100
+      end
     elsif previous && MAPS.include?(previous[0])
       valid &&= (map == 100 && [x, y] == ARENA_START) || (map == 102 && [x, y] == [7, 3])
     end

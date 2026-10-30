@@ -1,5 +1,115 @@
 # Setup and implementation status
 
+## Livraison v8.3 — 2026-10-30
+
+Release combines interactive/animated floors (Arena Demo 0.18.1), native Surf,
+quicksand trap/audio, Basalte nocturne, Ice cleanup and the user's expanded
+trainer profiles in 009_ArenaCustomMode.rb. User trainer names, sprites and
+teams preserved as supplied. Catalogue: 27 floors plus void, 11 platform styles.
+Visit protocol 9 requires updating both clients and server together.
+Upstream versions/dependencies unchanged.
+
+Release checks executed with portable Ruby:
+- ruby.exe -c game-mod/Plugins/ArenaDemo/009_ArenaCustomMode.rb: Syntax OK.
+- ruby.exe game-mod/test/arena_relief_test.rb: 16 runs / 895 assertions, passing.
+- ruby.exe game-mod/test/arena_relief_server_test.rb: 5 runs / 94 assertions, passing.
+- ruby.exe game-mod/test/arena_visits_server_test.rb: 6 runs / 98 assertions, passing.
+
+Earlier native floor probe passed 376 checks (below); it predates the latest
+user trainer additions and was not rerun for release. No manual battles of
+every new team or new two-GUI-client visit claimed. README/status updated.
+Release includes plugin, server, ping helper, tests and material documentation.
+Local assets, saves, generated captures and title_screen_design.pptx excluded.
+User requested commit v8.3 and push to origin/main. Close game, update source
+and restart Play-Arena.bat on both computers and restart the updated server.
+
+## Animated liquids and subtle traps — 2026-10-30 (0.18.1)
+
+Basalte nocturne replaces Dalles hantées (same saved type_ghost ID), with
+matching staggered blue-black joints, without eyes or the large crack.
+Online reference: https://sohaib9211.itch.io/dark-dungeon-stone-tileset ;
+no external asset copied. Four liquids reuse native Sea deep animation frames
+at individual timings, through cached shared bitmaps updated while stationary.
+Quicksand uses the exact Sand texture darkened by 4%, without a spiral,
+and plays native Player fall at volume 80/pitch 70. Central Ice crack removed.
+Surf/collisions and visit protocol 9 unchanged.
+
+Executed bundled Ruby game-mod/test/arena_relief_test.rb: 16 runs,
+895 assertions, zero failures/errors/skips. Executed
+C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py --picker:
+376 native checks passed, including distinct frames, live stationary animation,
+exact sand darkening, crack removal, actual trap callback, Surf and disposable
+save/load. Visually inspected generated repeated 3x3 floor atlas. Sound call
+verified by unit fixture and executed natively; no listening assessment claimed.
+No new manual two-client visit. No private save used by probe.
+
+Sandbox writes/native install initially denied; rerun with approved escalation.
+Ruby --disable-gems could not load minitest; reran without it. Initial unit
+failures required a sound stub and updated renamed-label expectations; final
+results above pass. Changed 000/009/027/028/030, new 031_ArenaLiquidAnimation,
+metadata, focused tests, README, material catalogue and status. Native runner
+installed 0.18.1 and restored compiled cache (34 scripts). Upstream/tool versions
+unchanged. No commit/push. Close and restart Play-Arena.bat to load changes.
+
+## Sols interactifs, liquides et futuristes — 2026-10-30 (0.18.0)
+
+Added five ground IDs at the end of the stable catalogue: toxic, marsh_water,
+steel_blue, holo_hex and quicksand. The catalogue now has 43 compatible IDs,
+27 visible floors plus void, and the existing 11 visible platform styles.
+Toxic waste is fluorescent yellow with bubbles and stays impassable even with
+Surf. Marsh water is brown, distinct from solid mud. Water and marsh water now
+use Essentials' native Surf terrain, shore interaction, party-menu gate,
+entry/dismount and vehicle, preserving normal move/badge/follower conditions.
+No standalone Surf system or terrain-tag number was added.
+
+Removed Ice's dark tile border; all four bitmap edges share the continuous
+blue fill while its Ice terrain/gliding remains native. Replaced type_ghost's
+Ardoise mauve art/label with Dalles hantées: dark bevelled slabs, cracks and
+small spectral lights, keeping the saved ID. Added steel-blue bevelled panels
+and cyan holographic honeycomb, usable at ground level or on platform tops.
+Online visual references inspected: Kenney Modular Space Kit, Kokoro
+Reflections Cosmic Explorer and NASA ISS Panels. Links are recorded in
+docs/ARENA_MATERIALS.md; no external asset downloaded or redistributed.
+
+030_ArenaInteractiveFloors.rb hooks the native step callback. Quicksand spins
+the player through four directions, lowers/fades their sprite for 1.25 seconds,
+then returns them to map_start, resets vehicles/followers and restores controls
+and sprite state. Ice sliding is cancelled. Transient state is protected by
+ensure, including interrupted animation/access checks. No HP/money loss.
+Quicksand cannot hold furniture, trainers, relief, stair access or fixed exits.
+
+Visit protocol is now 9 in client, server, readiness/ping and socket fixtures.
+Room presence checks surfable water against the reported movement mode; lava
+and toxic remain blocked. The only nonadjacent in-map return permitted is
+from a quicksand tile of the room snapshot to the reserved arena entrance.
+Trap rotations and return emit presence. Layout/save IDs remain compatible;
+both clients and server must be updated together. No new manual two-GUI-client
+visit was executed; network checks below use actual TCP clients and PEMK's
+reactor/codec with fixture authentication.
+
+Executed portable Ruby (tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe):
+- game-mod/test/arena_relief_test.rb: 16 runs / 894 assertions, passing.
+- game-mod/test/arena_relief_server_test.rb: 5 runs / 94 assertions, passing.
+- game-mod/test/arena_visits_server_test.rb: 6 runs / 98 assertions, passing.
+
+Executed C:/msys64/mingw64/bin/python.exe tools/test-native-relief.py --picker:
+369 native checks passed. Covers all 43 ground arts/collisions, native Surf
+party gate, shore prompt, actual Surf entry/dismount, toxic immunity to Surf,
+real timed quicksand step animation/return/input restoration, borderless Ice,
+all five new floors on disk save/load, legacy snapshots, relief joins,
+placement/removal and visual picker. Actual floor atlas, hologram picker and
+three sink animation captures visually inspected. Probe boot failures were
+test-fixture issues (uninitialized boot Scene_Map/encounters), corrected by
+isolating the boot scene and initializing native encounters. Initial network
+fixture accidentally used a reserved guide tile/stair approach and reopened
+outside reception; corrected without weakening runtime validation.
+
+Local plugin installed as 0.18.0, cache restored to 33 Arena Demo scripts;
+temporary probe and disposable save removed. No private save read or written.
+Changed 000/005/009/027/028/029, new 030, server, ping, metadata, focused tests
+and documentation. Upstream versions/dependencies unchanged; no commit/push
+for this change. Restart Play-Arena.bat on both clients and restart the server.
+
 ## Livraison v8.2 — 2026-10-30
 
 Release groups the accumulated relief/editor/material changes: two logical

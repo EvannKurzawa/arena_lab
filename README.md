@@ -1,6 +1,53 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Version v8.2
+## Dernière version publiée : v8.3
+
+Cette version ajoute les sols interactifs et animés, ainsi que le catalogue
+de Dresseurs enrichi dans `009_ArenaCustomMode.rb`, avec leurs noms, sprites
+et équipes configurées. Le catalogue propose **27 sols plus le vide** et
+**11 styles de plateformes**. Version interne : **Arena Demo 0.18.1**.
+
+L'eau et le marécage utilisent Surf ; lave et déchets toxiques restent bloqués.
+Les sables mouvants piègent le joueur puis le ramènent à l'entrée. Les quatre
+liquides sont animés ; Basalte nocturne et glace ont été retouchés.
+
+Vérification de livraison : **27 tests / 1 087 assertions**, sans échec,
+et syntaxe Ruby du catalogue de Dresseurs valide. Les retouches de sols ont
+également passé **376 vérifications moteur** avant les derniers ajouts de
+Dresseurs ; chaque nouvelle équipe n'a pas été jouée manuellement.
+
+Fermez le jeu, mettez à jour puis relancez **Play-Arena.bat**.
+Les visites utilisent le **protocole 9** : mettez les deux clients et le serveur
+à jour ensemble. Aucune nouvelle visite manuelle à deux fenêtres n'est revendiquée.
+
+## Retouches des sols (Arena Demo 0.18.1)
+
+Eau, lave, marécage et déchets toxiques sont animés avec les frames natives
+d'Essentials, à des rythmes différents, même lorsque le joueur reste immobile.
+Basalte nocturne remplace les Dalles hantées : pierre bleu-noir, joints décalés
+raccordables, sans yeux ni grande fissure. Les sables mouvants reprennent le
+sable normal assombri de 4 %, sans spirale, et jouent un son grave à
+l'enfoncement. La fissure centrale de la glace est supprimée.
+Fermez le jeu et relancez **Play-Arena.bat** pour installer ces retouches.
+
+## Nouveaux sols interactifs (Arena Demo 0.18.0)
+
+**Changer le sol** propose désormais 27 sols plus le vide, avec aperçu :
+déchets toxiques jaune fluorescent (toujours infranchissables), eau de marécage
+marron (Surf requis), acier bleuté, hexagones holographiques et sables mouvants.
+Ardoise mauve devient **Dalles hantées**, une pierre sombre fissurée avec de
+petites lueurs spectrales. La glace garde sa glisse, avec un fond continu sans
+contour par case.
+
+Les sables mouvants font tourner le joueur et le font disparaître progressivement,
+puis le ramènent à l'entrée de l'arène. Ils ne peuvent pas recevoir d'occupants,
+de plateformes ou d'escaliers. L'eau et le marécage utilisent le **Surf natif
+d'Essentials**, depuis la rive ou le menu Pokémon, avec ses conditions normales
+de capacité/badges. Ils restent bloqués à pied. Les visites passent au **protocole
+9** : le serveur vérifie Surf et le retour depuis les sables mouvants.
+Fermez et relancez **Play-Arena.bat** sur les deux clients et redémarrez le serveur.
+
+## Historique : v8.2
 
 Cette version regroupe l'éditeur de plateformes à deux hauteurs, les escaliers
 dans les quatre directions, les bordures et murs arrondis, le placement sur
@@ -16,7 +63,7 @@ utilisent des clients socket ; aucune nouvelle visite manuelle à deux fenêtres
 n'est revendiquée. Fermez le jeu et relancez **Play-Arena.bat** ; les deux clients
 et le serveur doivent être à jour pour les visites.
 
-## Plateformes et sols (Arena Demo 0.17.4)
+## Plateformes et sols (Arena Demo 0.18.0)
 
 Le sol **Planches** et la plateforme **Bois** utilisent de longues lames
 parallèles inspirées des ponts d'Essentials, avec des supports sombres et
@@ -24,7 +71,7 @@ contreventés. **Métal et grilles** est retiré de la liste des sols.
 **Sol de base** et **Plaques métalliques** remplacent les anciens libellés.
 
 Le tatami conserve son tressage sans diagonales claires. Les anciens noms de
-types ont été remplacés par **Améthyste, Quartz rose, Ardoise mauve, Obsidienne
+types ont été remplacés par **Améthyste, Quartz rose, Dalles hantées, Obsidienne
 et Plaques métalliques**. Le sol et les murs Cristal utilisent une roche bleutée
 sombre avec de petits points cyan lumineux. Les murs Industrielle et Bois ont
 une face verticale plus sombre, avec panneaux/rivets ou poutres/montants.
@@ -35,11 +82,11 @@ le sol et les murs ensemble. Le panneau précise si le sol est praticable,
 glissant ou infranchissable. Flèches pour parcourir, Entrée pour choisir,
 X pour revenir ; parcourir les aperçus ne modifie pas l'arène.
 
-Le sélecteur ouvre directement une **liste unique de 22 sols, plus le vide**,
+Le sélecteur ouvre directement une **liste unique de 27 sols, plus le vide**,
 avec ses vignettes et son aperçu agrandi. Les sous-familles ont été retirées.
 Parquet, mousse, dalles de combat et les sols monotype Normal, Feu, Eau, Glace,
 Électrik, Plante, Sol, Vol, Insecte, Roche, Dragon et Fée n'y sont plus proposés.
-L'eau infranchissable et la glace glissante sont conservées.
+L'eau accessible avec Surf et la glace glissante sont conservées.
 
 Le catalogue propose **11 styles de plateformes**. Les thèmes
 proposés sont disponibles : Herbe, Montagne, Neige, Volcanique, Désert, Forêt,
@@ -48,7 +95,7 @@ Arène de combat a été retirée du sélecteur.
 Pavés, terre battue, planches, boue et racines complètent les sols
 précédents. **Changer le sol** ouvre immédiatement le visualiseur.
 
-Les sols **Tatami, Boue, Améthyste, Obsidienne, Ardoise mauve et Quartz rose**
+Les sols **Tatami, Boue, Améthyste, Obsidienne et Quartz rose**
 conservent leurs textures sans les motifs retirés. Plaques métalliques reste
 disponible. Ces sols décoratifs ne changent pas les combats.
 Voir [le catalogue complet et son utilisation](docs/ARENA_MATERIALS.md).
@@ -64,11 +111,11 @@ reste visible dans les coins transparents, y compris sur une plateforme enneigé
 **Changer le sol** fonctionne maintenant aussi sur les plateformes : sol
 de base, herbe, sable, roche, glace, neige et tous les nouveaux matériaux. La retouche ne change pas le
 matériau de leurs murs. La neige est un sol normal ; la glace conserve la glisse.
-L'**eau et la lave sont infranchissables comme le vide** : aucun meuble, Dresseur ou
-escalier ne peut y être posé. Elle ne peut pas remplacer un accès d'escalier
+L'**eau et le marécage nécessitent Surf ; la lave et les déchets restent
+infranchissables** : aucun meuble, Dresseur ou escalier ne peut y être posé.
+Un liquide ne peut pas remplacer un accès d'escalier
 encore utilisé. Le **sol volcanique** est praticable.
-L'eau garde une identité distincte pour l'ajout futur de Surf ; Surf n'est pas
-encore implémenté. Les identifiants des sols retirés sont conservés pour lire
+L'eau et le marécage gardent des identités distinctes. Les identifiants des sols retirés sont conservés pour lire
 les anciennes sauvegardes ; leurs cases existantes ne sont pas effacées.
 
 Pour transformer une grande plateforme d'un coup, choisissez **Personnalisation
@@ -98,7 +145,7 @@ types de terrain et les matériaux des murs sont enregistrés séparément.
 Les visites transmettent le relief et le serveur vérifie les passages.
 Fermez les jeux et relancez **Play-Arena.bat** pour installer la version locale.
 Pour jouer ensemble, mettez à jour **les deux clients et le serveur** : le
-protocole de visite passe à **8**. Aucune publication GitHub n'a été effectuée.
+protocole de visite passe à **9** pour ces nouveaux sols et leurs déplacements.
 
 Vérification : tests de l'éditeur et du réseau PEMK avec deux connexions TCP,
 plus chargement dans le vrai moteur mkxp-z, collisions, rendu/zoom, placement,

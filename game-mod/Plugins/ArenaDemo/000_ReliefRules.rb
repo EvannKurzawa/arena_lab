@@ -6,7 +6,7 @@ module ArenaMaterials
     'desert' => ['Sable', :classic], 'ice' => ['Glace (glissante)', :classic],
     'rock' => ['Roche', :classic], 'snow' => ['Neige', :classic],
     'volcanic' => ['Sol volcanique', :classic], 'lava' => ['Lave (infranchissable)', :hazard],
-    'water' => ['Eau (Surf à venir, infranchissable)', :hazard],
+    'water' => ['Eau (Surf)', :hazard],
     'pavers' => ['Pavés', :material], 'parquet' => ['Parquet', :material],
     'metal' => ['Métal et grilles', :material], 'dirt' => ['Terre battue', :classic],
     'moss' => ['Mousse', :classic], 'wood' => ['Planches', :material],
@@ -26,11 +26,17 @@ module ArenaMaterials
     'type_psychic' => ['Quartz rose', :type],
     'type_bug' => ['Insecte — alvéoles d’ambre', :type],
     'type_rock' => ['Roche — basalte fissuré', :type],
-    'type_ghost' => ['Ardoise mauve', :type],
+    'type_ghost' => ['Basalte nocturne', :type],
     'type_dragon' => ['Dragon — écailles minérales', :type],
     'type_dark' => ['Obsidienne', :type],
     'type_steel' => ['Plaques métalliques', :type],
-    'type_fairy' => ['Fée — étoiles opalines', :type]
+    'type_fairy' => ['Fée — étoiles opalines', :type],
+    # Append only: the position of older entries is their saved/wire ID.
+    'toxic' => ['Déchets toxiques', :hazard],
+    'marsh_water' => ['Eau de marécage (Surf)', :hazard],
+    'steel_blue' => ['Acier bleuté', :material],
+    'holo_hex' => ['Hexagones holographiques', :material],
+    'quicksand' => ['Sables mouvants', :hazard]
   }.transform_values(&:freeze).freeze
   # Keep old save/wire IDs and platform dependencies, but no longer offer these
   # materials in the floor picker. Never renumber SURFACE_CODES when retiring.
@@ -40,8 +46,11 @@ module ArenaMaterials
   VISIBLE_FLOORS = (FLOORS.keys - RETIRED_FLOORS).freeze
   SURFACE_CODES = { 'void' => '0' }.merge(FLOORS.keys.each_with_index.to_h { |key, i| [key, ALPHABET[i + 1]] }).freeze
   SURFACE_BYTES = SURFACE_CODES.values.map(&:ord).freeze
-  BLOCKED_GROUNDS = %w[lava water].freeze
-  BLOCKED_BYTES = %w[void lava water].map { |key| SURFACE_CODES.fetch(key).ord }.freeze
+  SURF_GROUNDS = %w[water marsh_water].freeze
+  BLOCKED_GROUNDS = %w[lava water toxic marsh_water].freeze
+  # Quicksand is enterable, but cannot support occupants, relief or fixed exits.
+  UNSAFE_GROUNDS = (BLOCKED_GROUNDS + ['quicksand']).freeze
+  BLOCKED_BYTES = (['void'] + UNSAFE_GROUNDS).map { |key| SURFACE_CODES.fetch(key).ord }.freeze
   STYLES = {
     'grass' => ['Herbe', 'grass'], 'mountain' => ['Montagne', 'rock'],
     'snow' => ['Neige', 'snow'], 'volcano' => ['Volcanique', 'volcanic'],
@@ -58,6 +67,18 @@ module ArenaMaterials
   module_function
   def valid_surface?(grid)
     grid.is_a?(String) && grid.bytesize == 10000 && grid.bytes.all? { |b| SURFACE_BYTES.include?(b) }
+  end
+
+  def ground_at(surface, x, y)
+    return nil unless x.between?(0, 99) && y.between?(0, 99)
+    SURFACE_CODES.key(surface[y * 100 + x])
+  end
+
+  def traversable?(surface, x, y, mode = :walk)
+    ground = ground_at(surface, x, y)
+    return false unless ground && ground != 'void'
+    return mode == :surf if SURF_GROUNDS.include?(ground)
+    !BLOCKED_GROUNDS.include?(ground)
   end
 end
 

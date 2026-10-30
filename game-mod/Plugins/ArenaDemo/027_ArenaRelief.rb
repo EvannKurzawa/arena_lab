@@ -84,7 +84,10 @@ module ArenaDemo
   def valid_relief_records?(records, placements)
     surface = "1" * (MAP_WIDTH * MAP_HEIGHT)
     MAP_HEIGHT.times do |y|
-      MAP_WIDTH.times { |x| surface.setbyte(y * MAP_WIDTH + x, 48) if tile_is_void?(x, y, records) }
+      MAP_WIDTH.times do |x|
+        state = tile_surface_state(records, x, y)
+        surface.setbyte(y * MAP_WIDTH + x, 48) if tile_is_void?(x, y, records) || state['ground'] == 'quicksand'
+      end
     end
     positions = placements.map { |p| [p["x"], p["y"]] }
     ArenaRelief.valid?(relief_grid(records), surface, relief_reserved, positions)
@@ -107,7 +110,7 @@ module ArenaDemo
   def editor_apply_relief(records, placements, x, y, code)
     return false unless valid_editor_tile?(x, y) && !relief_reserved.include?([x, y])
     return false unless ArenaRelief::CODES.include?(code)
-    if tile_is_void?(x, y, records) || editor_occupied(placements, x, y)
+    if tile_is_void?(x, y, records) || tile_surface_state(records, x, y)['ground'] == 'quicksand' || editor_occupied(placements, x, y)
       pbMessage("Choisissez une case de sol libre. Retirez d'abord son occupant.")
       return false
     end
@@ -128,21 +131,22 @@ module ArenaDemo
     true
   end
 
-  def relief_code(records, x, y)
+  def relief_code(records, x, y, surf = false)
+    return 0 if surf && surf_ground?(records, x, y)
     return nil if tile_is_void?(x, y, records)
     record = records[tile_edit_key(x, y)]
     return 0 unless record.is_a?(Hash)
     record["stair"] || (record["height"] == 1 ? 1 : 0)
   end
 
-  def relief_step?(records, x, y, direction)
-    return false if tile_is_void?(x, y, records)
+  def relief_step?(records, x, y, direction, surf = false)
+    return false if tile_is_void?(x, y, records) && !(surf && surf_ground?(records, x, y))
     return false if relief_wall?(records, x, y)
     offset = ArenaRelief::DIRECTIONS[direction]
     return true unless offset
     nx, ny = x + offset[0], y + offset[1]
     return false if relief_wall?(records, nx, ny)
-    a, b = relief_code(records, x, y), relief_code(records, nx, ny)
+    a, b = relief_code(records, x, y, surf), relief_code(records, nx, ny, surf)
     return false unless a && b
     return true if a > 1 && a == b && direction != a && direction != 10 - a
     return false if a > 1 && direction != a && direction != 10 - a
@@ -189,6 +193,7 @@ module ArenaDemo
   end
 
   def draw_platform_floor(image, ground)
+    return draw_liquid_floor(image, ground) if LIQUID_GROUNDS.include?(ground)
     case ground
     when 'grass' then ExpeditionTerrain.autotile(image, 'Light grass')
     when 'snow' then ExpeditionTerrain.autotile(image, 'White path')
@@ -338,7 +343,7 @@ end
 module ArenaDemo::ReliefCollision
   def passable?(x, y, direction, self_event = nil)
     if @map_id == ArenaDemo::MAP_ID
-      return false unless ArenaDemo.relief_step?(ArenaDemo.tile_edit_records, x, y, direction)
+      return false unless ArenaDemo.relief_step?(ArenaDemo.tile_edit_records, x, y, direction, ArenaDemo.runtime_surf?(self_event))
       # Map#passable? is also called on the destination with reversed direction.
       # Both ends use the same symmetric edge rule; object checks remain native.
     end

@@ -13,6 +13,11 @@ module ArenaDemo
     'ruins' => [:auto, 'Gravel', nil, 0x8d9471, :ruins],
     'crystal' => [:auto, 'Gravel', nil, 0x59677b, :blue_specks],
     'legacy_crystal' => [:auto, 'Snow cave floor', nil, 0x9581b7, :crystal],
+    'toxic' => [:auto, 'Sea deep', nil, 0xbdc722, :toxic_bubbles],
+    'marsh_water' => [:auto, 'Sea deep', nil, 0x705032, :marsh_ripples],
+    'steel_blue' => [:atlas, 'Factory interior', 426, 0x45647e, :steel_panels],
+    'holo_hex' => [:auto, 'Gravel', nil, 0x19374e, :holo_hex],
+    'quicksand' => [:auto, 'Sand', nil, nil, nil],
     'arena' => [:atlas, 'Factory interior', 426, 0xb3b7bc, :court]
   }.freeze
   TYPE_FLOORS = {
@@ -29,7 +34,7 @@ module ArenaDemo
     'psychic' => ['ruins', 0xa3678e, nil, 0xe2c3bc],
     'bug' => ['wood', 0x94955a, :honeycomb, 0xd6bd75],
     'rock' => ['ruins', 0x898879, :fracture, 0x555b59],
-    'ghost' => ['ruins', 0x686081, nil, 0xb0adca],
+    'ghost' => ['ruins', 0x242431, :haunted, 0x8be0d0],
     'dragon' => ['crystal', 0x666c9b, :scales, 0xb6b3cb],
     'dark' => ['pavers', 0x484453, nil, 0xa59aaf],
     'steel' => ['metal', 0x8f9b9d, :rivets, 0xd5d5c8],
@@ -85,6 +90,57 @@ module ArenaDemo
   def draw_material_motif(image, motif, hex = 0xa8aa98)
     color = material_color(hex)
     case motif
+    when :toxic_bubbles
+      [[7, 8, 3], [24, 22, 4]].each do |x, y, r|
+        material_ring(image, x, y, r + 1, material_color(0x737c15))
+        material_ring(image, x, y, r, material_color(0xebff50))
+        material_pixel(image, x - 1, y - r, material_color(0xf7ffa5))
+      end
+      material_line(image, [[14, 15], [17, 14], [20, 15]], material_color(0xd5ee3e))
+    when :marsh_ripples
+      material_line(image, [[2, 8], [6, 7], [11, 8]], material_color(0xa18554))
+      material_line(image, [[19, 23], [24, 22], [29, 23]], material_color(0x4b432b))
+      [[4, 25], [6, 26], [25, 5]].each { |x, y| material_pixel(image, x, y, material_color(0x7e8950)) }
+    when :steel_panels
+      # Bevels, recessed joints and tiny lamps, rather than a bright emblem.
+      image.fill_rect(0, 0, 32, 32, material_color(0x41617b))
+      material_line(image, [[0, 31], [0, 0], [31, 0]], material_color(0x7499ad))
+      material_line(image, [[1, 30], [30, 30], [30, 1]], material_color(0x243c53))
+      material_line(image, [[5, 6], [26, 6]], material_color(0x4e728b))
+      material_line(image, [[5, 24], [12, 24]], material_color(0x293f53))
+      [21, 24].each { |x| image.fill_rect(x, 24, 2, 1, material_color(0x84d5e6)) }
+      [[4, 4], [27, 27]].each { |x, y| material_pixel(image, x, y, material_color(0xa8b8c1)) }
+    when :holo_hex
+      image.fill_rect(0, 0, 32, 32, material_color(0x152d40))
+      # A periodic honeycomb whose sides continue through tile boundaries.
+      [-16, 0, 16, 32].each do |y|
+        [-16, 0, 16, 32].each do |x|
+          ox = x + ((y / 16).odd? ? 8 : 0)
+          points = [[ox, y + 4], [ox + 8, y], [ox + 16, y + 4],
+                    [ox + 16, y + 12], [ox + 8, y + 16], [ox, y + 12], [ox, y + 4]]
+          material_line(image, points, material_color(0x2c647c))
+          material_line(image, [[ox + 2, y + 4], [ox + 8, y + 1], [ox + 13, y + 4]], material_color(0x5bc7dc))
+        end
+      end
+    when :sand_spiral
+      points = (0..72).map do |i|
+        angle = i * Math::PI / 12
+        radius = 1.0 + i * 0.17
+        [(15.5 + Math.cos(angle) * radius).round, (15.5 + Math.sin(angle) * radius * 0.68).round]
+      end
+      material_line(image, points, material_color(0x94703d))
+      material_line(image, points.map { |x, y| [x, y - 1] }, material_color(0xd6b36e))
+      material_ring(image, 16, 16, 2, material_color(0x735734))
+    when :haunted
+      # Staggered basalt slabs with matching joints at tile boundaries.
+      image.fill_rect(0, 0, 32, 32, material_color(0x252936))
+      [0, 16].each do |y|
+        material_line(image, [[0, y], [31, y]], material_color(0x151a25))
+        material_line(image, [[0, y + 1], [31, y + 1]], material_color(0x353c4b))
+        x = y == 0 ? 8 : 24
+        material_line(image, [[x, y], [x, y + 15]], material_color(0x151a25))
+        material_line(image, [[x + 1, y + 2], [x + 1, y + 14]], material_color(0x303746))
+      end
     when :blue_specks
       [[7, 9], [24, 21], [18, 4]].each do |x, y|
         [[-1, 0], [1, 0], [0, -1], [0, 1]].each do |dx, dy|
@@ -203,10 +259,11 @@ module ArenaDemo
   end
 
   def draw_extra_material_floor(image, ground, decorate = true)
-    if ground == 'water'
-      ExpeditionTerrain.autotile(image, 'Sea deep')
+    if ground == 'type_ghost'
+      draw_material_motif(image, :haunted)
       return true
     end
+    return draw_liquid_floor(image, ground) if LIQUID_GROUNDS.include?(ground)
     if ground.start_with?('type_')
       data = TYPE_FLOORS[ground.delete_prefix('type_')]
       return false unless data
@@ -226,7 +283,26 @@ module ArenaDemo
     else
       ExpeditionTerrain.atlas(image, name, id)
     end
+    if ground == 'quicksand'
+      32.times do |y|
+        32.times do |x|
+          c = image.get_pixel(x, y)
+          image.set_pixel(x, y, Color.new(c.red * 0.96, c.green * 0.96, c.blue * 0.96, c.alpha))
+        end
+      end
+    end
     material_tint(image, palette) if palette
+    if ground == 'toxic'
+      # Lift the native water's deep shadows so the liquid itself is fluorescent,
+      # rather than just drawing yellow bubbles over an olive surface.
+      32.times do |y|
+        32.times do |x|
+          c = image.get_pixel(x, y)
+          image.set_pixel(x, y, Color.new(135 + c.red * 0.60,
+            [150 + c.green * 0.65, 255].min, 12 + c.blue * 0.50, c.alpha))
+        end
+      end
+    end
     draw_material_motif(image, motif) if motif && decorate
     true
   end

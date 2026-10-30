@@ -18,6 +18,7 @@ end
 require_relative '../Plugins/ArenaDemo/009_ArenaCustomMode'
 require_relative '../Plugins/ArenaDemo/027_ArenaRelief'
 require_relative '../Plugins/ArenaDemo/029_ArenaMaterialPicker'
+require_relative '../Plugins/ArenaDemo/030_ArenaInteractiveFloors'
 class Scene_Map; end
 module ArenaDemo
   OBJECTS = []
@@ -186,11 +187,61 @@ class ArenaReliefTest < Minitest::Test
     assert_equal 'water', @records['40,40']['ground'], 'Future Surf identity is separate from void'
     assert ArenaDemo.editor_apply_ground(@records, [], 41, 40, floor: 'field', ground: 'type_water')
     assert $game_map.passable?(42, 40, 4), 'Aquatic ceramic is a walkable decorative floor'
-    assert_equal ArenaMaterials::BLOCKED_GROUNDS, %w[lava water]
+    assert_equal %w[lava water toxic marsh_water], ArenaMaterials::BLOCKED_GROUNDS
+  end
+  def test_liquid_modes_and_quicksand_editor_safety
+    %w[water marsh_water toxic quicksand].each do |ground|
+      assert ArenaDemo.editor_apply_ground(@records, [], 40, 40, floor: 'field', ground: ground)
+      surface = ArenaDemo.visit_snapshot_payload[:surface]
+      assert_equal ground, ArenaMaterials.ground_at(surface, 40, 40)
+      assert_equal ground == 'quicksand', ArenaMaterials.traversable?(surface, 40, 40, :walk)
+      assert_equal ground != 'toxic', ArenaMaterials.traversable?(surface, 40, 40, :surf)
+      refute edit(40, 40, 1), 'Dangerous surfaces cannot support relief'
+      ArenaDemo.editor_apply_placement(@placements, @records, 'furniture', { item: :ARENA_FURNITURE_ROCK }, 40, 40)
+      assert_empty @placements
+      refute ArenaDemo.editor_apply_ground(@records, [], 49, 53, floor: 'field', ground: ground)
+      invalid = surface.dup
+      invalid.setbyte(53 * 100 + 49, ArenaMaterials::SURFACE_CODES[ground].ord)
+      assert_nil ArenaDemo.decode_visit_snapshot(invalid, [], '0' * 10000)
+    end
+    assert ArenaDemo.editor_apply_ground(@records, [], 40, 40, floor: 'field', ground: 'plain')
+    assert edit(40, 40, 1), 'Replacing a hazard restores normal building'
+    assert_includes ArenaDemo.material_catalog_description(ground: 'quicksand'), 'aspiration'
+    assert_includes ArenaDemo.material_catalog_description(ground: 'marsh_water'), 'Surf requis'
+  end
+  def test_interactive_floor_transient_state_is_restored_after_interruption
+    assert ArenaDemo.editor_apply_ground(@records, [], 40, 40, floor: 'field', ground: 'quicksand')
+    $PokemonGlobal.singleton_class.attr_accessor(:ice_sliding)
+    $PokemonGlobal.ice_sliding = true
+    $game_temp = Struct.new(:in_menu, :surf_base_coords, :ending_surf).new(false, nil, false)
+    $game_player = Object.new
+    $game_player.singleton_class.attr_accessor(:x, :y, :opacity, :direction, :walk_anime, :y_offset)
+    $game_player.x, $game_player.y = 40, 40
+    $game_player.opacity, $game_player.y_offset, $game_player.walk_anime = 230, 3, false
+    interrupted = proc { raise 'interrupted animation fixture' }
+    sounds = []
+    ArenaDemo.define_singleton_method(:pbSEPlay) { |*args| sounds << args }
+    ArenaDemo.stub(:quicksand_wait, interrupted) do
+      assert_raises(RuntimeError) { ArenaDemo.quicksand_step($game_player) }
+    end
+    assert_equal 230, $game_player.opacity
+    assert_equal [["Player fall", 80, 70]], sounds
+    assert_equal 3, $game_player.y_offset
+    assert $game_player.walk_anime
+    refute $PokemonGlobal.ice_sliding
+    refute $game_temp.in_menu
+    refute ArenaDemo.instance_variable_get(:@quicksand_running)
+    assert_equal 'quicksand', @records['40,40']['ground']
+    assert_raises(RuntimeError) do
+      ArenaDemo.with_surf_probe { assert ArenaDemo.surf_probe?; raise 'interrupted Surf check fixture' }
+    end
+    refute ArenaDemo.surf_probe?
+  ensure
+    ArenaDemo.singleton_class.remove_method(:pbSEPlay) if ArenaDemo.singleton_methods(false).include?(:pbSEPlay)
   end
   def test_visual_catalogue_metadata_matches_materials_and_hazard_behavior
     entries = [:classic, :material, :type, :hazard].flat_map { |family| ArenaDemo.material_floor_entries(family) }
-    assert_equal 23, entries.length
+    assert_equal 28, entries.length
     assert_equal ArenaMaterials::VISIBLE_FLOORS.sort, entries.map { |e| e[:ground] }.reject { |g| g == 'void' }.sort
     assert_equal entries.map { |e| e[:ground] }.sort, ArenaDemo.material_floor_entries.map { |e| e[:ground] }.sort
     assert_empty ArenaDemo.material_floor_entries.map { |e| e[:ground] } & ArenaMaterials::RETIRED_FLOORS
@@ -199,11 +250,11 @@ class ArenaReliefTest < Minitest::Test
     assert_equal 11, ArenaDemo.material_style_entries.length
     assert_equal 'Sol de base', entries.find { |e| e[:ground] == 'plain' }[:name]
     refute entries.any? { |e| e[:ground] == 'metal' }
-    assert_equal ['Tatami', 'Améthyste', 'Quartz rose', 'Ardoise mauve', 'Obsidienne', 'Plaques métalliques'],
+    assert_equal ['Tatami', 'Améthyste', 'Quartz rose', 'Basalte nocturne', 'Obsidienne', 'Plaques métalliques'],
       ArenaDemo.material_floor_entries.select { |e| e[:ground].start_with?('type_') }.map { |e| e[:name] }
     water = entries.find { |e| e[:ground] == 'water' }
-    assert_includes ArenaDemo.material_catalog_description(water), 'Infranchissable'
-    assert_includes ArenaDemo.material_catalog_description(water), 'Surf à venir'
+    assert_includes ArenaDemo.material_catalog_description(water), 'Bloqué à pied'
+    assert_includes ArenaDemo.material_catalog_description(water), 'Surf requis'
     assert_includes ArenaDemo.material_catalog_description(ground: 'type_poison'), 'Praticable'
     ice = entries.find { |e| e[:ground] == 'ice' }
     assert_includes ArenaDemo.material_catalog_description(ice), 'glissant'
@@ -318,7 +369,7 @@ class ArenaReliefTest < Minitest::Test
     refute ArenaDemo::Visits.ready?
     ArenaDemo::Visits.receive(type: :arena_ready, version: 7)
     refute ArenaDemo::Visits.ready?
-    ArenaDemo::Visits.receive(type: :arena_ready, version: 8)
+    ArenaDemo::Visits.receive(type: :arena_ready, version: 9)
     assert ArenaDemo::Visits.ready?
     ArenaDemo::Visits.receive(payload.merge(type: :arena_state, phase: :open,
       role: :guest, room: 'room-relief', host: 1, guest: 2,

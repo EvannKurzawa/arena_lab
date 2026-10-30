@@ -17,8 +17,12 @@ module ArenaDemo
   def material_catalog_description(entry)
     return "Plateforme entière\nSol et murs assortis" if entry[:platform_style]
     ground = entry[:ground]
-    detail = if ground == 'water'
-               "Infranchissable\nSurf à venir"
+    detail = if ArenaMaterials::SURF_GROUNDS.include?(ground)
+               "Surf requis\nBloqué à pied"
+             elsif ground == 'toxic'
+               "Infranchissable\nDéchets toxiques"
+             elsif ground == 'quicksand'
+               "Piège : aspiration\nRetour à l'entrée"
              elsif ground == 'lava' || ground == 'void'
                'Infranchissable'
              elsif ground == 'ice'

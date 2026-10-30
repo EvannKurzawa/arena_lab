@@ -75,8 +75,8 @@ module ArenaDemo::NativeReliefProbe
         'native whole-platform volcanic tool')
       ArenaDemo.apply_tile_edits($game_map, records)
       $game_player.moveto(49, 53)
-      check.call(ArenaMaterials::FLOORS.length == 38 && ArenaDemo::PLATFORM_STYLES.length == 12,
-        'complete catalogue: 38 floors and 12 platform styles')
+      check.call(ArenaMaterials::FLOORS.length == 43 && ArenaDemo::PLATFORM_STYLES.length == 12,
+        'complete catalogue: 43 floors and 12 platform styles')
       ArenaMaterials::FLOORS.each_key do |ground|
         art = ArenaDemo.platform_floor_bitmap(ground)
         check.call(art.get_pixel(16, 16).alpha > 0, "native floor artwork: #{ground}")
@@ -87,15 +87,57 @@ module ArenaDemo::NativeReliefProbe
       end
       check.call(ArenaDemo.editor_apply_ground(records, placements, 40, 40, floor: 'field', ground: 'water'),
         'native editor paints water with a dedicated saved identity')
+      toxic_base = ArenaDemo.platform_floor_bitmap('toxic').get_pixel(16, 16)
+      check.call(toxic_base.red > 190 && toxic_base.green > 210 && toxic_base.blue < 50,
+        'toxic liquid itself is fluorescent yellow, not only its bubble highlights')
       $PokemonGlobal.surfing = true
-      check.call(!$game_player.passable?(39, 40, 6), 'Surf flag cannot bypass reserved water until implementation')
+      check.call($game_player.passable?(39, 40, 6), 'native Surf traverses water')
       $PokemonGlobal.surfing = false
+      %w[toxic marsh_water].each do |ground|
+        ArenaDemo.editor_apply_ground(records, placements, 40, 40, floor: 'field', ground: ground)
+        check.call(!$game_player.passable?(39, 40, 6), "#{ground}: cannot walk in liquid")
+        $PokemonGlobal.surfing = true
+        check.call($game_player.passable?(39, 40, 6) == (ground == 'marsh_water'), "#{ground}: Surf respects liquid identity")
+        $PokemonGlobal.surfing = false
+      end
+      # Exercise actual Surf entry/exit, the party-menu gate and shore prompt.
+      ArenaDemo.editor_apply_ground(records, placements, 40, 40, floor: 'field', ground: 'marsh_water')
+      $game_player.moveto(39, 40)
+      $game_player.direction = 6
+      check.call($game_player.pbFacingTerrainTag.can_surf_freely, 'marsh exposes the native freely surfable terrain tag')
+      debug_before_surf = $DEBUG
+      $DEBUG = true
+      check.call(HiddenMoveHandlers.triggerCanUseMove(:SURF, nil, false), 'native party-menu Surf access accepts marsh bank')
+      check.call(!$PokemonGlobal.surfing && !ArenaDemo.surf_probe?, 'Surf access probe restores state and never starts surfing')
+      original_surf = Object.instance_method(:pbSurf)
+      $native_surf_requests = 0
+      Object.send(:define_method, :pbSurf) { $native_surf_requests += 1 }
+      ArenaDemo.try_arena_surf
+      check.call($native_surf_requests == 1, 'interact on marsh bank invokes the native Surf prompt')
+      Object.send(:define_method, :pbSurf, original_surf)
+      $PokemonEncounters = PokemonEncounters.new
+      $PokemonEncounters.setup(100)
+      pbStartSurfing
+      check.call($PokemonGlobal.surfing && [$game_player.x, $game_player.y] == [40, 40], 'native Surf jump enters marsh water')
+      $game_player.moveto(40, 40)
+      $game_player.direction = 4
+      check.call(pbEndSurf(-1, 0) && [$game_player.x, $game_player.y] == [39, 40], 'native dismount returns from marsh water to bank')
+      pbCancelVehicles
+      $game_temp.ending_surf = false
+      $game_temp.surf_base_coords = nil
+      $DEBUG = debug_before_surf
+      $game_player.moveto(49, 53)
+      ArenaDemo.editor_apply_ground(records, placements, 40, 40, floor: 'field', ground: 'water')
       ArenaDemo::PLATFORM_STYLES.each_key do |style|
         check.call(ArenaDemo.editor_apply_platform_style(records, 44, 43, style) &&
           records['44,43']['platform_style'] == style, "native complete platform tool: #{style}")
       end
       ArenaDemo.editor_apply_platform_style(records, 44, 43, 'snow')
       ArenaDemo.editor_apply_ground(records, placements, 44, 44, floor: 'field', ground: 'grass')
+      new_grounds = %w[toxic marsh_water steel_blue holo_hex quicksand]
+      new_grounds.each_with_index do |ground, i|
+        check.call(ArenaDemo.editor_apply_ground(records, placements, 37 + i, 38, floor: 'field', ground: ground), "native persistent fixture: #{ground}")
+      end
       payload = ArenaDemo.visit_snapshot_payload
       decoded = ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], payload[:relief], payload[:styles])
       check.call(decoded && ArenaDemo.relief_grid(decoded[:tile_edits]) == payload[:relief], 'native visit round trip')
@@ -106,6 +148,9 @@ module ArenaDemo::NativeReliefProbe
       Game.load(saved)
       records = ArenaDemo.tile_edit_records
       placements = ArenaDemo.custom_placements
+      new_grounds.each_with_index do |ground, i|
+        check.call(records["#{37 + i},38"]['ground'] == ground, "native disk save/load preserves #{ground}")
+      end
       check.call(ArenaDemo.visit_snapshot_payload == payload, 'native load and map reconstruction')
       check.call(!$game_player.passable?(43, 44, 4), 'native collision after reload')
       $game_map.display_x = 40 * 32 * Game_Map::X_SUBPIXELS
@@ -162,6 +207,88 @@ module ArenaDemo::NativeReliefProbe
       check.call(!tile.bitmap.equal?(old), 'real renderer updates wall/summit after removal')
       renderer.dispose
       ArenaDemo.instance_variable_set(:@editor_zoom_scale, 1.0)
+      # Run the real timed trap animation and engine step callback. Capture the
+      # actual character sprite at three stages without touching a private save.
+      ArenaDemo.editor_apply_ground(records, placements, 40, 42, floor: 'field', ground: 'quicksand')
+      $game_player.moveto(40, 42)
+      $game_map.display_x = 31 * 32 * Game_Map::X_SUBPIXELS
+      $game_map.display_y = 36 * 32 * Game_Map::Y_SUBPIXELS
+      sink_renderer = TilemapRenderer.new(nil)
+      sink_renderer.add_tileset($game_map.tileset_name)
+      $game_map.autotile_names.each { |name| sink_renderer.add_autotile(name) unless name.empty? }
+      sink_renderer.add_extra_autotiles($game_map.tileset_id)
+      sink_renderer.arena_demo_set_zoom(1.0)
+      sink_renderer.update
+      sink_tile = sink_renderer.instance_variable_get(:@tiles)[9][6][0]
+      check.call(sink_tile.bitmap.equal?(ArenaDemo.platform_floor_bitmap('quicksand')), 'native renderer shows quicksand underneath the sinking player')
+      $native_sink_sprite = Sprite_Character.new(nil, $game_player)
+      $native_sink_shots, $native_sink_directions = [], []
+      ArenaDemo.singleton_class.prepend(Module.new do
+        def quicksand_tick(player, progress)
+          super
+          $native_sink_directions << player.direction
+          $native_sink_sprite.update
+          if $native_sink_shots.length < 3 && progress >= [0.1, 0.5, 0.85][$native_sink_shots.length]
+            Graphics.update
+            $native_sink_shots << [Graphics.snap_to_bitmap, ENV.fetch('ARENA_RELIEF_PROBE').sub(/\.log$/, "-sink-#{$native_sink_shots.length}.png")]
+          end
+        end
+      end)
+      $PokemonGlobal.ice_sliding = true
+      $game_player.walk_anime = false
+      sink_scene = $scene
+      $scene = nil  # Boot probe has no initialized Scene_Map spritesets yet.
+      EventHandlers.trigger(:on_step_taken, $game_player)
+      $scene = sink_scene
+      check.call([$game_player.x, $game_player.y] == ArenaDemo.map_start.first(2), 'native quicksand step returns to arena entrance')
+      check.call($native_sink_directions.uniq.sort == [2, 4, 6, 8], 'native timed quicksand animation turns through all four directions')
+      check.call($native_sink_shots.length == 3 && $game_player.opacity == 255 && $game_player.instance_variable_get(:@y_offset) == 0,
+        'native sink animation fades/lowers player and restores sprite')
+      check.call(!$PokemonGlobal.ice_sliding && $game_player.walk_anime && !$game_temp.in_menu,
+        'quicksand reached from ice restores movement and input')
+      $native_sink_sprite.dispose
+      sink_renderer.dispose
+      ice = ArenaDemo.ice_surface_bitmap
+      check.call(ice.get_pixel(8, 18).red == 142 && ice.get_pixel(20, 14).red == 142,
+        'ice no longer has the central branching crack')
+      sand = ArenaDemo.platform_floor_bitmap('desert')
+      trap = ArenaDemo.platform_floor_bitmap('quicksand')
+      check.call(32.times.all? { |y| 32.times.all? { |x|
+        a, b = sand.get_pixel(x, y), trap.get_pixel(x, y)
+        (b.red - a.red * 0.96).abs <= 1 && (b.green - a.green * 0.96).abs <= 1 &&
+          (b.blue - a.blue * 0.96).abs <= 1 && b.alpha == a.alpha
+      } }, 'quicksand is the exact sand texture darkened by only four percent')
+      ArenaDemo::LIQUID_GROUNDS.each do |ground|
+        frames = (0..3).map do |frame|
+          ArenaDemo.instance_variable_set(:@liquid_art_frame, frame)
+          image = Bitmap.new(32, 32)
+          ArenaDemo.draw_platform_floor(image, ground)
+          pixels = 32.times.flat_map { |y| 32.times.map { |x|
+            c = image.get_pixel(x, y); [c.red, c.green, c.blue, c.alpha]
+          } }
+          image.dispose
+          pixels
+        end
+        check.call(frames.uniq.length > 1, "#{ground} has distinct native liquid animation frames")
+      end
+      ArenaDemo.instance_variable_set(:@liquid_art_frame, 0)
+      ArenaDemo.update_liquid_animation
+      water_bitmap = ArenaDemo.platform_floor_bitmap('water')
+      water_samples = []
+      5.times do
+        started = System.uptime
+        while System.uptime - started < 0.22
+          Graphics.update
+          ArenaDemo.update_liquid_animation
+        end
+        water_samples << 32.times.flat_map { |y| 32.times.map { |x|
+          c = water_bitmap.get_pixel(x, y); [c.red, c.green, c.blue]
+        } }
+      end
+      check.call(water_samples.uniq.length > 1 && water_bitmap.equal?(ArenaDemo.platform_floor_bitmap('water')),
+        'liquid clock animates shared render bitmap while player stands still')
+      check.call(32.times.all? { |i| [ice.get_pixel(0, i), ice.get_pixel(31, i), ice.get_pixel(i, 0), ice.get_pixel(i, 31)].all? { |c| c.red == 142 && c.green == 210 && c.blue == 234 } },
+        'ice has identical continuous fill on all four tile edges, without border')
       opaque_black = 0
       256.times do |mask|
         sample = { '50,45' => { 'floor' => 'field', 'height' => 1 } }
@@ -231,7 +358,7 @@ module ArenaDemo::NativeReliefProbe
           super
         end
       end)
-      %w[mud type_poison type_dark type_ghost type_psychic].each do |ground|
+      %w[mud type_poison type_dark type_psychic].each do |ground|
         $native_floor_motifs = []
         bare = Bitmap.new(32, 32)
         ArenaDemo.draw_platform_floor(bare, ground)
@@ -301,7 +428,7 @@ module ArenaDemo::NativeReliefProbe
           end
         end
       end
-      atlas = Bitmap.new(768, 288)
+      atlas = Bitmap.new(768, 384)
       ArenaMaterials::VISIBLE_FLOORS.each_with_index do |key, index|
         tile = ArenaDemo.platform_floor_bitmap(key)
         3.times do |y|
@@ -331,8 +458,8 @@ module ArenaDemo::NativeReliefProbe
         end
       end)
       entries = ArenaDemo.material_floor_entries
-      check.call(entries.length == 23 && (entries.map { |e| e[:ground] } & ArenaMaterials::RETIRED_FLOORS).empty?,
-        'flat visual list contains only the 22 retained floors and void')
+      check.call(entries.length == 28 && (entries.map { |e| e[:ground] } & ArenaMaterials::RETIRED_FLOORS).empty?,
+        'flat visual list contains the 27 offered floors and void')
       entries.concat(ArenaDemo.material_style_entries)
       check.call(ArenaDemo.material_style_entries.length == 11 && ArenaDemo.material_style_entries.none? { |e| e[:platform_style] == 'arena' },
         'combat arena platform retired from the visible selector without changing old style IDs')
@@ -349,7 +476,9 @@ module ArenaDemo::NativeReliefProbe
        [style_options, style_options.index { |e| e[:platform_style] == 'industrial' }, 'Industrielle', '-picker-industrial.png'],
        [style_options, style_options.index { |e| e[:platform_style] == 'wood' }, 'Bois', '-picker-wood.png'],
        [style_options, style_options.index { |e| e[:platform_style] == 'crystal' }, 'Cristal', '-picker-crystal.png'],
-       [all_floors, all_floors.index { |e| e[:ground] == 'water' }, 'Eau', '-picker-water.png']].each do |options, index, title, suffix|
+       [all_floors, all_floors.index { |e| e[:ground] == 'water' }, 'Eau', '-picker-water.png'],
+       [all_floors, all_floors.index { |e| e[:ground] == 'holo_hex' }, 'Hexagones holographiques', '-picker-holo.png'],
+       [all_floors, all_floors.index { |e| e[:ground] == 'quicksand' }, 'Sables mouvants', '-picker-quicksand.png']].each do |options, index, title, suffix|
         $native_picker_action = :confirm
         $native_picker_capture = true
         selected = ArenaDemo.choose_material_catalog(options, "Choisissez : #{title}", index)
@@ -379,7 +508,7 @@ module ArenaDemo::NativeReliefProbe
       $scene = picker_scene
       # Export both a tile composition and the real renderer/player frame.
       [[canvas, path.sub(/\.log$/, '.png')], [screenshot, path.sub(/\.log$/, '-player.png')],
-       [atlas, path.sub(/\.log$/, '-floors.png')], *picker_shots].each do |output, filename|
+       [atlas, path.sub(/\.log$/, '-floors.png')], *picker_shots, *$native_sink_shots].each do |output, filename|
         width, height = output.width, output.height
         rows = String.new
         height.times do |y|

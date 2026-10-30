@@ -7,10 +7,10 @@ class ArenaReliefServerTest < Minitest::Test
     socket = TCPSocket.new('127.0.0.1', @backend.reactor.port)
     @clients << socket
     send_frame(socket, type: :arena_hello)
-    assert_equal 8, receive(socket)[:version]
+    assert_equal 9, receive(socket)[:version]
     send_frame(socket, type: :pos, map: 102, x: 4, y: 6)
     send_frame(socket, type: :ping, t: 1)
-    assert_equal 8, until_type(socket, :pong)[:arena_visits]
+    assert_equal 9, until_type(socket, :pong)[:arena_visits]
     socket
   end
   def relief_payload
@@ -112,7 +112,7 @@ class ArenaReliefServerTest < Minitest::Test
       assert_equal [x, y], until_type(guest, :pos).values_at(:x, :y)
     end
   end
-  def test_water_and_new_material_codes_relay_and_block_water_until_surf_is_implemented
+  def test_water_and_new_material_codes_relay_and_block_water_on_foot
     host, guest = connect, connect
     payload = relief_payload
     ArenaMaterials::FLOORS.each_key.with_index do |key, i|
@@ -137,5 +137,61 @@ class ArenaReliefServerTest < Minitest::Test
     until_type(guest, :pos)
     send_frame(host, type: :pos, map: 100, x: 48, y: 53)
     assert_equal [49, 53], until_type(host, :pos_correct).values_at(:x, :y)
+  end
+
+  def test_surf_toxic_and_quicksand_return_are_validated_against_room_layout
+    host, guest = connect, connect
+    payload = relief_payload
+    payload[:relief] = '0' * 10000
+    { [48, 53] => 'marsh_water', [48, 52] => 'toxic', [50, 53] => 'quicksand' }.each do |(x, y), ground|
+      payload[:surface].setbyte(y * 100 + x, ArenaMaterials::SURFACE_CODES.fetch(ground).ord)
+    end
+    send_frame(host, payload)
+    room = until_type(host, :arena_state)
+    joined = join(host, guest, room)
+    assert_equal payload[:surface], joined[:surface]
+    send_frame(guest, type: :pos, map: 100, x: 49, y: 53)
+    send_frame(guest, type: :ping, t: 1)
+    until_type(guest, :pong)
+    send_frame(host, type: :pos, map: 100, x: 49, y: 53)
+    until_type(guest, :pos)
+    send_frame(host, type: :pos, map: 100, x: 48, y: 53, mode: :walk)
+    assert_equal [49, 53], until_type(host, :pos_correct).values_at(:x, :y)
+    send_frame(host, type: :pos, map: 100, x: 48, y: 53, mode: :surf)
+    assert_equal [48, 53, :surf], until_type(guest, :pos).values_at(:x, :y, :mode)
+    send_frame(host, type: :pos, map: 100, x: 48, y: 52, mode: :surf)
+    assert_equal [48, 53], until_type(host, :pos_correct).values_at(:x, :y)
+    send_frame(host, type: :pos, map: 100, x: 49, y: 53, mode: :walk)
+    until_type(guest, :pos)
+    send_frame(host, type: :pos, map: 100, x: 50, y: 53)
+    assert_equal [50, 53], until_type(guest, :pos).values_at(:x, :y)
+    send_frame(host, type: :pos, map: 100, x: 51, y: 53)
+    assert_equal [50, 53], until_type(host, :pos_correct).values_at(:x, :y), 'Trap cannot be walked out of'
+    send_frame(host, type: :pos, map: 100, x: 49, y: 53)
+    assert_equal [49, 53], until_type(guest, :pos).values_at(:x, :y)
+    # A second, distant trap exercises the nonadjacent return exception.
+    send_frame(host, type: :arena_close)
+    until_type(guest, :arena_state)
+    until_type(host, :arena_state)
+    payload[:surface].setbyte(53 * 100 + 51, ArenaMaterials::SURFACE_CODES.fetch('quicksand').ord)
+    payload[:surface].setbyte(53 * 100 + 50, 49)
+    send_frame(host, type: :pos, map: 102, x: 4, y: 6)
+    send_frame(host, type: :ping, t: 3)
+    until_type(host, :pong)
+    send_frame(guest, type: :pos, map: 102, x: 8, y: 10)
+    send_frame(guest, type: :ping, t: 3)
+    until_type(guest, :pong)
+    send_frame(host, payload)
+    room = until_type(host, :arena_state)
+    join(host, guest, room)
+    send_frame(guest, type: :pos, map: 100, x: 49, y: 53)
+    send_frame(guest, type: :ping, t: 2)
+    until_type(guest, :pong)
+    [[49, 53], [50, 53], [51, 53], [49, 53]].each do |x, y|
+      send_frame(host, type: :pos, map: 100, x: x, y: y)
+      assert_equal [x, y], until_type(guest, :pos).values_at(:x, :y)
+    end
+    send_frame(host, type: :pos, map: 100, x: 52, y: 53)
+    assert_equal [49, 53], until_type(host, :pos_correct).values_at(:x, :y), 'No arbitrary teleport on ordinary ground'
   end
 end
