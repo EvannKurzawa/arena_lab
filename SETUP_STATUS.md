@@ -1,5 +1,35 @@
 # Setup and implementation status
 
+## Livraison v8.4 — 2026-10-30
+
+User requested README/status update, commit message v8.4 and push to origin/main.
+Game source release consolidates all changes since v8.3: updater v6.2.7 WMI
+check fix and v6.2.8 automatic French preparation, missing-title repair,
+arena-native Surf without story progression, raised liquids and animated
+south cascades, seamless joins/corners, adjacent/wall-mediated style inheritance,
+safe map transfers and held-Enter text acceleration. Plugin remains 0.19.2,
+visit protocol 11. User trainer profiles are preserved. Upstream dependencies
+unchanged. README now distinguishes game source v8.4 from installer v6.2.8.
+
+Latest already-executed focused checks (documented in entries below):
+- arena_relief_test.rb: 20 runs / 960 assertions, passing.
+- player_controls_test.rb: 10 runs / 35 assertions, passing.
+- arena_relief_server_test.rb: 7 runs / 118 assertions, passing.
+- arena_visits_server_test.rb: 6 runs / 98 assertions, passing.
+- tools/test-native-relief.py --picker: 411 native checks, passing.
+- tools/test-updater.ps1, test-french-install.ps1 -Network,
+  test-title-install.ps1 and French compiler path checks: passing.
+43 Ruby tests / 1,211 assertions total. These checks were executed during the
+preceding implementation turns; not rerun for this documentation-only release
+commit. Release validation: reviewed current metadata/worktree/history and
+git diff --check. No new manual two-client visit or second-PC playtest claimed.
+
+This commit changes README and status only; implementation commits are already
+on main. Excludes unrelated title_screen_design.pptx, local runtime assets,
+captures, saves and credentials. No new GitHub installer release created.
+Delivery: use existing ArenaLab-Update.exe v6.2.8 on both PCs (fetches main),
+restart Play-Arena.bat and updated host for protocol 11.
+
 ## Inheritance through walls and held-Enter dialogue — 2026-10-30 (0.19.2)
 
 New extensions now resolve an adjacent south-wall cell to the summit north

@@ -1,5 +1,29 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Dernière version du code : v8.4
+
+Version interne : **Arena Demo 0.19.2** ; visites multijoueurs au **protocole 11**.
+Cette version regroupe les corrections depuis v8.3 :
+
+- Écran titre réparé sur les installations mises à jour ; préparation automatique
+  des données françaises manquantes avec vérification du téléchargement.
+- Surf accessible depuis la rive dans l'arène sans badge ni capacité requise.
+- Liquides sur plateformes avec hauteur et murs conservés, raccords sans
+  bordures internes et sans encoche au contact des parois sud.
+- Coulées animées pour eau, lave, marécage, déchets toxiques et boue.
+- Extensions héritant du style voisin, y compris sur un mur ou à travers sa case.
+- Retours à l'entrée stabilisés ; maintien d'Entrée pour accélérer le texte ×4.
+
+Vérifications déjà effectuées : **43 tests / 1 211 assertions**, **411 contrôles
+dans le moteur**, plus tests de téléchargement/préparation du français et du
+titre. Les visites réseau sont vérifiées par sockets ; aucune nouvelle visite
+manuelle entre deux fenêtres n'est revendiquée. Les Dresseurs ajoutés sont conservés.
+
+Fermez les jeux et lancez **ArenaLab-Update.exe v6.2.8 sur les deux PC** : il
+récupère le code actuel de GitHub `main`, dont v8.4. Relancez **Play-Arena.bat**
+et redémarrez le serveur pour le protocole 11. Le numéro de l'updater est distinct
+de celui du jeu ; aucun nouvel EXE n'est nécessaire.
+
 ## Extensions depuis un mur et dialogues (Arena Demo 0.19.2)
 
 Une plateforme ajoutée sur une paroi, ou contre cette paroi à une case du
@@ -45,7 +69,7 @@ Fermez les jeux puis lancez l'updater et **Play-Arena.bat** sur les deux PC.
 Redémarrez le serveur : les visites passent au **protocole 10** pour accepter
 l'eau surélevée et vérifier ses collisions.
 
-## Dernière version publiée : v8.3
+## Historique : v8.3
 
 Cette version ajoute les sols interactifs et animés, ainsi que le catalogue
 de Dresseurs enrichi dans `009_ArenaCustomMode.rb`, avec leurs noms, sprites
