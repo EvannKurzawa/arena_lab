@@ -1,5 +1,42 @@
 # Setup and implementation status
 
+## Installer publication v6.2.7 — 2026-10-30
+
+User authorized publishing the fixed updater on GitHub as v6.2.7, with rebuilt
+Setup. Publisher default/release notes distinguish installer v6.2.7 from game
+source v8.3. Validation: tools/test-updater.ps1 and package-deliverables.ps1;
+publication command: tools/publish-installers.ps1 -Tag v6.2.7. Setup is pinned
+to the release source commit, updater fetches current main. Artifacts remain
+in ignored dist. Release URL:
+https://github.com/EvannKurzawa/arena_lab/releases/tag/v6.2.7 .
+Earlier local hashes below describe the pre-publication build only. No changes
+to game, trainers, assets or saves in this release. Affected PC must retry;
+no successful end-to-end update claimed there.
+
+## Updater failure after folder selection — 2026-10-30
+
+User reports the generic Windows error after selecting an installation and
+pressing OK in published v6.2.6 updater. Inspection finds the next operation
+is Get-CimInstance Win32_Process; WMI/CIM failure is the probable cause,
+not confirmed on the affected PC. Replaced this check with Get-Process plus
+literal case-insensitive executable-path boundary matching. Unknown or
+unreadable game paths block update with a close-game instruction. Added
+step-specific failure dialogs and timestamped TEMP diagnostic files. Added
+optional -InstallDirectory, disposed folder picker and explicit wrapper -STA.
+
+Executed powershell -NoProfile -ExecutionPolicy Bypass -File tools/test-updater.ps1:
+passed parser/live listing/empty list/literal case-insensitive paths/sibling
+directory/unknown path/access-denied fixtures and absence of WMI dependency.
+Executed powershell -NoProfile -ExecutionPolicy Bypass -File tools/package-deliverables.ps1:
+both wrappers compiled; local dist/ArenaLab-Update.exe SHA256
+2983C31BB20073F106853D21E2D9ABCF0A0961F9504D3CDE251F736FBE4A8BEE.
+Setup remains pinned to d5ba6b9ac0e432e4d9f0948494e0956e14ef8d77.
+No real installation overwritten, no full GUI/network update performed, and no
+reproduction on the second PC. GitHub published updater not replaced here.
+Transfer local dist/ArenaLab-Update.exe to the affected PC, close games, retry;
+if still failing, read the new step and diagnostic log. Changes: updater,
+wrapper, new focused PowerShell test, README and status. No game/save changes.
+
 ## Livraison v8.3 — 2026-10-30
 
 Release combines interactive/animated floors (Arena Demo 0.18.1), native Surf,

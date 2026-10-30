@@ -17,7 +17,7 @@ internal static class ArenaLabBootstrap
             string powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "WindowsPowerShell\\v1.0\\powershell.exe");
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = powershell;
-            start.Arguments = "-NoLogo -NoProfile -ExecutionPolicy Bypass -File \"" + scriptPath + "\"";
+            start.Arguments = "-NoLogo -NoProfile -STA -ExecutionPolicy Bypass -File \"" + scriptPath + "\"";
             start.UseShellExecute = true;
             start.WindowStyle = ProcessWindowStyle.Normal;
             using (Process child = Process.Start(start))

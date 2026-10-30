@@ -1,4 +1,4 @@
-param([string]$Tag = 'v6.2.6')
+param([string]$Tag = 'v6.2.7')
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $repo = 'EvannKurzawa/arena_lab'
@@ -7,7 +7,7 @@ $assets = @(
     (Join-Path (Split-Path $PSScriptRoot -Parent) 'dist/ArenaLab-Update.exe')
 )
 foreach ($asset in $assets) { if (!(Test-Path -LiteralPath $asset)) { throw "Build package missing: $asset. Run tools/package-deliverables.ps1 first." } }
-if ($Tag -notmatch '^v[0-9]+\.[0-9]+(?:\.[0-9]+)?$') { throw 'Use a semantic version tag such as v6.2.6.' }
+if ($Tag -notmatch '^v[0-9]+\.[0-9]+(?:\.[0-9]+)?$') { throw 'Use a semantic version tag such as v6.2.7.' }
 
 # Reuse the user's existing Git credential without displaying or writing it.
 $credentialText = "protocol=https`nhost=github.com`n`n" | & git credential fill
@@ -33,13 +33,15 @@ try {
     $release = $existing
 } catch {
     if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw }
-    $releaseBody = @'
-Windows client bootstrap and source updater for Arena Lab v6.2.6.
+    $releaseBody = @"
+Windows client bootstrap and source updater for Arena Lab $Tag (game source v8.3).
 
 ArenaLab-Setup.exe installs the client from pinned public source/runtime dependencies and asks for the player's own Essentials v21.1 game folder. It does not contain Pokémon-derived assets or provision a fresh PostgreSQL host.
 
-ArenaLab-Update.exe updates Arena Lab source files from GitHub main while preserving local game data. Close all game windows before running it, then restart the host service and both clients. v6.2.6 also detects and safely replaces an idle older Arena Lab host service. The release includes v6.2.5 fixes for remote-follower movement crashes, guide collision pushback, and sending the host's customized arena ground and placed furniture/trainers to visitors. Following Pokemon EX remains optional and is not bundled; both players need their separately supplied archive and assets to see each other's follower sprites. The village remains a rough placeholder for manual RPG Maker XP redesign, with open-world routes and encounters planned later.
-'@
+ArenaLab-Update.exe downloads current GitHub main while preserving local assets, saves, accounts and server data. This release replaces the WMI/CIM running-game check that could fail immediately after selecting an installation folder. It also adds explicit STA mode for folder dialogs and step-specific errors with a diagnostic log in TEMP. The original failure has not been reproduced on the affected computer; process-check tests pass and both EXEs compile successfully.
+
+Close all game windows before updating, then launch Play-Arena.bat. For multiplayer, update both clients and restart the updated host (visit protocol 9). The game source includes animated liquids, native Surf, quicksand traps and the expanded trainer catalogue from v8.3.
+"@
     $payload = @{
         tag_name = $Tag
         target_commitish = 'main'

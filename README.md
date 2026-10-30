@@ -404,6 +404,26 @@ all work in-game.
 
 ## Windows installers
 
+Installer/updater release: **v6.2.7**, for game source **v8.3**.
+[Download ArenaLab-Update.exe](https://github.com/EvannKurzawa/arena_lab/releases/download/v6.2.7/ArenaLab-Update.exe)
+for an existing installation; it fetches the current GitHub `main`.
+
+If the updater reports a generic Windows error immediately after selecting the
+folder, use a rebuilt updater containing the process-check fix. The updater now
+checks running games without WMI/CIM, reports the failing step and writes a
+diagnostic to `%TEMP%/ArenaLab-Update-error-*.log`. Running games still block
+updates; an unreadable game process asks you to close its window and retry.
+For a folder-dialog issue, the source script also accepts `-InstallDirectory`.
+See SETUP_STATUS.md for local build versus published-package status.
+
+If the updater reports a generic Windows error immediately after selecting the
+folder, use a rebuilt updater containing the process-check fix. The updater now
+checks running games without WMI/CIM, reports the failing step and writes a
+diagnostic to `%TEMP%/ArenaLab-Update-error-*.log`. Running games still block
+updates; an unreadable game process asks you to close its window and retry.
+For a folder-dialog issue, the source script also accepts `-InstallDirectory`.
+See SETUP_STATUS.md for local build versus published-package status.
+
 The Windows build has two self-extracting EXE packages available from the
 [latest GitHub release](https://github.com/EvannKurzawa/arena_lab/releases/latest).
 `ArenaLab-Setup.exe`
