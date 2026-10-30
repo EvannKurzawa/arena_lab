@@ -541,6 +541,48 @@ module ArenaDemo::NativeReliefProbe
       end
       picker_shots << [cascade_canvas, path.sub(/\.log$/, '-waterfall.png')]
       # Execute the actual Scene_Map transfer with a step still interpolating.
+      extension_records = { '40,42' => { 'floor' => 'field', 'height' => 1, 'ground' => 'desert', 'platform_style' => 'desert' } }
+      check.call(ArenaDemo.editor_apply_relief(extension_records, [], 40, 44, 1) && extension_records['40,44']['platform_style'] == 'desert',
+        'native extension inherits style across the visible wall cell')
+      check.call(ArenaDemo.editor_apply_relief(extension_records, [], 40, 43, 1) && extension_records['40,43']['ground'] == 'desert',
+        'native platform over a wall inherits its owning summit theme')
+      Input.singleton_class.prepend(Module.new do
+        def pressex?(key)
+          return $native_hold_enter if key == :RETURN && !$native_hold_enter.nil?
+          super
+        end
+      end)
+      message = Window_AdvancedTextPokemon.newWithSize('', 0, 0, 480, 96)
+      message.letterbyletter = true
+      message.textspeed = 0.05
+      message.text = 'abcdefghijklmnopqrstuvwxyz'
+      message.instance_variable_set(:@display_timer, 0.0)
+      message.instance_variable_set(:@display_last_updated, System.uptime - 0.11)
+      $native_hold_enter = false
+      message.updateInternal
+      normal_chars = message.instance_variable_get(:@curchar)
+      message.text = 'abcdefghijklmnopqrstuvwxyz'
+      message.instance_variable_set(:@display_timer, 0.0)
+      message.instance_variable_set(:@display_last_updated, System.uptime - 0.11)
+      $native_hold_enter = true
+      message.updateInternal
+      fast_chars = message.instance_variable_get(:@curchar)
+      check.call(fast_chars > normal_chars * 2, 'holding Enter accelerates actual native letter reveal')
+      check.call(message.textspeed == 0.05, 'holding Enter preserves configured text speed')
+      $native_hold_enter = false
+      message.instance_variable_set(:@display_timer, 0.0)
+      message.instance_variable_set(:@display_last_updated, System.uptime - 0.11)
+      message.updateInternal
+      check.call(message.instance_variable_get(:@curchar) - fast_chars <= normal_chars + 1, 'releasing Enter immediately restores normal dialogue pace')
+      message.text = "AB\1CD"
+      $native_hold_enter = true
+      3.times do
+        message.instance_variable_set(:@display_last_updated, System.uptime - 0.2)
+        message.updateInternal
+      end
+      check.call(message.pausing?, 'holding Enter does not dismiss an explicit message pause')
+      message.dispose
+      $native_hold_enter = nil
       # Reproduce connected liquid tiles and the lower summit beside a wall.
       seams = {}
       (43..46).each { |y| (43..49).each { |x| seams["#{x},#{y}"] = { 'floor' => 'field', 'height' => 1, 'ground' => 'desert', 'platform_style' => 'desert' } } }

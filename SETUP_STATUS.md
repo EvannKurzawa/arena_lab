@@ -1,5 +1,35 @@
 # Setup and implementation status
 
+## Inheritance through walls and held-Enter dialogue — 2026-10-30 (0.19.2)
+
+New extensions now resolve an adjacent south-wall cell to the summit north
+of that wall, so a cell one wall away also inherits the existing theme/base
+floor. A platform placed directly over a wall takes that wall owner's style
+before considering differently styled side neighbors. Other neighbor majority
+and tie rules remain. No room format, movement or protocol change (still 11).
+
+Added 033_ArenaDialogueSpeed.rb using Window_AdvancedTextPokemon#updateInternal.
+Holding physical Return temporarily divides positive character delay by four;
+ensure restores original delay each update. Native wait timers, explicit
+pauses, Input trigger edges and choice confirmation remain unchanged. Releasing
+Enter restores the configured pace immediately; no global text-speed setting
+is modified and zero-delay text remains instant.
+
+Executed portable Ruby game-mod/test/arena_relief_test.rb: 20 runs / 960
+assertions, passing (wall-distance inheritance and owner-style priority).
+Executed portable Ruby game-mod/test/player_controls_test.rb: 10 runs / 35
+assertions, passing. Executed C:/msys64/mingw64/bin/python.exe
+tools/test-native-relief.py --picker: 411 checks passed. Actual native message
+window verifies held Enter reveals more letters, preserves configured speed,
+slows down on release, and stays at an explicit pause. Native editor verifies
+wall-distance and direct wall placement inheritance. Input held state simulated
+only in the disposable probe. No manual multi-client session claimed.
+Probe/disposable save cleaned; local plugin/cache restored to 0.19.2 (36 scripts).
+git diff --check passed. Changed 027, new 033, metadata, focused editor/native
+tests, README/material docs and this status. No user trainer/save changes.
+Existing v6.2.8 updater fetches these source changes; relaunch Play-Arena.bat
+on both PCs. No new EXE, server protocol or upstream dependency required.
+
 ## Liquid joins, all-material cascades and inherited extensions — 2026-10-30 (0.19.1)
 
 Screenshot showed internal rims between raised water cells and rounded notches

@@ -117,9 +117,18 @@ module ArenaDemo
     end
     record = tile_surface_state(records, x, y)
     if code > 0 && relief_code(records, x, y).to_i == 0
-      neighbors = [[0, -1], [1, 0], [0, 1], [-1, 0]].filter_map do |dx, dy|
-        platform_style_at(records, x + dx, y + dy) if relief_code(records, x + dx, y + dy).to_i > 0
-      end
+      neighbors = if relief_wall?(records, x, y)
+                    [platform_style_at(records, x, y - 1)]
+                  else
+                    [[0, -1], [1, 0], [0, 1], [-1, 0]].filter_map do |dx, dy|
+                      nx, ny = x + dx, y + dy
+                      if relief_code(records, nx, ny).to_i > 0
+                        platform_style_at(records, nx, ny)
+                      elsif relief_wall?(records, nx, ny)
+                        platform_style_at(records, nx, ny - 1)
+                      end
+                    end
+                  end
       unless neighbors.empty?
         style = neighbors.max_by { |candidate_style| neighbors.count(candidate_style) }
         record['platform_style'] = style

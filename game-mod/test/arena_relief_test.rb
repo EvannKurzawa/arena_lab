@@ -32,6 +32,19 @@ def pbMessage(message, choices = nil, *)
 end
 
 class ArenaReliefTest < Minitest::Test
+  def test_extension_inherits_through_wall_and_wall_owner_wins
+    assert edit(44, 42, 1)
+    assert ArenaDemo.editor_apply_platform_style(@records, 44, 42, 'wood')
+    assert ArenaDemo.relief_wall?(@records, 44, 43)
+    assert edit(44, 44, 1), 'Can extend south of the visible wall'
+    assert_equal 'wood', @records['44,44']['platform_style']
+    assert_equal 'wood', @records['44,44']['ground']
+    assert edit(43, 43, 1)
+    assert ArenaDemo.editor_apply_platform_style(@records, 43, 43, 'desert')
+    assert edit(44, 43, 1), 'Can replace the wall with a summit'
+    assert_equal 'wood', @records['44,43']['platform_style'], 'The wall belongs to the northern platform'
+    assert_equal 'wood', @records['44,43']['ground']
+  end
   def test_extensions_inherit_neighbor_theme_without_copying_liquid
     assert edit(44, 44, 1)
     assert ArenaDemo.editor_apply_platform_style(@records, 44, 44, 'desert')

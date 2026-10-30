@@ -1,5 +1,16 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Extensions depuis un mur et dialogues (Arena Demo 0.19.2)
+
+Une plateforme ajoutée sur une paroi, ou contre cette paroi à une case du
+plateau, reprend le style du plateau qui porte le mur. Si la case remplace
+directement un mur, le style de son plateau d'origine est prioritaire.
+
+Pendant un dialogue, maintenir **Entrée** affiche les lettres quatre fois
+plus vite. Relâcher rétablit la vitesse choisie ; les pauses et la validation
+des choix restent manuelles. Mettez à jour puis relancez **Play-Arena.bat**.
+Le protocole multijoueur reste **11**.
+
 ## Raccords, coulées et extensions (Arena Demo 0.19.1)
 
 Les liquides voisins sur une plateforme se raccordent sans bordure de pierre

@@ -14,6 +14,9 @@ l'eau, la lave, le marécage et les déchets. La boue reste praticable.
 Ajouter une case contre une plateforme reprend le style et le sol de base
 de ses voisines, sans recopier leurs liquides peints. Le style majoritaire
 des quatre voisins directs gagne ; égalité : haut, droite, bas, gauche.
+Depuis la version 0.19.2, une paroi voisine transmet aussi le style du plateau
+qui la porte. Une case posée directement sur un mur hérite en priorité de ce
+plateau d'origine, même si un autre style touche le côté de la nouvelle case.
 
 Dans l'arène, Entrée depuis une rive accessible propose Surf sans badge ni
 capacité dans l'équipe. Le véhicule et la sortie d'eau viennent d'Essentials.
