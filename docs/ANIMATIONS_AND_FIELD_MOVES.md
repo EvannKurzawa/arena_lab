@@ -1,5 +1,21 @@
 # Animations, rendu et objets CS
 
+## Force au contact et déplacement animé — 0.21.3
+
+Entrée sert à activer Force. Les rochers de la pièce deviennent ensuite
+poussables au contact : continuer à avancer contre eux suffit. Le retour
+dans une nouvelle session de pièce ou une réinitialisation solo demande
+une nouvelle activation.
+
+En solo, la poussée utilise toujours le mouvement animé natif d'Essentials.
+En multijoueur, le serveur valide la case avant le déplacement, puis chaque
+client anime le rocher avec l'interpolation native des événements et le son
+de poussée. Les instantanés d'arrivée et les réinitialisations affichent
+directement leur position ; les messages en double ne rejouent pas l'animation.
+Le contact est suspendu pendant une demande en attente, puis réactivé à la
+réponse, pour éviter que maintenir la direction empêche son application.
+Une destination bloquée localement ne génère pas de demandes répétées.
+
 ## Correctifs de synchronisation — 0.21.2
 
 Les actions CS dans l'arène gardent le joueur face à l'objet. La chorégraphie
@@ -15,8 +31,8 @@ Protocole 12 conservé ; appliquer le correctif aux deux clients après publicat
 
 ## Dialogues et effets CS — 0.21.1
 
-Force exige Entrée face au rocher, y compris pour chaque poussée. Approcher
-le rocher ne suffit plus à lancer le dialogue.
+Force exige Entrée face au rocher pour l'activation. Depuis 0.21.3, avancer
+contre le rocher permet les poussées suivantes sans relancer le dialogue.
 
 Les messages courts sont vérifiés dans le [script français de HeartGold et
 SoulSilver, fichier texte 211](https://github.com/abcboy101/poke-corpus/blob/main/corpus/HeartGoldSoulSilver/fr_msg.txt).
@@ -91,7 +107,7 @@ Les badges du scénario de démonstration ne sont pas requis dans cette arène.
   L'objet devient temporairement invisible et traversable, sans retour au Sac
   et sans modification du placement enregistré.
 - **Force** s'active, puis permet de pousser le gros rocher d'une case à la fois,
-  en appuyant sur Entrée face à lui. Les collisions, autres occupants,
+  en avançant contre lui après l'activation avec Entrée. Les collisions, autres occupants,
   le vide, les liquides dangereux, escaliers et rebords bloquent la poussée.
 - L'annulation ou l'absence de capacité apprise ne modifie pas la disposition.
   La position du rocher poussé est temporaire elle aussi. Le plan d'origine et

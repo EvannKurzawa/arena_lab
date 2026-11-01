@@ -1,5 +1,20 @@
 # Arena Demo
 
+## Dark Lugia (XD001), option locale (0.21.4)
+
+`095_DarkLugia.rb` enregistre une forme de Lugia seulement si les
+quatre sprites locaux sont présents. Le menu pause permet de consulter la forme
+dans le Pokédex ou de recevoir Dark Lugia niveau 100. La forme est Ténèbres/Vol
+avec son propre apprentissage, et conserve les stats et talents de Lugia;
+les mécaniques Shadow/Purification de Pokémon XD ne
+sont pas ajoutées.
+
+`tools/install_dark_lugia.rb GAME_ROOT [SOURCE_PNG]` découpe la planche locale
+`xd001.png` (SHA-256 vérifié) en avant/arrière, icônes et suiveur, avec Ruby
+standard uniquement. `tools/local-multiplayer.ps1 -Action Prepare` l'importe
+automatiquement depuis la racine du projet. Garder l'image originale locale;
+elle et les fichiers importés ne sont pas distribués dans le dépôt.
+
 ## Relief et catalogue de matières (0.18.0)
 
 Nouveaux sols : Déchets toxiques (jaune fluorescent, infranchissable), Eau de

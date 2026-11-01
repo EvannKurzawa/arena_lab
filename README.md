@@ -1,6 +1,100 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Dernière version du code : v9.0.2 (Arena Demo 0.21.2)
+## Dernière version du code : v9.1 (Arena Demo 0.21.4)
+
+Cette version ajoute Dark Lugia et ses animations, les sprites de combat animés
+des 649 premières espèces et de leurs formes prises en charge, les aperçus de
+Dresseurs corrigés, et l'équipe personnelle de debug niveau 100. Force se
+déclenche avec Entrée une première fois, puis les rochers se poussent en
+avançant contre eux, avec un déplacement animé partagé en multijoueur.
+
+### Dark Lugia Ténèbres/Vol et attaques obscures
+
+Dark Lugia est désormais **Ténèbres/Vol** et apprend sa propre liste de capacités
+par niveau : Étonnement, Groz'Yeux, Cyclone et Draco-Rush (1), Brume (9), Provoc
+(18), Machination (27), Vibrobscur (36), Soin (45), Aéroblast (54), Ball'Ombre
+(63), Dévorêve (81) et Mort-Ailes (90). **Trou Noir est exclu.**
+
+Au niveau 100, le cadeau et les Dark Lugia déjà dans l'équipe reçoivent une fois
+**Aéroblast / Vibrobscur / Machination / Mort-Ailes**. Un exemplaire stocké au PC
+est mis à jour quand il rejoint l'équipe. Les modifications manuelles suivantes
+sont conservées. Relancer `Play-Arena.bat` pour charger le changement, puis
+sauvegarder normalement. Vérification native : 48 contrôles réussis sans lire
+ni écrire de sauvegarde joueur.
+
+## Équipe personnelle niveau 100 (local)
+
+Au prochain chargement via **Play-Arena.bat**, l'équipe temporaire est remplacée
+une seule fois par **Kyurem Blanc, Dark Lugia, Zekrom, Lugia, Giratina Originelle
+et Mew**, tous niveau 100. Giratina tient l'Orbe Platiné ; Mew possède Coupe,
+Surf, Éclate-Roc et Force. L'équipe précédente est conservée dans les métadonnées
+de sauvegarde pour récupération. L'installation locale de Dark Lugia est requise ;
+si elle manque, l'équipe actuelle est conservée.
+
+
+## Dark Lugia (XD001), intégration locale (Arena Demo 0.21.4)
+
+Dernier correctif local (import layout 7) : Dark Lugia reprend désormais les
+GIF du Lugia normal recolorés avec sa palette violette, en conservant toutes
+les poses et leur cadence. Les sprites de la planche restent utilisés pour
+l'icône, le Pokédex et le suiveur. Les rectangles du dos et des huit poses de
+map ont été corrigés pour conserver les extrémités des ailes. La préparation
+installe les GIF de base avant de générer cette variante locale.
+
+Son suiveur conserve le battement d'ailes ralenti. Les animations de combat
+gardent une échelle ×2 avec un cadre assez grand pour les ailes et les dos.
+
+L'image locale `xd001.png` est découpée par `game-mod/tools/install_dark_lugia.rb`
+en sprites de combat avant/arrière, icônes et suiveur. Le menu pause propose
+**Dark Lugia** : ouvrir sa fiche dans le Pokédex ou recevoir un exemplaire
+niveau 100. Il s'agit de la forme 1 de Lugia (#249) : stats et talents viennent
+des données natives de Lugia, avec le type et l'apprentissage propres décrits
+plus haut. Cela n'ajoute pas les mécaniques
+de Pokémon Obscur ni la purification de Pokémon XD.
+
+La préparation locale (`tools/local-multiplayer.ps1 -Action Prepare`) importe
+les sprites dans le jeu privé. Chaque PC doit avoir une copie identique de
+`xd001.png` à la racine du projet lors de cette préparation ; l'image d'origine
+et les sprites découpés restent locaux et sont ignorés par Git. L'auteur crédité
+sur la planche est ShadowGate31 ; les conditions de redistribution n'ont pas été
+vérifiées. Aucune image n'est incluse dans le dépôt. Le test natif a passé 23
+vérifications sans lire ni écrire de sauvegarde joueur.
+
+## Dresseurs complets et Pokémon animés en combat (local)
+
+Les aperçus de **Motard** et **Loubard** affichent désormais une pose entière,
+redimensionnée pour la ligne de sélection, dans les menus de recrutement et de pose.
+Le plugin `094_AnimatedBattlers.rb` anime les 649 premiers Pokémon en combat
+avec les sprites Noir/Blanc, de face/de dos et chromatiques. Les différences
+femelles disponibles et **82 formes alternatives de l’époque Noir 2/Blanc 2**
+sont prises en charge : Kyurem Noir/Blanc (y compris leurs états lumineux en
+combat), Giratina Originelle, Motisma, Deoxys, Zarbi, Arceus et autres formes
+détaillées dans la documentation. Les formes postérieures, Pichu Troizépi
+(sans animation dans ce pack), Pokémon Obscurs et motifs de Spinda conservent
+leur rendu natif.
+
+La préparation lancée par **Play-Arena.bat** installe automatiquement les
+sprites manquants depuis [PokéAPI Sprites](https://github.com/PokeAPI/sprites),
+avec une source figée et des empreintes SHA-256. Le premier lancement demande
+une connexion Internet et peut prendre quelques minutes ; les suivants utilisent
+les fichiers locaux. Images propriétaires conservées dans le runtime ignoré,
+sans ajout au dépôt ni modification des originaux. Protocole réseau inchangé.
+Voir [la documentation](docs/ANIMATED_BATTLERS.md).
+
+## Force : activation et poussées animées (Arena Demo 0.21.3, local)
+
+Appuyez sur **Entrée** face au rocher pour activer Force. Ensuite, avancez
+contre les rochers pour continuer à les pousser sans réappuyer sur Entrée.
+Chaque poussée fait glisser le rocher jusqu'à la case suivante, avec le son
+correspondant, en solo et sur les deux clients multijoueurs. En ligne, le
+déplacement commence après validation du serveur ; une demande en attente
+ne se répète pas tant que la direction reste maintenue.
+
+Corrections installées localement, non encore publiées : fermez le jeu puis
+relancez **Play-Arena.bat** sur ce PC. Après publication, mettez les deux clients
+à jour ; le protocole reste **12**.
+
+## Version précédente : v9.0.2 (Arena Demo 0.21.2)
 
 Cette mise à jour ajoute les nouveaux profils de Dresseuses Pique-Nique et les
 noms révisés des Peintres, ainsi que les deux correctifs ci-dessous.
@@ -38,8 +132,8 @@ et dans [SETUP_STATUS.md](SETUP_STATUS.md).
 
 ## Dialogues CS et effets sur les objets (Arena Demo 0.21.1)
 
-Le rocher de Force demande désormais **Entrée**, face au rocher, pour activer
-Force puis pour chaque poussée. S'en approcher ne déclenche plus de dialogue.
+Le rocher de Force demande **Entrée**, face au rocher, pour activer Force.
+Depuis 0.21.3, les poussées suivantes se font en avançant contre le rocher.
 Les textes de Coupe, Éclate-Roc et Force reprennent les dialogues français de
 HeartGold/SoulSilver, avec une typographie adaptée à l'interface.
 Coupe affiche une entaille et l'arbuste se sépare ; Éclate-Roc disperse le

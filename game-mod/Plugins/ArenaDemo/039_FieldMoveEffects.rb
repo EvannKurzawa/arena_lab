@@ -4,6 +4,30 @@ module ArenaDemo
   module FieldMoveEffects
     module_function
 
+    def push(event, point)
+      return if [event.x, event.y] == point
+      was_locked = $game_player.lock?
+      locked_here = !was_locked
+      $game_player.lock if locked_here
+      # Use the same real-coordinate interpolation as native event movement.
+      # Authority has already validated the destination; local peer sprites
+      # must not veto the accepted position. Coalesced states may span >1 tile.
+      event.instance_variable_set(:@move_initial_x, event.x)
+      event.instance_variable_set(:@move_initial_y, event.y)
+      event.instance_variable_set(:@x, point[0])
+      event.instance_variable_set(:@y, point[1])
+      event.instance_variable_set(:@move_timer, 0.0)
+      pbSEPlay('Strength push')
+      map = $game_map
+      while event.moving? && $game_map.equal?(map) && $scene.is_a?(Scene_Map)
+        Graphics.update
+        Input.update
+        pbUpdateSceneMap
+      end
+    ensure
+      $game_player.unlock if locked_here && $game_player
+    end
+
     def play(event)
       return unless event && !event.character_name.empty?
       cut = !!event.name[/cuttree/i]

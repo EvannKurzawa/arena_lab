@@ -61,6 +61,10 @@ function Prepare-Clients {
     if (!$?) { throw 'Following Pokemon EX setup failed.' }
     & "$PSScriptRoot/install-battle-animations.ps1" -GameRoot $gameRoot -Download
     if (!$?) { throw 'Battle animation pack setup failed.' }
+    & "$PSScriptRoot/install-animated-battlers.ps1" -GameRoot $gameRoot
+    if (!$?) { throw 'Animated battler sprite setup failed.' }
+    & "$PSScriptRoot/install-dark-lugia.ps1" -GameRoot $gameRoot
+    if (!$?) { throw 'Dark Lugia sprite setup failed.' }
     # Repair only the generated local junction after moving the workspace.
     $linkPath = Join-Path $gameRoot 'server'
     $link = Get-Item -LiteralPath $linkPath -Force -ErrorAction SilentlyContinue

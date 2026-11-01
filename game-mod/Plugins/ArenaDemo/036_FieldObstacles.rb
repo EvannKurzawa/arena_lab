@@ -64,9 +64,13 @@ module ArenaDemo
             begin
               @animating = true
               message[:field_states].each do |slot, point|
-                next unless point.nil? && !states.fetch(slot, :visible).nil?
                 event = $game_map.events[ArenaDemo::FURNITURE_SLOT_BASE + slot]
-                FieldMoveEffects.play(event) if event && !event.transparent
+                next unless event && !event.transparent
+                if point.nil? && !states.fetch(slot, :visible).nil?
+                  FieldMoveEffects.play(event)
+                elsif point && event.name[/strengthboulder/i] && point != [event.x, event.y]
+                  FieldMoveEffects.push(event, point)
+                end
               end
             ensure
               @animating = false
@@ -83,6 +87,7 @@ module ArenaDemo
       end
       if @pending && Visits.now - @pending[:sent_at] > 8
         @pending = nil
+        enable_strength_contact if $PokemonMap.strengthUsed && $game_map.map_id == ArenaDemo::MAP_ID
         @notice = 'La réponse du serveur tarde. Réessayez après la synchronisation.'
       end
       if @notice
@@ -130,8 +135,8 @@ module ArenaDemo
           event.character_name = ''
         end
         event.instance_variable_get(:@event).name = spec ? "Arena #{spec[1]}" : 'Arena furniture slot'
-        # Every field object requires the Action key, including Strength.
-        event.instance_variable_set(:@trigger, 0)
+        # Action activates Strength; afterwards contact can push every boulder.
+        event.instance_variable_set(:@trigger, spec && spec[0] == :STRENGTH && $PokemonMap.strengthUsed && !@pending ? 2 : 0)
         script = "ArenaDemo::FieldObstacles.interact(#{event.id}, self)"
         commands = []
         commands << RPG::EventCommand.new(355, 0, [script]) if spec && point
@@ -162,10 +167,19 @@ module ArenaDemo
         return false
       end
       if move == :STRENGTH
-        return false unless $PokemonMap.strengthUsed || with_native_access { pbStrength }
+        unless $PokemonMap.strengthUsed
+          return false unless with_native_access { pbStrength }
+          enable_strength_contact
+        end
       else
         return false unless with_native_access { move == :CUT ? pbCut : pbRockSmash }
       end
+      # Held movement against a blocked destination must stop locally rather
+      # than repeatedly submitting pushes the server will reject.
+      data = geometry
+      proposed = ArenaFieldState.proposal(data[:placements], states, slot, move, $game_player.direction,
+        data[:surface], data[:relief], ArenaDemo.relief_reserved, [[$game_player.x, $game_player.y]])
+      return false unless proposed
       if network?
         return false if @revision < 0
         PEMK::Presence.emit_now(:pos) if defined?(PEMK::Presence)
@@ -173,12 +187,11 @@ module ArenaDemo
         sent = Visits.send_request(:arena_field_request, :room => Visits.scope, :field_revision => @revision,
           :request => @request, :slot => slot, :move => move, :direction => $game_player.direction)
         @pending = { :request => @request, :sent_at => Visits.now, :revision => @revision } if sent
+        # Held movement must not keep restarting a contact interpreter while
+        # update waits for a safe frame to apply the authoritative reply.
+        enable_strength_contact(false) if sent
         return sent
       end
-      data = geometry
-      proposed = ArenaFieldState.proposal(data[:placements], states, slot, move, $game_player.direction,
-        data[:surface], data[:relief], ArenaDemo.relief_reserved, [[$game_player.x, $game_player.y]])
-      return false unless proposed
       if move == :STRENGTH
         return false unless push(event, interpreter)
       else
@@ -198,6 +211,12 @@ module ArenaDemo
       interpreter.pbPushThisEvent(true)
       return false if before == [event.x, event.y]
       true
+    end
+
+    def enable_strength_contact(enabled = true)
+      $game_map.events.each_value do |event|
+        event.instance_variable_set(:@trigger, enabled ? 2 : 0) if event.name[/strengthboulder/i]
+      end
     end
   end
 

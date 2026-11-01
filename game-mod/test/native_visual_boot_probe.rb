@@ -8,6 +8,13 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
       old_message = Object.instance_method(:pbMessage)
       old_confirm = Object.instance_method(:pbConfirmMessage)
       old_wait = Object.instance_method(:pbWait)
+      old_scene_update = Object.instance_method(:pbUpdateSceneMap)
+      Object.send(:define_method, :pbUpdateSceneMap) do
+        old_scene_update.bind(self).call
+        if $native_push_event && $native_push_samples
+          $native_push_samples << $native_push_event.real_x
+        end
+      end
       $field_effect_frames = 0
       Object.send(:define_method, :pbWait) do |duration, &animation|
         old_wait.bind(self).call(duration) do |elapsed|
@@ -70,8 +77,15 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
         boulder.clear_starting
         ArenaDemo.editor_apply_ground(records, placements, 50, 42, floor: 'field', ground: 'lava')
         check.call(!ArenaDemo::FieldObstacles.interact(boulder.id) && boulder.x == 49, 'Strength cannot push onto lava')
+        check.call(boulder.trigger == 2 && $PokemonMap.strengthUsed, 'first confirmed activation enables contact pushing even when the destination is blocked')
+        $game_player.check_event_trigger_touch(6)
+        check.call(boulder.starting, 'after activation, walking against the boulder starts the push without Action')
+        boulder.clear_starting
         ArenaDemo.editor_apply_ground(records, placements, 50, 42, floor: 'field', ground: 'plain')
+        $native_push_event, $native_push_samples = boulder, []
         check.call(ArenaDemo::FieldObstacles.interact(boulder.id) && boulder.x == 50, 'native Strength pushes exactly one tile')
+        unit = Game_Map::REAL_RES_X
+        check.call($native_push_samples.any? { |x| x > 49 * unit && x < 50 * unit }, 'offline push renders intermediate real coordinates before reaching the next tile')
         check.call($stats.strength_push_count == 1, 'native Strength push counter increments once')
         $game_player.moveto(49, 42)
         ArenaDemo.editor_apply_relief(records, placements, 51, 42, 1)
@@ -80,6 +94,7 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
         ArenaDemo.refresh_custom_placements
         record = placements.find { |p| p['item'] == 'ARENA_FURNITURE_BOULDER' }
         check.call(record && record['x'] == 49 && find.call(50), 'push survives refresh but does not edit the canonical placement')
+        check.call(find.call(50).trigger == 2, 'refresh retains contact pushing while Strength is active')
         saved = Marshal.load(Marshal.dump($PokemonGlobal))
         check.call(saved.arena_demo_placements.any? { |p| p['item'] == 'ARENA_FURNITURE_BOULDER' && p['x'] == 49 }, 'native save metadata retains original boulder position')
         check.call(!ArenaDemo::FieldObstacles.using?, 'temporary native badge access is restored')
@@ -109,6 +124,7 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
           Object.send(:define_method, :pbMessage) { |*| -1 }
         end
         check.call(find.call(45) && find.call(47) && find.call(49) && !find.call(50), 'entering custom mode restores all temporary changes')
+        check.call(find.call(49).trigger == 0, 'resetting the room requires Action to activate Strength again')
         tree = find.call(45)
         $game_player.moveto(44, 42)
         $game_player.direction = 6
@@ -129,6 +145,8 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
         Object.send(:define_method, :pbMessage, old_message)
         Object.send(:define_method, :pbConfirmMessage, old_confirm)
         Object.send(:define_method, :pbWait, old_wait)
+        Object.send(:define_method, :pbUpdateSceneMap, old_scene_update)
+        $native_push_event = $native_push_samples = nil
       end
     end
 
@@ -177,9 +195,14 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
       field = ArenaDemo::FieldObstacles
       saved = visits.instance_variables.to_h { |key| [key, visits.instance_variable_get(key)] }
       send_request = visits.method(:send_request)
+      pump = visits.method(:pump)
       payload = ArenaDemo.visit_snapshot_payload
       token = 'a' * 24
       begin
+        # Frames advance during push interpolation. Keep the simulated room
+        # open instead of letting the real offline socket pump close it.
+        visits.define_singleton_method(:pump) {}
+        [:@refresh, :@return_home, :@arrival, :@notice].each { |key| visits.instance_variable_set(key, nil) }
         visits.instance_variable_set(:@ready, true)
         visits.instance_variable_set(:@phase, :hosting)
         visits.instance_variable_set(:@room, token)
@@ -195,13 +218,42 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
         $game_player.moveto(49, 42)
         $game_player.direction = 6
         $PokemonMap.strengthUsed = true
+        records = ArenaDemo.tile_edit_records
+        key = ArenaDemo.tile_edit_key(51, 42)
+        previous_ground = records[key]
+        # Arrange a blocked shared layout directly: the real editor correctly
+        # refuses changes while a visit is open.
+        records[key] = ArenaDemo.tile_surface_state(records, 51, 42).merge('floor' => 'field', 'ground' => 'lava')
+        $native_field_request = nil
+        check.call(!field.interact(base + 2) && $native_field_request.nil?, 'held pushing against a blocked shared destination sends no repeated invalid requests')
+        previous_ground ? records[key] = previous_ground : records.delete(key)
         check.call(field.interact(base + 2), 'online Strength submits a request')
         check.call($native_field_request.values_at(:type, :slot, :move, :field_revision) == [:arena_field_request, 2, :STRENGTH, 1], 'request identifies canonical slot and server revision')
         check.call(events[base + 2].x == 50, 'online Strength waits for server approval before moving')
+        check.call(events[base + 2].trigger == 0, 'pending shared request suspends contact to avoid repeated interpreters under held movement')
         # Coalescing a later peer action must also release an older pending request.
+        $native_push_event, $native_push_samples = events[base + 2], []
         field.receive(message.merge(field_revision: 2, field_states: {0 => nil, 1 => nil, 2 => [51, 42]}, actor: 999))
         field.update
         check.call(events[base + 2].x == 51 && field.instance_variable_get(:@pending).nil?, 'newer room state releases pending action and applies movement')
+        unit = Game_Map::REAL_RES_X
+        check.call($native_push_samples.any? { |x| x > 50 * unit && x < 51 * unit }, 'accepted shared push renders intermediate real coordinates on the receiving client')
+        check.call(events[base + 2].trigger == 2 && !$game_player.lock?, 'after shared animation the player is unlocked and contact pushing resumes')
+        $native_push_samples = []
+        field.receive(message.merge(field_revision: 2, field_states: {0 => nil, 1 => nil, 2 => [51, 42]}, actor: 999))
+        field.update
+        check.call($native_push_samples.empty?, 'duplicate shared push state does not animate again')
+        $game_player.moveto(50, 42)
+        $game_player.move_right
+        3.times { Graphics.update; Input.update; $scene.update }
+        check.call(field.instance_variable_get(:@pending) && $native_field_request[:field_revision] == 2,
+          'walking against the boulder runs the real contact interpreter and submits the next push without Action')
+        request = $native_field_request[:request]
+        3.times { $game_player.move_right; Graphics.update; Input.update; $scene.update }
+        check.call($native_field_request[:request] == request, 'continued contact while awaiting approval does not submit duplicate pushes')
+        field.receive(message.merge(field_revision: 3, field_states: {0 => nil, 1 => nil, 2 => [52, 42]}, actor: 999))
+        field.update
+        check.call(events[base + 2].x == 52 && field.instance_variable_get(:@pending).nil?, 'the second contact push animates after server approval')
         field.clear
         field.receive(message.merge(field_revision: 2, field_states: {0 => nil, 1 => nil, 2 => [51, 42]}))
         field.update
@@ -225,6 +277,7 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
         check.call(ArenaDemo.visit_snapshot_payload[:placements] == payload[:placements], 'network effects never alter canonical snapshot')
       ensure
         visits.define_singleton_method(:send_request, send_request)
+        visits.define_singleton_method(:pump, pump)
         (visits.instance_variables - saved.keys).each { |key| visits.remove_instance_variable(key) }
         saved.each { |key, value| visits.instance_variable_set(key, value) }
         field.reset(true)

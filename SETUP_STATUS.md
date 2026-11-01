@@ -1,5 +1,241 @@
 # Setup and implementation status
 
+## v9.1 publication snapshot — 2026-11-01
+
+Release includes Strength contact pushing/interpolation, complete trainer
+preview frames, animated Gen 1-5 battlers and supported alternate forms, local
+XD001 artwork/importer and Dark/Flying custom learnset, plus the one-time
+six-member level-100 debug party migration. Arena Demo version 0.21.4; network
+protocol unchanged. External images, private runtime, saves and unrelated
+presentation are excluded. XD001 requires the original local sheet per PC.
+
+Final targeted checks: debug party 6/29; XD001 importer 4/59; battler scale 2/5;
+field-state server 6/152; field transfer 3/17. Total **21 tests / 262 assertions**,
+all passed. Latest XD001 native run: 48 checks passed without player save I/O.
+Additional full alternate-form fixture run (`tools/test-native-battlers.py`)
+timed out after 180 seconds following plugin loading; no native assertion
+results were produced, so this final extended run is not counted as passed.
+Its process was terminated and temporary junctions detached by the runner.
+Commit message requested: `v9.1`; destination: `origin/main`.
+
+## Dark Lugia Dark/Flying typing and custom learnset — local follow-up
+
+User requested Dark/Flying and the proposed dark-themed level-up list without
+Dark Void. Updated `095_DarkLugia.rb`: Astonish/Leer/Whirlwind/Dragon Rush (1),
+Mist (9), Taunt (18), Nasty Plot (27), Dark Pulse (36), Recover (45), Aeroblast
+(54), Shadow Ball (63), Dream Eater (81), Oblivion Wing (90). No move at level
+72 and no Dark Void. Normal Lugia retains its Psychic/Flying typing and native
+learnset; XD001 still inherits Lugia's stats/abilities.
+
+Level-100 gifts and existing party XD001 receive Aeroblast / Dark Pulse /
+Nasty Plot / Oblivion Wing once. Lower-level instances reset to the form's
+native level-up moves. The per-Pokemon saved marker preserves future manual
+move choices; stored instances migrate when moved into the party. No automatic
+save or healing is performed by this conversion. Save normally after relaunch.
+
+Ruby syntax passed. `tools/test-native-dark-lugia.py`: **48 native checks
+passed**, covering all requested move IDs, type/form separation, level-36
+learning, level-100 moves, conversion of an existing instance without healing,
+Marshal persistence of the one-time marker and preservation of manual choices.
+Existing GIF, follower and Pokédex checks also passed. Installed current plugin
+in the private runtime and refreshed its compiled plugin cache. No player save
+was read/written by the test; no complete battle or multiplayer test for this
+change. README and game-mod README updated. No commit/push.
+
+## Dark Lugia complete GIF animation and uncut wings — local
+
+User chose normal Lugia's animation recolored with Dark Lugia's palette. Import
+layout 7 changes GIF palette bytes only: all 60 front / 120 back frames, timing,
+transparency and disposal remain unchanged. Source hashes match the pinned pack.
+094 prefers these local GIFs; preparation installs base GIFs before the importer.
+Static back crop now starts at x=128 and uses a 208x208 canvas to keep the entire
+left wing. All eight follower crops now contain their full connected silhouettes.
+The source sheet remains the icon/Pokedex/follower art. All assets stay ignored.
+
+4 importer tests / 59 assertions passed, including exact wing silhouette areas
+and unchanged GIF bytes outside palettes. Isolated native run: 42 checks passed
+for frame counts, changed GIF pixels, battle sizes, follower and Pokedex. Both
+local runtime and fixture assets regenerated. No player save or shared cache
+modified by the test. No commit or push.
+
+## XD001 party icon and coherent back view — local follow-up
+
+Importer layout 5 removes the icon's one-pixel margin and scales both poses
+at 2x (the source silhouettes are 31/32 pixels wide, fitting 62/64 pixels exactly,
+like native Lugia). The two back drawings have different framing: one close-up
+and one full wing/body view. Back animation now uses only the full-body drawing
+with a two-pixel vertical hover; silhouette, scale and framing stay identical.
+No wing-flap interpolation is claimed for this two-frame idle animation.
+Regenerated local game and fixture assets. Importer tests: 3 runs / 44 assertions
+passed, including exact doubled icon pixel area and back-frame pixel identity
+after translation. The isolated native run also passed 42 checks, including
+actual changed back-pose pixels, follower/Pokedex compatibility and battle sizes.
+README updated. No commit/push.
+
+## Dark Lugia animation and battle sprite scale — local
+
+Dark Lugia importer layout 4 fixes frame-dependent integer scaling: both party
+icon poses use 1x, all follower poses use 2x. Follower frames now hold A,A,B,B
+instead of A,B,A,B, halving the wing-cycle frequency with native follower timing.
+The local source's three front/two back combat poses produce native animated
+PNG strips (front four frames at 0.2s, back two frames at 0.4s), both at fixed 2x.
+094 resolves these for XD001 without substituting ordinary Lugia artwork.
+
+Battle GIFs now retain 2x source pixels, growing their transparent canvas while
+preserving the native bottom padding and anchor. Removed the old width/height
+clamp responsible for undersized back views and Origin Giratina. Local XD001
+PNG strips are already enlarged and use 1x playback. Regenerated actual local
+runtime and isolated fixture images from the verified source sheet.
+
+Ruby checks: dark_lugia_assets_test.rb 3 runs / 42 assertions and
+animated_battler_scale_test.rb 2 runs / 5 assertions passed. Pixel checks cover
+constant icon scaling and duplicated follower holds. Isolated native XD001 probe
+passed 42 checks, including actual front/back pose pixel changes, full-size
+canvases, follower/Pokedex compatibility, and native GIF scale for
+Lugia/Zekrom/White Kyurem backs and Origin Giratina front/back.
+No player save or shared plugin cache
+was modified by the isolated native runner. No commit or push.
+
+## Requested level-100 party — local
+
+038_DebugParty migration version 2 now creates White Kyurem (form 1), the local
+Dark Lugia via its existing factory, Zekrom, native Lugia (form 0), Origin
+Giratina (form 1 with GRISEOUSORB), and Mew with CUT/SURF/ROCKSMASH/STRENGTH.
+All six are level 100 and healed. Runs once per profile on a safe map frame and
+saves through the existing migration path. Existing original-party backup is
+retained; a version-indexed backup also preserves the immediately previous party.
+Save failure rolls back party, migration marker and backups. Missing Dark Lugia
+assets abort before changing party or saving. No player save edited directly.
+
+Portable Ruby game-mod/test/debug_party_test.rb: 6 runs / 29 assertions, all
+passed, covering exact order/forms/levels/CS, one-time application, prior-version
+upgrade, save rollback and missing Dark Lugia. No native game launch for this
+change. Relaunch Play-Arena.bat to install and apply. No commit or push.
+
+## Dark Lugia XD001 local form — 2026-11-01 (Arena Demo 0.21.4)
+
+Used the user-provided `xd001.png` (SHA-256
+`c86232a4d11d709d2606d8ad15e258253402496c6964d6383963a9715e670864`). The
+source artwork is credited to ShadowGate31 at the supplied DeviantArt page;
+the page's redistribution terms could not be verified, so neither the source
+sheet nor generated images are tracked or published. Added a hash-checked,
+stdlib-only Ruby PNG importer and a local preparation hook. It writes form-1
+front/back, two icon frames and a four-direction two-frame follower under the
+private game Graphics folders. The root source image is ignored by Git.
+
+`095_DarkLugia.rb` registers `LUGIA_1` as the cosmetic form **Dark Lugia
+(XD001)** of native Lugia #249. Native types, stats, moves and abilities are
+inherited. Pause menu offers Pokédex view and an optional level-100 gift; the
+gift is not added automatically. This does not implement XD Shadow status or
+purification.
+
+Validation: `game-mod/test/dark_lugia_assets_test.rb` — 3 runs / 20 assertions,
+all passed, including SHA refusal, missing-optional-source handling, expected
+PNG dimensions and idempotent reuse. Imported the corrected layout to the
+private v21.1 runtime and ran `tools/test-native-dark-lugia.py`: **23 native
+checks passed** for form registration/data inheritance, native battler images,
+follower resolver and Pokédex selector/entry. The disposable probe did not read
+or write a player save. No complete battle, manual GUI input, multiplayer test,
+or redistribution permission was established. Restart through `Play-Arena.bat`
+after preparation. No commit or push was made.
+
+## Trainer menu frames and animated battlers — 2026-11-01 (local)
+
+Added isolated sidecars 093_ArenaTrainerCatalogFrames.rb and
+094_AnimatedBattlers.rb. No changes to 009 trainer profiles, 036/039 field-move
+work, metadata version or network protocol. README/status notes from the other
+session preserved. Only shared preparation change: two lines invoking the new
+installer after existing move-effect installation.
+
+Trainer previews now crop the true 4-column frame (48x48 for Biker/Cueball),
+then fit it inside 44x48; ordinary 32x48 trainers retain the complete pose.
+Battlers use native animated GIF playback with the original canvas/baseline.
+Gen 1-5 front/back, shiny and available female variants are installed separately;
+unsupported forms/generations, shadow/egg/alterBitmap cases keep native art.
+
+Inspected Essentials AnimatedBitmap, species-file and BattlerSprite sources;
+researched APS/DBK v21.1 but avoided their broader battle overhaul dependency.
+Read PokeAPI/sprites README and LICENCE.txt, pinned commit
+1dd55c0436d2a5b6e324c0b780e1b1b416fbfb64. Images are explicitly proprietary
+despite the repository's CC0 statement; images remain ignored local runtime
+assets. Metadata-only manifest pins 2,980 SHA-256 values and species mappings.
+See docs/ANIMATED_BATTLERS.md for source links and scope.
+
+Executed git clone --depth 1 --filter=blob:none --sparse, then sparse-checkout
+of sprites/pokemon/versions/generation-v/black-white/animated. Initial sandbox
+network failure was retried with authorized network access. Installer tested
+with -SourceRoot in tools/runtime/battler-assets: all 2,980 files verified;
+second invocation detected the installed pack. Moved one disposable fixture
+sprite aside, ran -Repair without SourceRoot: HTTP retrieval and checksum passed.
+Verified four sets of 649 primary sprites plus 384 female variants. Installed
+the verified pack in the local game via additive robocopy (exit 1 = copied).
+
+Ran tools/test-native-battlers.py against an isolated Essentials/mkxp-z copy:
+25 native checks passed, including actual changed pixel frames, original canvas
+geometry, complete trainer frames and static fallbacks. Earlier sandbox native
+launch timed out; authorized native launch succeeded. The first native test
+before asset installation failed its expected availability check; final run
+with installed assets passed. Ruby syntax check of 094 passed. No complete
+battle or two-client session executed for this change. No commit or push.
+
+Manual use: close and relaunch Play-Arena.bat to copy the new plugins and compile
+them through normal preparation. On another PC the first preparation downloads
+the pack automatically once these code changes are published. For interrupted
+or missing art use the documented -Repair command. Existing sprites are retained.
+
+## Animated Gen 1–5 forms — local
+
+Expanded the pinned animation manifest from 2,980 to 3,316 verified GIF destinations. The form table covers 84 Essentials form numbers over 23 species, including Kyurem White/Black and glowing battle forms 3/4, Origin Giratina, other listed BW2-era forms, and normal/back/shiny variants. Pixel inspection confirmed every added GIF has multiple frames. Pichu Spiky-eared has no animated GIF in this source and keeps native art. Later forms, Shadow Pokémon, eggs and Spinda spots retain native rendering.
+
+The extended native probe exposed and fixed a missing map in its fixture. Its current run still exceeds 180 seconds before producing results, so native validation of every alternative form is not claimed. The earlier 25-check native probe passed for ordinary battlers. `094_AnimatedBattlers.rb` passes Ruby syntax validation. Images remain local, outside Git. No commit or push.
+
+## Strength activation, contact pushing and shared interpolation — 2026-11-01 (0.21.3)
+
+Read README/status. User requests Action only to activate Strength, followed by
+contact pushes, with actual visible movement rather than shared-state snapping.
+Retained all trainer edits and the unrelated untracked PowerPoint. Protocol 12
+and server validation unchanged; plugin version 0.21.3. Local, not yet published.
+
+036_FieldObstacles binds Strength boulders to Action while strengthUsed is false,
+then enables native trigger 2 on all boulders after confirmation. Refresh retains
+contact mode while Strength is active; solo room resets restore Action. Cut and
+Rock Smash remain Action-only. A shared request temporarily disables contact
+until its authoritative state is applied (or timeout), avoiding continuously
+restarting an interpreter that would starve the safe-frame state updater.
+Local shared-rule validation also stops pushes into blocked terrain without
+repeated network requests; the server still validates every submitted move.
+
+039_FieldMoveEffects.push applies accepted shared boulder coordinates using
+native event real-coordinate interpolation and Strength push audio. The player
+is locked for the animation and unlocked in ensure, preserving an existing lock.
+Animation stops if the active map/scene changes. Live accepted state changes
+animate on either client; snapshots, resets, rejections and duplicates do not.
+Solo pushing retains the actual Essentials Interpreter#pbPushThisEvent motion.
+Canonical layout, inventory and shared temporary-reset rules remain unchanged.
+
+Executed portable Ruby game-mod/test/field_state_server_test.rb: 6 tests /
+152 assertions passed, and field_transfer_test.rb: 3 / 17 passed.
+Executed C:/msys64/mingw64/bin/python.exe tools/test-native-visuals.py: final
+3,082 native checks passed, auditing 740 moves. Added native checks cover:
+no contact prompt before activation; contact enabled after confirmation even
+against blocked terrain; persistent contact mode on refresh; Action restored
+on reset; intermediate real coordinates during solo and received shared pushes;
+player unlock; duplicate suppression; actual Game_Player contact triggering the
+real event interpreter and a second request without Action; no repeated request
+while awaiting approval; the second accepted push; no request for blocked ground.
+Existing follower, ice, object-reset, NPC and battle playback checks passed.
+
+Initial shared-animation fixture failed because advancing Graphics let the real
+offline pump close its simulated visit. Stubbed only that pump during injected
+room frames and restored it afterward. A blocked-ground fixture initially used
+the editor, which correctly refuses changes while visiting; configured that
+fixture's snapshot records directly. Both fixture failures were corrected before
+the final successful run. No user's save read or written; no manual two-window
+multiplayer session claimed. Probe removed; sources/meta and compiled cache
+installed locally at 0.21.3 by the final runner. README and field-move docs updated.
+Close the game and restart Play-Arena.bat locally; other PCs require publication
+and client updates. No commit/push performed for this task.
+
 ## Release v9.0.2 preparation — 2026-11-01
 
 User requested another push after editing the trainer catalogue. Inspected the
