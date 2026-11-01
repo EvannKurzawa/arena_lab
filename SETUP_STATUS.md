@@ -1,5 +1,72 @@
 # Setup and implementation status
 
+## Release v9.0.2 preparation — 2026-11-01
+
+User requested another push after editing the trainer catalogue. Inspected the
+009_ArenaCustomMode.rb diff: new PICNICKER profiles, revised PAINTER names and
+one indentation change. User edits preserved exactly; Ruby syntax check passed.
+This release also includes the preceding, fully tested local CS/follower and
+ice presence corrections (details/results below), plugin version 0.21.2,
+protocol 12. README now documents v9.0.2 and normal both-client update steps.
+Historical "local/unpublished" statements below describe the pre-release state.
+No native test repeated for the trainer-data/publication step. The existing
+3,069 native checks and 12 targeted tests cover the unchanged gameplay fixes.
+Commit name selected as v9.0.2 after v9.0.1; normal push targets origin/main.
+The unrelated title_screen_design.pptx and all private runtime files remain
+outside the commit. Commit ID/push result are reported after Git completes.
+
+## Multiplayer CS follower displacement and ice snapback — 2026-11-01 (0.21.2)
+
+Read README/status; retained the user's published trainer additions (v9.0.1)
+and the untracked PowerPoint. No upstream or server authority changes. Protocol
+remains 12; plugin version now 0.21.2. Changes remain local/unpublished.
+
+Reproduced the CS failure in the native engine with Following Pokemon EX active:
+its pbHiddenMoveAnimation choreography moves the player backwards and turns
+towards the follower. The subsequent arena_field_request therefore fails the
+server's facing-adjacency check and returns the existing "state updated" notice.
+036_FieldObstacles.with_native_access temporarily sets EX's documented-in-code
+no_follower_field_move flag. The native Pokemon banner and object effects remain;
+only the displacing follower choreography is skipped during the arena action.
+Both that flag and badge-access scope restore previous values in ensure, also
+on nested actions or exceptions. No dependency on the flag if EX is absent.
+
+Ice already respects the void collision locally. However, Essentials skips
+on_player_step_taken during forced movement, which is the callback PEMK uses
+for position emission. Its final nonadjacent position is rejected by the arena
+server and corrected to the pre-slide tile. New 040_ArenaStepPresence emits from
+the lower-level on_step_taken for the local player on map 100. Existing PEMK
+auth/visit gating and position deduplication remain in effect. Every ice tile
+now reaches the unchanged adjacent-step authority; no teleport exception or
+relaxed collision rule is added. Other maps/NPCs/offline sessions are unaffected.
+
+Executed portable Ruby 3.3.12:
+- game-mod/test/field_state_server_test.rb: 6 tests / 152 assertions passed,
+  using real reactor/wire codec and two TCP peers; rapid ice path, edge/void
+  rejection at the last ice tile, subsequent adjacent Cut and peer relay added.
+- game-mod/test/field_transfer_test.rb: 3 / 17 passed, including nested/exception
+  restoration of follower animation and temporary badge-access flags.
+- game-mod/test/forced_step_presence_test.rb: 3 / 5 passed using actual upstream
+  Presence build/key/emit code; all intermediate steps, no duplicate normal
+  step frames, and offline/NPC/other-map gating checked.
+- C:/msys64/mingw64/bin/python.exe tools/test-native-visuals.py: 3,069 native
+  checks passed, including active-follower Cut/Rock Smash, original facing
+  coordinates, object effects, real movement over five ice tiles to void,
+  clearing forced movement, all intermediate emitted positions, and return
+  along the ice in the opposite direction. Existing shared-state presentation,
+  NPC/follower checks, 740-move audit and battle playback also passed.
+
+The initial active-follower regression failed before the production correction,
+confirming the displacement. Initial ice fixtures froze movement with in_menu
+and were also blocked by the visit emission gate; corrected the fixture to run
+real miniupdates with movement enabled and bypass only auth/visit emission in
+the disposable process, retaining actual Presence build/key/emit behavior.
+TCP authority is tested separately; no manual two-window visit is claimed.
+No user save read or written. Probe removed and compiled local cache restored.
+README and animation/field docs describe the pending patch and restart steps.
+No commit/push performed for these changes. Both clients need the correction
+after distribution; the server protocol/validation do not need to change.
+
 ## Release v9 — 2026-11-01
 
 User requested README/status consolidation, commit named exactly `v9`, and push.

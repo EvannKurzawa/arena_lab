@@ -1,6 +1,23 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Dernière version du code : v9
+## Dernière version du code : v9.0.2 (Arena Demo 0.21.2)
+
+Cette mise à jour ajoute les nouveaux profils de Dresseuses Pique-Nique et les
+noms révisés des Peintres, ainsi que les deux correctifs ci-dessous.
+
+Les CS conservent désormais la position et la direction du joueur pendant
+l'animation du Pokémon suiveur : le serveur peut valider Coupe, Éclate-Roc
+et Force face à l'objet. Les effets de coupe et de bris sont conservés.
+Chaque case parcourue pendant une glissade est annoncée au serveur : le vide
+bloque sur la dernière case de glace, sans retour au début de la glissade.
+Le joueur peut ensuite repartir dans une autre direction.
+
+Fermez les jeux, mettez les deux clients à jour avec **Arena Update**, puis
+relancez **Play-Arena.bat** ; le protocole serveur reste **12**.
+
+## Version précédente : v9.0.1
+
+v9.0.1 ajoute des Dresseurs au catalogue de v9, décrit ci-dessous.
 
 Version interne : **Arena Demo 0.21.1** ; visites multijoueurs au **protocole 12**.
 Cette version regroupe les correctifs Surf/suiveur, les arrivées praticables en

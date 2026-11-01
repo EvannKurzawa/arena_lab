@@ -22,7 +22,7 @@ module ArenaDemo
     :ARENA_FURNITURE_BOULDER => ["Rocher à pousser", "Object boulder", 2],
     :ARENA_FURNITURE_ROCK    => ["Rocher à briser", "Object rock", 2],
     :ARENA_FURNITURE_TREE    => ["Pousse à couper", "Object tree 1", 2]
-  }.freeze
+    }.freeze
   TRAINER_PROFILES = {
     :ARENA_TRAINER_ROOKIE => {
       :name => "Rookie", :sprite => "trainer_YOUNGSTER", :type => :YOUNGSTER,
@@ -4409,204 +4409,404 @@ module ArenaDemo
       :team => [[:PACHIRISU, 90], [:PIKACHU, 91], [:SPINDA, 96], [:TOGETIC, 97]]
     },
 :ARENA_TRAINER_PAINTER_1 => {
-      :name => "Pablo", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Paloma", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:SMEARGLE, 5], [:DITTO, 4]]
     },
 :ARENA_TRAINER_PAINTER_2 => {
-      :name => "Pierre", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Dora", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:SPINARAK, 3], [:ABRA, 4], [:MINCCINO, 4], [:SEEL, 9]]
     },
 :ARENA_TRAINER_PAINTER_3 => {
-      :name => "Marc", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Rosa", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:STARYU, 4], [:UNOWN, 9]]
     },
 :ARENA_TRAINER_PAINTER_4 => {
-      :name => "Piet", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Sarah", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:SPINARAK, 3], [:SPINDA, 5], [:SEEL, 6], [:SMOOCHUM, 6], [:FEEBAS, 6], [:MINCCINO, 10]]
     },
 :ARENA_TRAINER_PAINTER_5 => {
-      :name => "Pieter", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Frida", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:SHELLDER, 3], [:FEEBAS, 5], [:MIMEJR, 6], [:REMORAID, 7]]
     },
 :ARENA_TRAINER_PAINTER_6 => {
-      :name => "Fernand", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Judith", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:DITTO, 16], [:SHUPPET, 19]]
     },
 :ARENA_TRAINER_PAINTER_7 => {
-      :name => "Eugène", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Berthe", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:SHELLDER, 10], [:MINCCINO, 16], [:SPINDA, 16], [:LEDIAN, 19]]
     },
 :ARENA_TRAINER_PAINTER_8 => {
-      :name => "Édvard", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Lee", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:DELIBIRD, 11], [:ZORUA, 13], [:REMORAID, 18], [:ROSELIA, 19]]
     },
 :ARENA_TRAINER_PAINTER_9 => {
-      :name => "Vincent", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Lavinia", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:SPINDA, 13], [:CHINGLING, 15], [:MISDREAVUS, 16], [:REMORAID, 18]]
     },
 :ARENA_TRAINER_PAINTER_10 => {
-      :name => "Sandro", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Vanessa", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:FEEBAS, 11], [:MIMEJR, 14], [:SPINDA, 14], [:MEOWTH, 17], [:ILLUMISE, 18]]
     },
 :ARENA_TRAINER_PAINTER_11 => {
-      :name => "Jean-Baptiste", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Élaine", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:CASTFORM, 23], [:MEOWTH, 24], [:ARIADOS, 24], [:LAPRAS, 26], [:ILLUMISE, 26], [:NATU, 28]]
     },
 :ARENA_TRAINER_PAINTER_12 => {
-      :name => "Odilon", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Élisabeth", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:DUSKULL, 22], [:SMEARGLE, 22], [:UNOWN, 23], [:FEEBAS, 24], [:CHIMECHO, 26], [:SMOOCHUM, 27]]
     },
 :ARENA_TRAINER_PAINTER_13 => {
-      :name => "Rembrandt", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Alma", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:DELIBIRD, 21], [:VOLBEAT, 30]]
     },
 :ARENA_TRAINER_PAINTER_14 => {
-      :name => "Raphaël", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Clara", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:SHUPPET, 22], [:SMOOCHUM, 23], [:SHELLDER, 26], [:DUSKULL, 30]]
     },
 :ARENA_TRAINER_PAINTER_15 => {
-      :name => "Edgar", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Agnes", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:HYPNO, 26], [:MINCCINO, 27], [:PERSIAN, 30]]
     },
 :ARENA_TRAINER_PAINTER_16 => {
-      :name => "Henri-Charles", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Eva", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:TOGEKISS, 32], [:ROSERADE, 32], [:NATU, 33], [:ALAKAZAM, 36]]
     },
 :ARENA_TRAINER_PAINTER_17 => {
-      :name => "Yves", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Lygia", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:STARYU, 30], [:WHIMSICOTT, 33], [:MUNNA, 33], [:HYPNO, 35], [:BUTTERFREE, 37], [:ARIADOS, 40]]
     },
 :ARENA_TRAINER_PAINTER_18 => {
-      :name => "Jan", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Sonia", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:CLOYSTER, 38], [:VOLBEAT, 39]]
     },
 :ARENA_TRAINER_PAINTER_19 => {
-      :name => "Paul", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Mary", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:FEEBAS, 30], [:CHATOT, 35], [:UNOWN, 39]]
     },
 :ARENA_TRAINER_PAINTER_20 => {
-      :name => "Gustave", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Suzanne", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:HYPNO, 34], [:CHIMECHO, 36], [:JYNX, 38]]
     },
 :ARENA_TRAINER_PAINTER_21 => {
-      :name => "Georges", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Marguerite", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:PERSIAN, 40], [:ARIADOS, 43], [:ILLUMISE, 45], [:SMEARGLE, 49], [:ROSERADE, 50]]
     },
 :ARENA_TRAINER_PAINTER_22 => {
-      :name => "Gustav", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Mathilde", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:ARIADOS, 41], [:BANETTE, 44], [:TOGEKISS, 48], [:SMEARGLE, 50]]
     },
 :ARENA_TRAINER_PAINTER_23 => {
-      :name => "Claude", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Marie", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:XATU, 40], [:ROSERADE, 42], [:MRMIME, 44], [:CLOYSTER, 45], [:ZOROARK, 47]]
     },
 :ARENA_TRAINER_PAINTER_24 => {
-      :name => "Alphonse", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Angelica", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:DEWGONG, 40], [:STARMIE, 40], [:REUNICLUS, 42], [:KECLEON, 46], [:MUSHARNA, 50], [:BANETTE, 50]]
     },
 :ARENA_TRAINER_PAINTER_25 => {
-      :name => "Édouard", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Yayoi", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:CHATOT, 45], [:CHIMECHO, 48], [:STARMIE, 50]]
     },
 :ARENA_TRAINER_PAINTER_26 => {
-      :name => "Jean-Michel", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Jeanne", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:BUTTERFREE, 55]]
     },
 :ARENA_TRAINER_PAINTER_27 => {
-      :name => "Wassily", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Lucie", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:DITTO, 52], [:ARIADOS, 55], [:PERSIAN, 56], [:GOTHITELLE, 56]]
     },
 :ARENA_TRAINER_PAINTER_28 => {
-      :name => "Jean", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Helen", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:LILLIGANT, 51], [:EXPLOUD, 51], [:XATU, 55]]
     },
 :ARENA_TRAINER_PAINTER_29 => {
-      :name => "Jules", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Artemisia", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:STARMIE, 50], [:ALAKAZAM, 50], [:BUTTERFREE, 50], [:DELIBIRD, 51], [:MUSHARNA, 55], [:CLOYSTER, 55]]
     },
 :ARENA_TRAINER_PAINTER_30 => {
-      :name => "Camille", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Hilma", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:VOLBEAT, 50], [:CHIMECHO, 50], [:REUNICLUS, 53], [:BANETTE, 55], [:JYNX, 59]]
     },
 :ARENA_TRAINER_PAINTER_31 => {
-      :name => "Albrecht", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Käthe", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:BANETTE, 62], [:BEAUTIFLY, 64], [:EXPLOUD, 66], [:ROSERADE, 66], [:SUNFLORA, 66], [:LEDIAN, 70]]
     },
 :ARENA_TRAINER_PAINTER_32 => {
-      :name => "Honoré", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Camille", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:CASTFORM, 67], [:SMEARGLE, 67], [:ILLUMISE, 67]]
     },
 :ARENA_TRAINER_PAINTER_33 => {
-      :name => "Amedeo", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Rosalba", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:BANETTE, 63], [:ZOROARK, 66], [:SMEARGLE, 67]]
     },
 :ARENA_TRAINER_PAINTER_34 => {
-      :name => "Auguste", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Louise", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:ROSELIA, 64], [:UNOWN, 66], [:XATU, 69], [:LAPRAS, 70], [:CHIMECHO, 70]]
     },
 :ARENA_TRAINER_PAINTER_35 => {
-      :name => "Titien", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Georgia", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:XATU, 61], [:DITTO, 65]]
     },
 :ARENA_TRAINER_PAINTER_36 => {
-      :name => "Paul-Émile", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Remedios", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:DITTO, 70], [:CLOYSTER, 73], [:LEDIAN, 80]]
     },
 :ARENA_TRAINER_PAINTER_37 => {
-      :name => "Maurice", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Natalia", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:BANETTE, 73], [:ARIADOS, 75], [:BUTTERFREE, 79]]
     },
 :ARENA_TRAINER_PAINTER_38 => {
-      :name => "Joan", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Gabrielle", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:ROSELIA, 80]]
     },
 :ARENA_TRAINER_PAINTER_39 => {
-      :name => "Andy", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Joan", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:SUNFLORA, 71], [:JYNX, 73], [:VOLBEAT, 76], [:ARIADOS, 77], [:LILLIGANT, 77], [:EXPLOUD, 77]]
     },
 :ARENA_TRAINER_PAINTER_40 => {
-      :name => "Henri", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Niki", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:ZOROARK, 71], [:BEAUTIFLY, 71], [:CHATOT, 74], [:CASTFORM, 75], [:MISMAGIUS, 76], [:SPINDA, 77]]
     },
 :ARENA_TRAINER_PAINTER_41 => {
-      :name => "Jackson", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Séraphine", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:REUNICLUS, 80], [:LEDIAN, 82], [:CASTFORM, 86], [:CLOYSTER, 89]]
     },
 :ARENA_TRAINER_PAINTER_42 => {
-      :name => "Egon", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Carmen", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:ZOROARK, 81], [:KECLEON, 83], [:DITTO, 84], [:BEAUTIFLY, 85], [:ROSERADE, 87], [:GOTHITELLE, 88]]
     },
 :ARENA_TRAINER_PAINTER_43 => {
-      :name => "David", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Léonie", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:STARMIE, 80], [:KECLEON, 84], [:MRMIME, 87], [:ROSERADE, 87], [:UNOWN, 89], [:BUTTERFREE, 90]]
     },
 :ARENA_TRAINER_PAINTER_44 => {
-      :name => "Hans", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Sofonisba", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:HYPNO, 86], [:MASQUERAIN, 87], [:STARMIE, 87], [:CHIMECHO, 89]]
     },
 :ARENA_TRAINER_PAINTER_45 => {
-      :name => "Roy", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Gwen", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:ARIADOS, 90]]
     },
 :ARENA_TRAINER_PAINTER_46 => {
-      :name => "Giotto", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Dorothea", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:VOLBEAT, 97], [:BUTTERFREE, 98], [:BANETTE, 99], [:DEWGONG, 99], [:CHIMECHO, 99]]
     },
 :ARENA_TRAINER_PAINTER_47 => {
-      :name => "Nicolas", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Hannah", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:CASTFORM, 90], [:ALAKAZAM, 90], [:UNOWN, 95]]
     },
 :ARENA_TRAINER_PAINTER_48 => {
-      :name => "Lucian", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Maria", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:JYNX, 97]]
     },
 :ARENA_TRAINER_PAINTER_49 => {
-      :name => "Léonard", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Leonora", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:VOLBEAT, 91], [:ROTOM, 94], [:ARIADOS, 96]]
     },
 :ARENA_TRAINER_PAINTER_50 => {
-      :name => "Jérôme", :sprite => "trainer_PAINTER", :type => :PAINTER,
+      :name => "Paula", :sprite => "trainer_PAINTER", :type => :PAINTER,
       :team => [[:MRMIME, 92], [:BUTTERFREE, 93], [:GOTHITELLE, 94], [:KECLEON, 94], [:ROTOM, 96], [:TOGEKISS, 99]]
+    },
+:ARENA_TRAINER_PICNICKER_1 => {
+      :name => "Cidjy", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:BONSLY, 5], [:POLIWAG, 4]]
+    },
+:ARENA_TRAINER_PICNICKER_2 => {
+      :name => "Pomme", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:CHERUBI, 10]]
+    },
+:ARENA_TRAINER_PICNICKER_3 => {
+      :name => "Lola", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:PANSAGE, 2], [:SHROOMISH, 4], [:CHERUBI, 4], [:SLOWPOKE, 6]]
+    },
+:ARENA_TRAINER_PICNICKER_4 => {
+      :name => "Clara", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:FOONGUS, 5], [:WOOPER, 9]]
+    },
+:ARENA_TRAINER_PICNICKER_5 => {
+      :name => "Lyna", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:PICHU, 7], [:PETILIL, 8], [:EXEGGCUTE, 8]]
+    },
+:ARENA_TRAINER_PICNICKER_6 => {
+      :name => "Apolline", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:SMEARGLE, 10], [:DELIBIRD, 11], [:ODDISH, 19]]
+    },
+:ARENA_TRAINER_PICNICKER_7 => {
+      :name => "Victoire", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:PIDOVE, 10], [:STANTLER, 10], [:COTTONEE, 10], [:CHIKORITA, 14], [:PACHIRISU, 15]]
+    },
+:ARENA_TRAINER_PICNICKER_8 => {
+      :name => "Lou", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:SHROOMISH, 11], [:SMEARGLE, 11], [:SENTRET, 14], [:HERDIER, 17]]
+    },
+:ARENA_TRAINER_PICNICKER_9 => {
+      :name => "Noisette", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:MARILL, 11], [:CHANSEY, 13], [:BUNEARY, 13], [:TOGETIC, 16], [:SUDOWOODO, 19], [:SHROOMISH, 20]]
+    },
+:ARENA_TRAINER_PICNICKER_10 => {
+      :name => "Noémie", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:PICHU, 15]]
+    },
+:ARENA_TRAINER_PICNICKER_11 => {
+      :name => "Célestine", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:DELCATTY, 21], [:SKITTY, 25]]
+    },
+:ARENA_TRAINER_PICNICKER_12 => {
+      :name => "Ambre", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:EEVEE, 20], [:DELCATTY, 23], [:MILTANK, 28], [:BLISSEY, 29], [:TEDDIURSA, 29], [:BUTTERFREE, 29]]
+    },
+:ARENA_TRAINER_PICNICKER_13 => {
+      :name => "Margaux", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:CHANSEY, 25]]
+    },
+:ARENA_TRAINER_PICNICKER_14 => {
+      :name => "Mila", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:SKITTY, 20], [:GIRAFARIG, 26], [:TEDDIURSA, 26], [:PANSEAR, 27], [:SUNFLORA, 29]]
+    },
+:ARENA_TRAINER_PICNICKER_15 => {
+      :name => "Iris", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:CHERRIM, 26]]
+    },
+:ARENA_TRAINER_PICNICKER_16 => {
+      :name => "Inès", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:BUTTERFREE, 31], [:VESPIQUEN, 32], [:MINUN, 34], [:SIMIPOUR, 38]]
+    },
+:ARENA_TRAINER_PICNICKER_17 => {
+      :name => "Gabrielle", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:LILLIGANT, 37], [:LEAVANNY, 39]]
+    },
+:ARENA_TRAINER_PICNICKER_18 => {
+      :name => "Eden", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:FURRET, 31], [:FOONGUS, 32], [:WHIMSICOTT, 33], [:GRANBULL, 38]]
+    },
+:ARENA_TRAINER_PICNICKER_19 => {
+      :name => "Elsa", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:GIRAFARIG, 30], [:STANTLER, 35]]
+    },
+:ARENA_TRAINER_PICNICKER_20 => {
+      :name => "Cerise", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:DELIBIRD, 30], [:TAUROS, 33], [:PIKACHU, 40]]
+    },
+:ARENA_TRAINER_PICNICKER_21 => {
+      :name => "Faustine", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:CHERRIM, 41], [:BOUFFALANT, 42], [:EEVEE, 43], [:FARFETCHD, 45]]
+    },
+:ARENA_TRAINER_PICNICKER_22 => {
+      :name => "Éva", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:SUNFLORA, 41], [:MILTANK, 42], [:SMEARGLE, 46], [:PLUSLE, 46], [:LEDIAN, 46], [:AMOONGUSS, 46]]
+    },
+:ARENA_TRAINER_PICNICKER_23 => {
+      :name => "Capucine", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:LOPUNNY, 42], [:FARFETCHD, 42], [:AMOONGUSS, 43], [:SMEARGLE, 45], [:PACHIRISU, 46], [:LEAVANNY, 49]]
+    },
+:ARENA_TRAINER_PICNICKER_24 => {
+      :name => "Mélia", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:LILLIGANT, 40], [:SUDOWOODO, 43], [:BIBAREL, 45], [:TAUROS, 48], [:DODRIO, 49], [:CHERRIM, 50]]
+    },
+:ARENA_TRAINER_PICNICKER_25 => {
+      :name => "Léa", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:SUDOWOODO, 50]]
+    },
+:ARENA_TRAINER_PICNICKER_26 => {
+      :name => "Anna", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:SIMIPOUR, 50], [:FURRET, 51], [:BIBAREL, 52], [:LOPUNNY, 56], [:AZUMARILL, 60]]
+    },
+:ARENA_TRAINER_PICNICKER_27 => {
+      :name => "Roxane", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:SMEARGLE, 55]]
+    },
+:ARENA_TRAINER_PICNICKER_28 => {
+      :name => "Maëlys", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:AZUMARILL, 52], [:TAUROS, 53], [:CHANSEY, 55], [:GIRAFARIG, 56]]
+    },
+:ARENA_TRAINER_PICNICKER_29 => {
+      :name => "Manon", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:LOPUNNY, 50], [:URSARING, 55], [:MILTANK, 60]]
+    },
+:ARENA_TRAINER_PICNICKER_30 => {
+      :name => "Lana", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:PACHIRISU, 50], [:EXEGGUTOR, 50], [:STANTLER, 51], [:MILTANK, 55]]
+    },
+:ARENA_TRAINER_PICNICKER_31 => {
+      :name => "Juliette", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:STANTLER, 62], [:BIBAREL, 63], [:SIMISEAR, 64], [:BOUFFALANT, 65], [:MINUN, 68], [:TAUROS, 69]]
+    },
+:ARENA_TRAINER_PICNICKER_32 => {
+      :name => "Ninon", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:DELCATTY, 60], [:AZUMARILL, 61], [:STANTLER, 63], [:VESPIQUEN, 69], [:SIMIPOUR, 70]]
+    },
+:ARENA_TRAINER_PICNICKER_33 => {
+      :name => "Mirabelle", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:GRANBULL, 62], [:SIMISAGE, 66]]
+    },
+:ARENA_TRAINER_PICNICKER_34 => {
+      :name => "Violette", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:EXEGGUTOR, 61], [:URSARING, 65]]
+    },
+:ARENA_TRAINER_PICNICKER_35 => {
+      :name => "Léonie", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:SIMIPOUR, 60], [:BOUFFALANT, 69]]
+    },
+:ARENA_TRAINER_PICNICKER_36 => {
+      :name => "Clémence", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:CHANSEY, 76]]
+    },
+:ARENA_TRAINER_PICNICKER_37 => {
+      :name => "Maëlle", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:URSARING, 77]]
+    },
+:ARENA_TRAINER_PICNICKER_38 => {
+      :name => "Camille", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:SIMISAGE, 75]]
+    },
+:ARENA_TRAINER_PICNICKER_39 => {
+      :name => "Thaïs", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:LEDIAN, 74], [:SIMISEAR, 75]]
+    },
+:ARENA_TRAINER_PICNICKER_40 => {
+      :name => "Marguerite", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:PIKACHU, 70], [:LOPUNNY, 79]]
+    },
+:ARENA_TRAINER_PICNICKER_41 => {
+      :name => "Romane", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:BOUFFALANT, 83], [:SIMISEAR, 88], [:SAWSBUCK, 89]]
+    },
+:ARENA_TRAINER_PICNICKER_42 => {
+      :name => "Anaïs", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:SMEARGLE, 81], [:PLUSLE, 81], [:DODRIO, 83], [:SIMIPOUR, 85], [:AZUMARILL, 89], [:STANTLER, 89]]
+    },
+:ARENA_TRAINER_PICNICKER_43 => {
+      :name => "Tess", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:DODRIO, 83], [:URSARING, 85]]
+    },
+:ARENA_TRAINER_PICNICKER_44 => {
+      :name => "Olympe", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:BIBAREL, 83], [:GIRAFARIG, 85]]
+    },
+:ARENA_TRAINER_PICNICKER_45 => {
+      :name => "Jeanne", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:FARFETCHD, 85], [:EXEGGUTOR, 86], [:STANTLER, 89]]
+    },
+:ARENA_TRAINER_PICNICKER_46 => {
+      :name => "Sasha", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:FARFETCHD, 90], [:BLISSEY, 90], [:LEAVANNY, 94], [:TOGETIC, 99]]
+    },
+:ARENA_TRAINER_PICNICKER_47 => {
+      :name => "Louise", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:MINUN, 91], [:AZUMARILL, 92], [:STOUTLAND, 96], [:SMEARGLE, 96], [:LOPUNNY, 99]]
+    },
+:ARENA_TRAINER_PICNICKER_48 => {
+      :name => "Alice", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:LEDIAN, 91], [:SAWSBUCK, 96], [:WHIMSICOTT, 97], [:AMOONGUSS, 97], [:BEAUTIFLY, 98]]
+    },
+:ARENA_TRAINER_PICNICKER_49 => {
+      :name => "Églantine", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:LEDIAN, 90], [:SNORLAX, 91], [:STANTLER, 93], [:MILTANK, 96], [:BRELOOM, 97], [:TOGETIC, 98]]
+    },
+:ARENA_TRAINER_PICNICKER_50 => {
+      :name => "Zoé", :sprite => "trainer_PICNICKER", :type => :PICNICKER,
+      :team => [[:DELCATTY, 96], [:AZUMARILL, 98]]
     }
   }.freeze
 

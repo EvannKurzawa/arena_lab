@@ -125,6 +125,27 @@ class FieldStateServerTest < Minitest::Test
     assert act(host, snapshot, 0, :STRENGTH, 2, 0)[:rejected], 'cannot push into another player'
   end
 
+  def test_ice_steps_reach_the_edge_without_a_snapback_and_field_move_stays_adjacent
+    host, guest = connect, connect
+    surface = '0' * 10000
+    (37..61).each { |y| (37..61).each { |x| surface.setbyte(y * 100 + x, 49) } }
+    (50..54).each { |x| surface.setbyte(53 * 100 + x, ArenaMaterials::SURFACE_CODES.fetch('ice').ord) }
+    surface.setbyte(53 * 100 + 55, 48)
+    snapshot = room(host, [[0, 'ARENA_FURNITURE_TREE', 54, 54]], surface: surface)
+    join(host, guest, snapshot)
+    position(host, 100, 49, 53)
+    position(guest, 100, 49, 53)
+    # No idle frames or ordinary player-step callback between forced ice steps.
+    (50..54).each { |x| send_frame(host, type: :pos, map: 100, x: x, y: 53, mode: :run) }
+    position(host, 100, 54, 53)
+    send_frame(host, type: :pos, map: 100, x: 55, y: 53)
+    assert_equal [54, 53], until_type(host, :pos_correct).values_at(:x, :y), 'void is rejected at the edge, never at the slide start'
+    cut = act(host, snapshot, 0, :CUT, 2, 0)
+    refute cut[:rejected]
+    assert_equal({0 => nil}, cut[:field_states])
+    assert_equal cut[:field_states], until_type(guest, :arena_field_state)[:field_states]
+  end
+
   def test_last_occupant_disconnect_resets_for_the_player_in_hub
     host, guest = connect, connect
     snapshot = room(host, [OBJECTS.last])

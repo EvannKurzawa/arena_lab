@@ -44,4 +44,24 @@ class FieldTransferTest < Minitest::Test
       assert_empty $presence
     end
   end
+
+  def test_native_access_blocks_follower_displacement_and_restores_flags_on_error
+    $game_temp = Struct.new(:no_follower_field_move).new(false)
+    assert_raises(RuntimeError) do
+      @field.with_native_access do
+        assert @field.using?
+        assert $game_temp.no_follower_field_move
+        @field.with_native_access { assert $game_temp.no_follower_field_move }
+        assert $game_temp.no_follower_field_move
+        raise 'interrupted animation'
+      end
+    end
+    refute @field.using?
+    refute $game_temp.no_follower_field_move
+    $game_temp.no_follower_field_move = true
+    @field.with_native_access { assert $game_temp.no_follower_field_move }
+    assert $game_temp.no_follower_field_move
+  ensure
+    $game_temp = nil
+  end
 end

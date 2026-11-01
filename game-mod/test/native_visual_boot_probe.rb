@@ -37,18 +37,25 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
         [:CUT, :ROCKSMASH, :STRENGTH].each { |move| $player.party.first.learn_move(move) }
         $game_player.moveto(44, 42)
         $game_player.direction = 6
+        FollowingPkmn.start_following(900, false) unless FollowingPkmn.get
+        FollowingPkmn.toggle(true, false)
+        check.call(FollowingPkmn.active?, 'field move regression uses the active lead Pokemon follower')
         $field_probe_confirm = false
         before = placements.length
         check.call(!ArenaDemo::FieldObstacles.interact(tree.id) && placements.length == before, 'cancelled Cut preserves furniture')
         $field_probe_confirm = true
         count = $bag.quantity(:ARENA_FURNITURE_TREE)
         check.call(ArenaDemo::FieldObstacles.interact(tree.id), 'Cut plays natively without story badges')
+        check.call([$game_player.x, $game_player.y, $game_player.direction] == [44, 42, 6],
+          'Cut with active follower preserves the facing position required by the server')
         check.call(placements.length == before && $bag.quantity(:ARENA_FURNITURE_TREE) == count && tree.through && tree.transparent,
           'Cut hides the tree without changing layout or inventory')
         rock = find.call(47)
         $game_player.moveto(46, 42)
         rock_count = $bag.quantity(:ARENA_FURNITURE_ROCK)
         check.call(rock.name.include?('SmashRock') && ArenaDemo::FieldObstacles.interact(rock.id), 'Rock Smash uses its stable slot')
+        check.call([$game_player.x, $game_player.y, $game_player.direction] == [46, 42, 6],
+          'Rock Smash with active follower preserves server adjacency')
         check.call(rock.transparent && rock.through && placements.length == before && $bag.quantity(:ARENA_FURNITURE_ROCK) == rock_count,
           'Rock Smash hides the rock without changing inventory or layout')
         check.call($stats.cut_count == 1 && $stats.rock_smash_count == 1, 'native Cut and Rock Smash statistics increment once')
@@ -76,6 +83,8 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
         saved = Marshal.load(Marshal.dump($PokemonGlobal))
         check.call(saved.arena_demo_placements.any? { |p| p['item'] == 'ARENA_FURNITURE_BOULDER' && p['x'] == 49 }, 'native save metadata retains original boulder position')
         check.call(!ArenaDemo::FieldObstacles.using?, 'temporary native badge access is restored')
+        check.call(!$game_temp.no_follower_field_move, 'follower field choreography preference is restored after the action')
+        FollowingPkmn.toggle(false, false)
         online_method = ArenaDemo.method(:multiplayer?)
         ArenaDemo.define_singleton_method(:multiplayer?) { true }
         begin
@@ -112,6 +121,7 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
         $scene.transfer_player
         check.call(find.call(45) && find.call(47) && find.call(49), 'leaving and returning to the main room restores all objects')
         check_network_fields(check)
+        check_ice_edge(check)
       ensure
         $scene.dispose if $scene.is_a?(Scene_Map)
         $scene, $DEBUG = old_scene, old_debug
@@ -119,6 +129,46 @@ if defined?(Game) && ENV['ARENA_VISUAL_PROBE']
         Object.send(:define_method, :pbMessage, old_message)
         Object.send(:define_method, :pbConfirmMessage, old_confirm)
         Object.send(:define_method, :pbWait, old_wait)
+      end
+    end
+
+    def check_ice_edge(check)
+      records, placements = ArenaDemo.tile_edit_records, ArenaDemo.custom_placements
+      (55..60).each do |x|
+        ArenaDemo.editor_apply_ground(records, placements, x, 45, floor: 'field', ground: x == 55 ? 'plain' : 'ice')
+      end
+      ArenaDemo.editor_apply_ground(records, placements, 61, 45, floor: 'void')
+      presence = PEMK::Presence
+      original_send = presence.method(:send_frame)
+      frames = []
+      # Override the visit/auth emission gate only inside this disposable test;
+      # preserve the actual build/key/emit code and collect its final frames.
+      gate = Module.new do
+        def can_emit?; @native_ice_probe_emit || super; end
+      end
+      presence.singleton_class.prepend(gate)
+      presence.instance_variable_set(:@native_ice_probe_emit, true)
+      presence.define_singleton_method(:send_frame) { |message| frames << message.dup; true }
+      old_menu = $game_temp.in_menu
+      begin
+        $game_player.moveto(55, 45)
+        $game_player.direction = 6
+        presence.emit_now(:pos)
+        $game_temp.in_menu = false
+        $game_player.move_right
+        pbWait(1.8) { $scene.miniupdate }
+        presence.emit(:pos)
+        points = frames.filter_map { |m| m.values_at(:x, :y) if m[:map] == 100 && [:pos, :dir].include?(m[:type]) }.uniq
+        check.call([$game_player.x, $game_player.y] == [60, 45] && !$game_player.moving?, "real ice slide stops on the last ice tile before void: #{[$game_player.x, $game_player.y].inspect}")
+        check.call(!$PokemonGlobal.ice_sliding && $game_player.walk_anime, 'ice edge clears forced movement and restores normal walking')
+        check.call(points == (55..60).map { |x| [x, 45] }, "native presence announces each intermediate ice tile without a correction-sized jump: #{frames.inspect}")
+        $game_player.move_left
+        pbWait(1.8) { $scene.miniupdate }
+        check.call([$game_player.x, $game_player.y] == [55, 45] && !$PokemonGlobal.ice_sliding, 'player can leave the ice edge in the opposite direction')
+      ensure
+        $game_temp.in_menu = old_menu
+        presence.instance_variable_set(:@native_ice_probe_emit, false)
+        presence.define_singleton_method(:send_frame, original_send)
       end
     end
 

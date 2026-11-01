@@ -1,5 +1,18 @@
 # Animations, rendu et objets CS
 
+## Correctifs de synchronisation — 0.21.2
+
+Les actions CS dans l'arène gardent le joueur face à l'objet. La chorégraphie
+du suiveur qui faisait reculer et tourner le joueur est suspendue pour cette
+action ; l'animation native du Pokémon et les effets sur l'objet restent actifs.
+La demande peut ainsi passer le contrôle de proximité du serveur.
+
+Les déplacements forcés sur glace annoncent chaque case au serveur. Le joueur
+s'arrête sur la dernière case de glace avant le vide et peut repartir, sans
+correction le renvoyant au point de départ. La collision avec le vide reste
+bloquante et la validation serveur des déplacements reste inchangée.
+Protocole 12 conservé ; appliquer le correctif aux deux clients après publication.
+
 ## Dialogues et effets CS — 0.21.1
 
 Force exige Entrée face au rocher, y compris pour chaque poussée. Approcher

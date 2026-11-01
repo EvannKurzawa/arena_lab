@@ -95,10 +95,17 @@ module ArenaDemo
 
     def with_native_access
       previous = @using
+      # Following EX's field choreography steps the player backwards and turns
+      # them towards the follower. Keep the native Pokemon banner, but preserve
+      # the facing tile used for authoritative obstacle requests and pushing.
+      follower_temp = $game_temp if $game_temp.respond_to?(:no_follower_field_move)
+      previous_follower_move = follower_temp.no_follower_field_move if follower_temp
+      follower_temp.no_follower_field_move = true if follower_temp
       @using = true
       yield
     ensure
       @using = previous
+      follower_temp.no_follower_field_move = previous_follower_move if follower_temp
     end
 
     def ensure_machines
