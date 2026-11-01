@@ -109,7 +109,23 @@ module ArenaDemo
       x = 1 if direction == 6
       y = Layout::SIZE - 2 if direction == 8
       y = 1 if direction == 2
+      x, y = landing_position(region(Layout::FIRST_MAP + destination), x, y)
       ArenaDemo.transfer_to(Layout::FIRST_MAP + destination, x, y, direction)
+    end
+
+    # Old saved sectors may have a bend immediately behind a crossing. Land
+    # inside the camp-connected component, never on a cliff or isolated ledge.
+    def landing_position(data, x, y)
+      occupied = data['decorations'].to_h { |dx, dy, _| [dy * Layout::SIZE + dx, true] }
+      reachable = Layout.reachable_cells(data['cells'], occupied)
+      candidates = reachable.keys.select do |pos|
+        cx, cy = pos % Layout::SIZE, pos / Layout::SIZE
+        cx.between?(1, Layout::SIZE - 2) && cy.between?(1, Layout::SIZE - 2) &&
+          !occupied[pos] && !Layout.blocked?(data['cells'].getbyte(pos))
+      end
+      position = candidates.min_by { |pos| (pos % Layout::SIZE - x).abs + (pos / Layout::SIZE - y).abs }
+      raise 'No accessible expedition landing' unless position
+      [position % Layout::SIZE, position / Layout::SIZE]
     end
 
     def event(id, name, x, y, character, script, touch = false)
@@ -242,10 +258,7 @@ module ArenaDemo
       ArenaDemo.reset_saved_player_movement
       $game_map.setup($game_map.map_id)
       x, y = position.first(2)
-      if !x.between?(1, Layout::SIZE - 2) || !y.between?(1, Layout::SIZE - 2) ||
-         Layout.blocked?(code_at($game_map, x, y))
-        x = y = Layout::SIZE / 2
-      end
+      x, y = landing_position(region($game_map.map_id), x, y)
       $game_player.moveto(x, y)
       $game_player.direction = position[2]
       $game_player.center(x, y)

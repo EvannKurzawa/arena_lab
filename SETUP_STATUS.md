@@ -1,5 +1,370 @@
 # Setup and implementation status
 
+## Release v9 — 2026-11-01
+
+User requested README/status consolidation, commit named exactly `v9`, and push.
+Release branch: main; plugin version: 0.21.1; visit protocol: 12. Includes all
+pending gameplay fixes, shared temporary CS state, debug Mew, animation pack
+installer/OpenGL settings, French wording and the furniture catalogue/selector.
+README now identifies v9 as current, removes a duplicated CS section and gives
+both-PC update/server restart instructions. Earlier local/unpublished notes below
+describe the state at the time of each task, before this release preparation.
+
+Only project source, tests, scripts and documentation belong in this release.
+The unrelated title_screen_design.pptx remains untracked. Private runtime data,
+downloaded assets, local saves and credentials remain excluded. Existing native
+and network results are recorded in the corresponding task entries below;
+no new manual two-window multiplayer session is claimed for the publication.
+Publication uses `git commit -m v9` followed by a normal push of main, without
+rewriting history. The actual commit ID and push result are reported to the user
+after Git completes.
+
+Release checks rerun successfully with portable Ruby: furniture_catalog_test.rb
+(26 tests / 1,200 assertions), battle_animation_install_test.rb (2 / 16), and
+french_battle_wording_test.rb (98 checks), expedition_world_test.rb (12 / 1,709).
+All 35 changed/added Ruby files pass syntax checks; staged diff whitespace check
+passes. No native test repeated for this
+documentation/publication step; the latest 3,061-check result below still applies.
+
+## Field prompts, Action-only Strength and object effects — 2026-11-01 (0.21.1)
+
+Read README/status and retained existing uncommitted work. No dependency change;
+visit protocol remains 12. New 092_FrenchFieldWording overrides the exact native
+message keys for Cut/Rock Smash/Strength before interpolation. Reference checked:
+https://github.com/abcboy101/poke-corpus/blob/main/corpus/HeartGoldSoulSilver/fr_msg.txt
+(text file 211). French game text is preserved with modern accent/spacing and
+line wrapping; Strength's combined game dialogue is split to match Essentials.
+The reference corpus was downloaded only to ignored tools/runtime using curl;
+the sandbox network attempt failed, the approved retry succeeded.
+
+036_FieldObstacles binds all three objects to trigger 0 (Action). Touching a
+Strength boulder cannot start its interpreter; Enter still starts it. New
+039_FieldMoveEffects replaces native direction-only disappearance with a white
+slash and separating tree halves, or six rotating rock fragments, over 0.5 s.
+Fragments reuse the existing character frame; sounds remain Cut/Rock Smash.
+Sprites, owned bitmaps and viewport are disposed in ensure; event transparency
+is restored before native erase/shared overlay application. These are locally
+implemented effects inspired by the games, not imported official animations.
+Live authoritative shared destruction plays on each client in the main room;
+initial snapshots, late entry, rejected actions and duplicate state do not
+replay it. Reentrant network processing is blocked during the effect.
+
+Executed with portable Ruby 3.3.12:
+- french_battle_wording_test.rb --disable-gems: 98 checks passed using the actual
+  Essentials lookup and installed French messages, including all three prompts.
+- field_transfer_test.rb: 2 runs / 8 assertions passed.
+- field_state_server_test.rb: 5 runs / 132 assertions passed (two real TCP peers).
+  An initial --disable-gems invocation of the transfer test could not load
+  minitest; rerunning with normal gem loading passed.
+- C:/msys64/mingw64/bin/python.exe tools/test-native-visuals.py: 3,061 native
+  checks passed, including Enter/touch behavior, real multi-frame Cut/Rock Smash
+  rendering, shared destruction/duplicate suppression and existing battle tests.
+  Native multiplayer presentation uses injected authoritative frames; no two
+  GUI clients were manually exercised. No player save read or written.
+
+The native runner installed the current plugin sources and rebuilt the local
+compiled cache; probe removed afterward. README, status, plugin version and
+focused tests updated. No commit or publication performed. Restart the game
+to use the installed changes; remote Arena Update users need publication first.
+
+## Temporary shared field objects and debug Mew — 2026-11-01 (0.21.0)
+
+Read README/status. Supersedes 0.20.0's permanent furniture removal/refund and
+offline-only CS behavior. Retained other existing work, including concurrent
+French wording and furniture catalogue files; did not stage or commit them.
+Essentials/PEMK/Following EX dependencies unchanged. Visit protocol is now **12**;
+client/server/ping and relevant fixture handshakes updated together.
+
+New pure 000_FieldStateRules encodes a bounded temporary overlay keyed by the
+canonical furniture slot: nil means hidden; [x,y] means a moved boulder.
+036_FieldObstacles never edits arena_demo_placements or credits the Bag after
+Cut/Rock Smash. Native animations/Strength movement are retained. Refresh draws
+canonical placements plus the overlay and removes stale native slot metadata.
+Solo transfers out of map 100 clear the overlay. Entering custom mode clears it
+before the draft is made, even on cancellation. Loaded maps also start fresh;
+the saved plan and inventory stay unchanged. Non-arena Strength state is spared.
+
+Server-owned room field state/revision is independent of the canonical frozen
+visit snapshot. Requests require room membership, map 100, facing adjacency,
+correct object/move, current integer revision and valid target geometry. Pushes
+reject hazards, void, stairs/walls, reserved cells, objects and either player.
+Accepted states go to both members, including the hub; late join snapshots and
+room entry also carry current state. Movement collision authority uses the live
+overlay. State resets only when no connected member remains in map 100, including
+a last guest disconnect. A quick out/back emits both presence frames immediately
+to avoid losing the empty-room transition to heartbeat throttling. A revision
+prevents simultaneous/stale pushes applying twice. Client processing waits for
+safe overworld frames, ignores old/foreign-room packets, and clears pending
+actions when a newer coalesced authoritative state supersedes their revision.
+
+New 038_DebugParty is an explicit one-time debug migration for every local
+profile/new game using this release. On the first safe map frame it builds one
+native Mew, level 100, with exactly CUT/SURF/ROCKSMASH/STRENGTH, replaces the party
+and saves normally. Previous party objects are retained in
+PokemonGlobalMetadata#arena_debug_party_backup; version marker is 1. Failed saves
+restore the previous party and metadata. Menus/battles/transfers/interpreters
+delay migration; the follower refreshes after successful migration. No repeat
+reset after captures or map changes. Native probe environments disable automatic
+migration saving and explicitly verify it in memory. No user's real save was
+read or written during this task: actual profiles migrate on next game launch.
+
+Executed portable Ruby commands, all passing:
+- game-mod/test/field_state_server_test.rb: 5 runs / 132 assertions. Real upstream
+  reactor/wire codec and two local TCP clients: Cut/Smash/Strength relay, live
+  collisions, one-player return retaining changes, both leaving resetting,
+  hub/late arrivals, stale/concurrent requests, malformed/mismatched actions,
+  player blocking and last-occupant disconnect. Fixture auth, no accounts/DB.
+- arena_visits_server_test.rb: 6 runs / 98 assertions.
+- arena_relief_server_test.rb: 7 runs / 118 assertions.
+- debug_party_test.rb: 4 runs / 19 assertions (exact party/moves, backup,
+  per-profile one-time behavior, rollback and automatic safe-frame saving).
+- field_transfer_test.rb: 2 runs / 8 assertions (rapid shared roundtrip emits
+  both maps without local reset; solo exit clears state).
+- arena_relief_test.rb: 20 runs / 960 assertions.
+Total **44 tests / 1,335 assertions**; no failures/errors.
+
+Executed C:/msys64/mingw64/bin/python.exe tools/test-native-visuals.py:
+**3,058 native checks passed**. Actual CS animations/collisions, no item refund
+or canonical edits, hidden objects surviving refresh, original coordinates in
+save metadata, cancellation of actual custom editor resetting everything, and
+real Scene_Map exit/re-entry restoring objects. Client shared-state tests inject
+server-shaped frames into the real FieldObstacles module and render hidden/
+moved/reset objects; request serialization, delayed movement until approval,
+coalesced revisions, fresh-cache arrivals and old/foreign messages checked.
+Native Mew level/party size/four moves/backup/idempotence checked without saving.
+All 740 move animations and prior follower/NPC playback checks also passed.
+First new native fixture waited in the editor; fixed it to simulate Back and
+Cancel. Next transfer fixture lacked PokemonEncounters; initialized it before
+the real transfers. These were fixture failures, corrected before final success.
+
+Executed tools/test-native-relief.py --picker: **417 checks passed** (native
+Surf, editor, relief, disposable disk save/reload and actual transfers).
+Probes/disposable save removed, local scripts/cache restored to 0.21.0. Reports
+remain ignored under tools/runtime. This is not a manual two-window GUI session.
+
+Changed this task: new 000_FieldStateRules and 038_DebugParty, 036 overlay/
+lifecycle, 005 network dispatch/state, arena_visits.rb authority/occupancy,
+protocol checks/fixtures, metadata, new server/transfer/migration tests, native
+visual probe, README and animation/field-move docs. git diff --check passes.
+No new assets, credentials or user save committed. Code remains local/unpublished;
+Arena Update on other PCs fetches GitHub main and needs these changes published.
+
+Manual use after distribution: close both games, update both clients and restart
+the host for protocol 12, then launch Play-Arena.bat. Each profile receives the
+one-Mew debug team once on its first safe frame. Retest a visit with both players
+entering/leaving the main room; no manual GUI multiplayer result is claimed.
+
+## Complete battle animations, OpenGL and field obstacles — 2026-11-01 (0.20.0)
+
+Read README/status first. Retained preceding 0.19.3/0.19.4 changes and unrelated
+concurrent French wording work (090_FrenchBattleWording, its tests/docs/audit).
+No user save, trainer roster, upstream checkout or visit protocol change (11).
+
+General animation investigation: the installed base had only 211 direct player
+move mappings for 740 moves. A successful generic fallback is not proof of a
+dedicated animation. Located the author's Gen 9 Move Animation Project, explicitly
+compatible with Essentials 20.1/21.1, with installation instructions and credits:
+https://eeveeexpo.com/resources/1480/ . No battle-engine plugin was required.
+Downloaded the linked public Drive archive locally (53,537,466 bytes), SHA256
+931691C2E0B4B7817AA891AAA6653FEBDD7C7D0870DC657DAD331F16752AF24B.
+The first request returned Drive's HTML confirmation; followed its UUID form,
+verified the ZIP/hash and inspected archive entries. The ZIP contains animation
+data, graphics and SE, no plugin/license/readme file. Credits and personal-use
+limits are recorded in docs/ANIMATIONS_AND_FIELD_MOVES.md. Third-party resources
+remain ignored/private; no blanket redistribution permission is assumed.
+
+Added install-battle-animations.ps1, hooked into Prepare-Clients, and the Ruby
+install_battle_animation_data.rb helper. Executed archive extraction and the
+helper against the local game: 1,532 contiguous pack records appended, preserving
+original IDs and unique custom animations; named single-frame placeholders
+suppressed; move2anim.dat rebuilt. Asset conflicts and original data backed up.
+Field/follower Data/Animations.rxdata was not replaced. Installed coverage is
+**738/740 dedicated animations**; SECRETPOWER/NATUREPOWER delegate to other move
+effects. The 035 fallbacks now defer to dedicated pack entries. New 037 seeds
+nil transition state, addressing the author's documented v21.1 fade issue via
+an extension rather than a core patch. Repeat installation was executed and
+reported already installed without duplicating data.
+
+GPU error: Microsoft identifies 0x887A0006 as DXGI_ERROR_DEVICE_HUNG:
+https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-error .
+Verified renderer=2 selects OpenGL in the exact official mkxp-z 37a04d1 config:
+https://github.com/mkxp-z/mkxp-z/blob/37a04d14413454551a7b6aadbb4e93e67168accb/mkxp.json .
+install-client-runtime.ps1 now persists renderer=2 and enableBlitting=false.
+Applied the same settings to the private local mkxp.json, then exercised actual
+battle playback under that configuration. This avoids the reported D3D11 path;
+the original device hang was not reproduced. No driver, registry or TDR edits.
+Some direct PowerShell script invocations stalled before output and were stopped;
+download/extraction/helper installation and local config write were executed
+separately with approved commands. PowerShell installer syntax checks passed;
+a clean-PC end-to-end preparation through its wrapper is not claimed.
+
+New 036_FieldObstacles binds the three placed furniture types to native-named
+event scripts. Cut and Rock Smash use native checks/messages/field animations,
+erase the obstacle, remove its placement and return the owned item to the Bag.
+Strength uses native activation and Interpreter#pbPushThisEvent, updates the
+saved placement only after an actual move, and rejects hazards, stairs, void,
+occupants and relief edges. Trigger 2 supports both Action and collision entry.
+Slot rebinding clears stale native erased/moved records to protect the next
+occupant. The three HMs are supplied once on first interaction; a party Pokémon
+must know the move. Story badge exemption is scoped to these arena interactions;
+no DEBUG switch or global badge/progression changes. Standard game saving stores
+the updated placement/inventory. Online/visit mutations are explicitly refused
+because protocol 11 does not relay these actions. Village scenery and natural
+relief are not converted into the editor's three interactive furniture types.
+
+Commands/checks executed:
+- Portable Ruby game-mod/test/battle_animation_install_test.rb: 2 runs / 16
+  assertions, passing (backups, asset conflicts, contiguous variants, empty
+  placeholders, idempotence, preservation of later edits and field animations).
+- Portable Ruby game-mod/test/arena_relief_test.rb: 20 runs / 960 assertions,
+  passing. Ruby syntax/PowerShell parser checks passed for the new scripts.
+- C:/msys64/mingw64/bin/python.exe tools/test-native-visuals.py: **3,041 checks
+  passed**. Audits all 740
+  moves on both sides and exercises native field moves, cancellation, missing
+  capability, inventory return, lava/relief blocks, push persistence, online
+  refusal and dedicated animation precedence. Actual native battle playback:
+  Mud-Slap and Fusion Bolt on both sides, boosted Fusion Bolt, Memento,
+  Swords Dance, Earthquake, Surf and Flamethrower. All passed under OpenGL.
+- tools/test-native-relief.py --picker: **417 checks passed**, including actual
+  Surf, native collisions/picker, disposable disk save/reload and transfers.
+
+Native probes use memory-only state or a disposable save, never a user's save.
+Runners restore the plugin cache and remove temporary probe files. Reports,
+pack, assets and backups stay ignored under tools/runtime. Changed this task:
+036/037, furniture labels in 009, metadata, native visual tests, new installer
+helper/test/PowerShell wrapper, preparation hook, runtime config template,
+README, new animation/field-move docs and this status. No commit/push requested.
+
+Manual steps: close all game clients and launch Play-Arena.bat. First preparation
+on another PC needs Internet to fetch the verified animation pack. Teach the
+provided HMs to compatible party Pokémon, then interact with placed obstacles
+offline. Retest the combat that produced the GPU hang; no long-session or
+second-PC GPU stability certification or new manual two-client test is claimed.
+
+## Surf corners, idle NPCs and move effects — 2026-11-01 (0.19.4)
+
+Read README/status and retained the uncommitted 0.19.3 work from the preceding
+task. Essentials 21.1, PEMK and Following Pokemon EX 2.5.1 unchanged; visit
+protocol remains 11. No user saves, trainer profiles or upstream files changed.
+
+Surf root cause: EX's follow_leader detects a can_surf terrain change and calls
+change_sprite directly even while active? is false. The earlier appearance
+guard alone was insufficient. 011 now installs a guard on the actual sprite
+writer after EX loads, at map setup and frame updates. Surf clears both live
+event and follower-data graphic names; dismount and user toggle stay native.
+
+NPC root cause: generated pages used frame 1, a walking pose in Essentials'
+four-frame charsets. build_arena_map.rb writes frame 0. New 034_StaticNpcIdle
+normalizes stationary human pages on project maps (also expedition guides)
+before Game_Event construction, including older installed templates. Placed
+trainers in 009 reset current/original patterns to 0 and stepping-on-the-spot
+to false. Walking animations and turning remain available.
+
+User examples: MUDSLAP (Coup de Boue), FUSIONBOLT (Éclair Croix). Native audit
+found 311 animation records, mappings for 211 player and 18 opponent moves,
+and no dedicated mapping for either reported move. Native fallbacks previously
+selected TACKLE / THUNDERPUNCH. New 035_BattleAnimationFallbacks selects local
+SANDATTACK dust / THUNDERBOLT electricity, checking candidate frames and image.
+Future dedicated Move/OppMove entries retain priority, including native phase
+selection. No new artwork/download, combat mechanics or global option change.
+
+Files changed this follow-up: 009, 011, new 034/035, meta.txt, map builder,
+new native_visual_boot_probe.rb, tools/test-native-visuals.py, README/status.
+Unrelated title_screen_design.pptx left untouched. No commit/push requested.
+
+Executed portable Ruby:
+- game-mod/test/arena_relief_test.rb: 20 runs / 960 assertions, passing.
+- game-mod/test/following_ownership_test.rb: 4 runs / 12 assertions, passing.
+- game-mod/test/remote_follower_test.rb: 3 runs / 9 assertions, passing.
+- Ruby -c on 011, 034, 035 and build_arena_map.rb: all Syntax OK.
+Total focused Ruby suite: 27 tests / 981 assertions.
+
+Executed C:/msys64/mingw64/bin/python.exe tools/test-native-visuals.py:
+**1,960 native checks passed**, with 740 moves resolved on both sides,
+including available bitmaps and preservation of all authored mappings. Actual
+pbAnimation playback ran for both reported moves on both sides. Native tests
+also verify map 100/101/102 NPC idle/turn/refresh, placed trainer idle after a
+completed scripted step/editor rebuild, actual EX water-to-land follow_leader
+in 4 directions while Surf remains active, event/data graphics hidden after
+direct and queued refresh, and follower restoration on dismount.
+
+Executed tools/test-native-relief.py --picker: **417 native checks passed**,
+including real Surf entry/exit, save/reload, collisions, picker and actual
+village/arena transfers. Both runners removed temporary probes; compiled local
+cache restored to 38 Arena Demo scripts, version 0.19.4. Reports remain ignored
+under tools/runtime/native-visual-probe.log and native-material-picker-probe.log.
+No user's save read or written; visual probe uses memory only, relief probe
+uses a disposable save. Early visual fixture failures exposed Game_Event's
+non-public step_anime field and a pending EX forced route; corrected the field
+access and cleared that transient route before exercising follow_leader.
+
+Manual steps: close the old game and relaunch Play-Arena.bat. No new manual
+playthrough, review of every move's appearance or two-client session claimed.
+
+## Surf follower and expedition arrivals — 2026-11-01 (0.19.3)
+
+Read README and setup history before changes. Existing Essentials 21.1, PEMK
+and Following Pokemon EX 2.5.1 integration retained; no upstream checkout,
+dependency, credentials, user trainer catalogue or visit protocol change (11).
+
+Added an early, uniquely named following_pkmn_appear guard: all followers hide
+while surfing, including the sole Water/Flying party member. Native EX Surf
+entry/exit refreshes and the user's follower toggle remain responsible for
+recall/restoration. The multiplayer descriptor is empty while surfing too.
+The guard must have its own key because EX loads after Arena Demo and would
+overwrite a replacement registered under EX's :surfing key.
+
+Sector crossings previously retained the lateral entry lane at depth one,
+although the destination's generated path can bend immediately after its edge.
+Arrival now uses the nearest interior cell in the center-connected component,
+excluding cliff/water/lava and scenery. This also handles old saved layouts
+without regenerating geography. Loading on an obstacle, scenery or isolated
+dry patch uses the same recovery. SafeMapTransfer now settles movement before
+and after expedition transfers, as already done for village/arena transfers.
+
+Changed 011_ArenaFollowingIntegration.rb, 016_ExpeditionWorld.rb,
+032_ArenaTravelSafety.rb, meta.txt, expedition_world_test.rb,
+native_relief_boot_probe.rb, README and this report.
+
+Executed with tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe:
+- game-mod/test/expedition_world_test.rb: 12 runs / 1,709 assertions, passing.
+  Covers all 3 entry lanes / 4 directions in snow, volcano, canyon and crystal,
+  plus saved blocked/isolated/occupied positions and unchanged saved geography.
+- game-mod/test/following_ownership_test.rb: 4 runs / 12 assertions, passing.
+- game-mod/test/remote_follower_test.rb: 3 runs / 9 assertions, passing.
+- game-mod/test/player_controls_test.rb: 10 runs / 35 assertions, passing.
+- Ruby syntax checks for all three changed gameplay scripts: passing.
+- git diff --check: passing.
+Total: 29 tests / 1,765 assertions. An initial --disable-gems test invocation
+could not load minitest; tests were rerun normally. A new recovery fixture
+initially compared state before lazy encounter initialization; fixed the fixture
+to initialize encounters before taking its geography snapshot, then reran the
+complete expedition suite successfully.
+
+Native verification uses C:/msys64/mingw64/bin/python.exe
+tools/test-native-relief.py --picker and a disposable save. Sandbox initially
+denied writing the installed plugin; escalated retry installed the scripts.
+Early native attempts exposed a missing map scene in the test fixture (timeout
+in EX movement waits, then missing spriteset for recall animation) and the
+handler-key loading issue above. The fixture now creates an actual Scene_Map
+and spritesets for the Surf entry/exit sequence.
+
+Final native run passed **417 checks** (exit 0), including sole-party Squirtle
+hidden with an empty sprite/remote descriptor during actual Surf, restored on
+the bank, and a manually disabled follower staying disabled. Also covers
+native collisions, disk save/reload, picker and real village/arena transfers.
+After the Surf checks the fixture leaves its follower disabled for later
+scene-less probes; an intermediate run had exposed that fixture isolation gap.
+The runner removed its probe/disposable save and restored the 36-script cache
+with installed Arena Demo 0.19.3. Report remains ignored at
+tools/runtime/native-material-picker-probe.log. Expedition entry coverage above
+is Ruby integration testing; no manual walk through all wilderness biomes is
+claimed. No real user's save was loaded or written by the native probe.
+
+Manual steps: close the current game and relaunch Play-Arena.bat. Existing
+expeditions are supported; a saved blocked position is recovered on loading.
+No new manual playthrough or two-window multiplayer session is claimed.
+
 ## Livraison v8.4 — 2026-10-30
 
 User requested README/status update, commit message v8.4 and push to origin/main.
@@ -3319,3 +3684,110 @@ passes 23 native checks: all 3,310 output strings, actual inventory template,
 escape message, ability-only drawing calls, 304 follower/131 PEMK templates and
 NPC quest branches. No save loaded/written. Probe removed and cache restored.
 Close the old game and relaunch Play-Arena.bat for 0.13.4.
+
+## Concurrent French battle/map wording review — 2026-11-01
+
+Added isolated 090_FrenchBattleWording.rb for command prompts, recall/send-out,
+selected status/healing narration and translated map names. Immediate actions
+use present tense; legitimate future warnings retain their meaning. Fille Baston
+is the official FRLG name; user-requested Combattante harmonizes with the other
+established class label without changing CRUSHGIRL or trainer profiles. Short
+battle formulations checked against the BW French corpus (abcboy101/poke-corpus);
+reference remains ignored under runtime/french-battle-reference.txt only.
+
+Game_Map#name translates all 15 biomes, Arena Demo/Arena Town and Expedition
+Sector N fallback labels without touching 016, save IDs or generated maps.
+New docs/FRENCH_BATTLE_WORDING.md records references and limits. Dedicated
+french_battle_wording_test.rb passed 94 read-only checks using the real Essentials
+lookup/interpolation and battle recall/replacement methods: five recall/four
+send-out branches, placeholders, nicknames, double/triple names, biome labels
+and meaningful future-event language. Earlier 72/89-check intermediate runs
+also passed. audit_french_messages.rb loads the new plugin for future audits;
+no global report regenerated. README/status notes appended only.
+
+No shared gameplay file, meta version, trainer profile, pack, save, native probe
+or plugin cache changed by this work. No GUI session or shared-cache mutation
+performed because another agent is editing gameplay concurrently. Initial status
+append was denied; retried with escalation. No commit/push performed here.
+Close the game and relaunch Play-Arena.bat to prepare the new plugin.
+
+## Isolated basic furniture catalogue — 2026-11-01
+
+User requested 20 basic furnishings inspired by classic Pokemon decorations,
+with a visual selector like floors, alongside another agent's gameplay changes.
+Added 091_ArenaFurnitureCatalog.rb only for implementation: 20 new items plus
+three original obstacles, two copies granted once per profile (old/new saves),
+retryable partial grant counting placed copies, native one-cell furniture art
+and selector integration via module prepend. Original IDs/CS behaviors retained.
+New sources: Interior general native sheet crops and four local Pokemon icons
+on doll bases; no external assets downloaded/distributed. Single-cell variants
+of chairs, stool, armchair, sofa, desk, table, bookcase, plants, bin, console,
+statues, Pikachu/Bulbasaur/Charmander/Squirtle dolls. Native art used identically
+in menu and world. No patches to 009, FieldObstacles, shared metadata, existing
+native probes or server. Other agent's current changes left intact.
+
+Visual menu reuses the material selector: row thumbnails, larger preview,
+quantity, confirm/cancel and remove entries. Cached images remain alive when
+sprites are replaced/disposed. Register/load and extra-stock migration support
+saved games. Existing visit format relays all new IDs; both clients need the
+catalogue. No protocol or server code change required.
+
+Executed portable Ruby game-mod/test/furniture_catalog_test.rb: 26 runs /
+1,200 assertions, passing, including existing relief tests. Covers stock,
+old/fresh/partial saves, placement/visit round-trip, art/cache and menu entries.
+Executed furniture_visit_server_test.rb: 1 run / 16 assertions, passing with
+real PEMK reactor/TCP relay of all 20 placements. Executed
+C:/msys64/mingw64/bin/python.exe tools/test-native-furniture.py: 101 native checks
+passed in a separate copied game/engine, never the shared runtime cache.
+Native checks include all 20 sprites/frames/collision sizes, platform placement,
+save/load, graphism replacement, CS isolation, actual selector confirmation,
+cancellation and unchanged stock/layout while browsing. Visually inspected
+furniture-native-report-picker-plant.png and -picker-doll.png. Private 20-object
+contact sheet generated via game-mod/tools/furniture_preview.rb and inspected.
+
+Initial QA driver needed the pure relief constants required before 009; fixed.
+Native picker fixture initially had its selected index overwritten by the
+selector's initialization; set the index on first update and reran successfully.
+First temporary-copy cleanup hit read-only copied source directories; added
+read-only cleanup support. Detached all asset junctions first. Verified and
+removed the sole leftover first fixture by its exact runtime path. Subsequent
+copies cleaned normally. All recursive cleanup paths checked inside runtime.
+No personal save or live plugin cache modified. Only disposable fixture data
+was saved/loaded. Native test input is simulated, not a manual two-client visit.
+
+New files: plugin, furniture tests, standalone TCP test, isolated native probe,
+preview tool, tools/test-native-furniture.py and docs/ARENA_FURNITURE.md.
+README/status notes appended without replacing the other agent's edits. No
+commit/push performed in this concurrent task. Relaunch Play-Arena.bat to prepare
+new local plugin files; update both clients before visiting decorated arenas.
+
+## Furniture picker sizing and two-line panel — 2026-11-01
+
+User requested consistent furniture preview size and removal of the clipped
+third description line. 091_ArenaFurnitureCatalog.rb now measures each sprite's
+visible alpha bounds and fits it proportionally within a centered 72x72 region
+of the shared 96x96 preview. This applies to new furniture and original obstacles,
+both row thumbnails and enlarged samples. World sprite art/size/collisions are
+unchanged. Description now contains only stock quantity and one-cell occupancy.
+Updated furniture docs and appended README/status notes, preserving concurrent
+agent's gameplay edits and metadata.
+
+Isolated tools/test-native-furniture.py passed 101 checks and its temporary
+copy cleaned normally. Visually inspected actual plant/doll picker screenshots:
+uniform visible bounds and both description lines fully displayed. No shared
+plugin cache or personal save touched. Unit run exposed random-order leakage
+from prior visit tests (pending return left by Visits.reset); fixture setup now
+clears Visits instance variables before resetting, matching existing relief
+fixture behavior. No production visit logic changed. Reran the failing seed
+13889 successfully: final furniture_catalog_test.rb run reports 26 tests /
+1,200 assertions, zero failures/errors/skips. The separate furniture socket
+test previously passed 1 test / 16 assertions. No new server behavior or
+protocol changes required by this visual adjustment.
+
+Documentation consolidation requested by user: README now opens with the
+20-object addition (23 types including original obstacles), one-time stock,
+normalized preview sizing and two-line panel, with catalogue link and exact
+validation results. Clarified that changes remain local until published; Arena
+Update on another PC cannot fetch unpublished work. Existing sections and the
+other agent's 0.21.0 gameplay/protocol notes preserved. This documentation pass
+changes README/status only; no test rerun for documentation-only edits.

@@ -19,9 +19,9 @@ module ArenaDemo
   SURFACE_NAMES = ArenaMaterials::FLOORS.transform_values(&:first).freeze
   VISIT_SURFACE_CODES = ArenaMaterials::SURFACE_CODES
   FURNITURE_STOCK = {
-    :ARENA_FURNITURE_BOULDER => ["Boulder", "Object boulder", 2],
-    :ARENA_FURNITURE_ROCK    => ["Rock", "Object rock", 2],
-    :ARENA_FURNITURE_TREE    => ["Tree", "Object tree 1", 2]
+    :ARENA_FURNITURE_BOULDER => ["Rocher à pousser", "Object boulder", 2],
+    :ARENA_FURNITURE_ROCK    => ["Rocher à briser", "Object rock", 2],
+    :ARENA_FURNITURE_TREE    => ["Pousse à couper", "Object tree 1", 2]
   }.freeze
   TRAINER_PROFILES = {
     :ARENA_TRAINER_ROOKIE => {
@@ -2222,6 +2222,9 @@ module ArenaDemo
         event.transparent = false
         event.through = false
         event.walk_anime = true
+        event.instance_variable_set(:@step_anime, false)
+        event.pattern = 0
+        event.instance_variable_set(:@original_pattern, 0)
         event.instance_variable_set(:@direction_fix, false)
         commands = [
           RPG::EventCommand.new(355, 0, ["ArenaDemo.challenge_recruited_trainer(#{slot})"]),

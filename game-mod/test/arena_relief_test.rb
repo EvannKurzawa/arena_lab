@@ -428,7 +428,7 @@ class ArenaReliefTest < Minitest::Test
     refute ArenaDemo::Visits.ready?
     ArenaDemo::Visits.receive(type: :arena_ready, version: 7)
     refute ArenaDemo::Visits.ready?
-    ArenaDemo::Visits.receive(type: :arena_ready, version: 11)
+    ArenaDemo::Visits.receive(type: :arena_ready, version: 12)
     assert ArenaDemo::Visits.ready?
     ArenaDemo::Visits.receive(payload.merge(type: :arena_state, phase: :open,
       role: :guest, room: 'room-relief', host: 1, guest: 2,

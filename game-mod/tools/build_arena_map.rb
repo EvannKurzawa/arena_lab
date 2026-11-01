@@ -111,7 +111,7 @@ def event(id, name, x, y, character, script = nil)
                          :@self_switch_ch => "A")
   graphic = set_fields(RPG::Event::Page::Graphic.allocate,
                         :@tile_id => 0, :@character_name => character,
-                        :@character_hue => 0, :@direction => 2, :@pattern => 1,
+                        :@character_hue => 0, :@direction => 2, :@pattern => 0,
                         :@opacity => 255, :@blend_type => 0)
   move_command = set_fields(RPG::MoveCommand.allocate,
                             :@code => 0, :@parameters => [])

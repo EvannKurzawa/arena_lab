@@ -59,6 +59,8 @@ function Prepare-Clients {
     & "$PSScriptRoot/install-french-title.ps1" -GameRoot $gameRoot
     & "$PSScriptRoot/install-following-pokemon.ps1" -GameRoot $gameRoot
     if (!$?) { throw 'Following Pokemon EX setup failed.' }
+    & "$PSScriptRoot/install-battle-animations.ps1" -GameRoot $gameRoot -Download
+    if (!$?) { throw 'Battle animation pack setup failed.' }
     # Repair only the generated local junction after moving the workspace.
     $linkPath = Join-Path $gameRoot 'server'
     $link = Get-Item -LiteralPath $linkPath -Force -ErrorAction SilentlyContinue

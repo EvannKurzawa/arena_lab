@@ -11,6 +11,7 @@ module ArenaDemo
     module_function
 
     def local_pokemon
+      return nil if defined?($PokemonGlobal) && $PokemonGlobal && $PokemonGlobal.surfing
       return nil unless defined?(FollowingPkmn) && FollowingPkmn.can_check?
       pokemon = FollowingPkmn.get_pokemon
       return nil if !pokemon || pokemon.egg?
@@ -60,6 +61,12 @@ module ArenaDemo
       FollowingPkmn.start_following(900, false)
     rescue StandardError => e
       echoln("[Arena Lab] Could not start following Pokémon: #{e.message}") if defined?(echoln)
+    end
+
+    def install_follower_hooks
+      return unless defined?(FollowingPkmn) && FollowingPkmn.respond_to?(:change_sprite)
+      return if FollowingPkmn.singleton_class.ancestors.include?(SurfFollowerSprite)
+      FollowingPkmn.singleton_class.prepend(SurfFollowerSprite)
     end
 
     def followers
@@ -171,6 +178,22 @@ module ArenaDemo
     end
   end
 end
+
+module ArenaDemo::SurfFollowerSprite
+  def change_sprite(*args)
+    # EX calls this directly when follow_leader crosses a shoreline, even if
+    # active? is false. Guard the actual sprite writer as well as appearance.
+    return remove_sprite if $PokemonGlobal && $PokemonGlobal.surfing
+    super
+  end
+end
+
+# Arena Demo loads before EX: keep a distinct, earlier guard so EX cannot
+# overwrite it when registering its species-dependent Surf exceptions.
+# Defer to native appearance rules on land and during the dismount jump.
+EventHandlers.add(:following_pkmn_appear, :arena_surf_visibility, proc { |_pokemon|
+  next false if $PokemonGlobal && $PokemonGlobal.surfing && !$game_temp.ending_surf
+})
 
 if defined?(Sprite_Character)
   class ArenaRemotePokemonSprite < Sprite_Character
@@ -291,7 +314,11 @@ end
 EventHandlers.add(:on_new_spriteset_map, :arena_demo_following_sprites,
   proc { |spriteset, viewport| ArenaDemo::FollowingIntegration.sprite_context(spriteset, viewport) })
 EventHandlers.add(:on_frame_update, :arena_demo_following_update, proc {
+  ArenaDemo::FollowingIntegration.install_follower_hooks
   ArenaDemo::FollowingIntegration.install_network_hooks
   ArenaDemo::FollowingIntegration.ensure_local_follower
   ArenaDemo::FollowingIntegration.update_remote_followers if defined?(PEMK::Remotes)
+})
+EventHandlers.add(:on_game_map_setup, :arena_following_sprite_guard, proc { |*|
+  ArenaDemo::FollowingIntegration.install_follower_hooks
 })

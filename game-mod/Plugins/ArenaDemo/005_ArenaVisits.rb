@@ -12,8 +12,10 @@ module ArenaDemo
     def snapshot; @snapshot; end
     def scope; @room || (defined?(PEMK) && PEMK.self_id); end
     def transfer_pending?; !!@arrival; end
+    def field_session?; ready? && @snapshot && @room && [:hosting, :visiting].include?(@phase); end
 
     def reset
+      FieldObstacles.clear if defined?(FieldObstacles)
       @return_home = true if guest? || @arrival
       @ready = false
       @hello_at = nil
@@ -119,13 +121,14 @@ module ArenaDemo
     def receive(message)
       case message[:type]
       when :arena_ready
-return unless message[:version] == 11
+return unless message[:version] == 12
         @ready = true
         @phase ||= :closed
         @refresh = true
         clear_remotes(true)
       when :arena_state
         if message[:phase] == :closed
+          FieldObstacles.clear if defined?(FieldObstacles)
           @return_home = true if guest? || @arrival
           @phase = :closed
           @role = @room = @snapshot = @arrival = nil
@@ -146,6 +149,7 @@ return unless message[:version] == 11
                         :layout => LAYOUTS.keys[layout], :difficulty => difficulty,
                         :tile_edits => decoded_snapshot[:tile_edits],
                         :placements => decoded_snapshot[:placements] }.freeze
+          FieldObstacles.receive(message) if defined?(FieldObstacles)
           @arrival = true if joining
           @invitation = nil
           @request_pending = nil
@@ -153,6 +157,8 @@ return unless message[:version] == 11
         end
         @refresh = true
         clear_remotes(true)
+      when :arena_field_state
+        FieldObstacles.receive(message) if defined?(FieldObstacles)
       when :arena_invitation
         return unless message[:room].is_a?(String) && message[:room].length <= 32 && message[:host].is_a?(Integer)
         @invitation = { :host => message[:host], :room => message[:room], :expires => now + 60 }
@@ -310,7 +316,7 @@ if defined?(PEMK::Dispatch)
       if message.is_a?(Hash)
         if [:arena_ready, :arena_state, :arena_invitation, :arena_invitation_cancelled,
             :arena_visit_request, :arena_visit_pending, :arena_visit_declined,
-            :arena_visit_expired, :arena_visit_cancelled, :arena_error, :arena_notice].include?(message[:type])
+            :arena_visit_expired, :arena_visit_cancelled, :arena_error, :arena_notice, :arena_field_state].include?(message[:type])
           return ArenaDemo::Visits.receive(message)
         end
         if [:pos, :step, :spawn, :dir].include?(message[:type]) && ArenaDemo::Visits.ready? &&

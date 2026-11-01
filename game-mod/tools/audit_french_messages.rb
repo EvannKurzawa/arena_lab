@@ -6,7 +6,7 @@ def nil_or_empty?(value); value.nil? || value.empty?; end
 root = File.expand_path('../..', __dir__)
 game = File.join(root, 'tools/runtime/essentials-v21.1-base')
 load File.join(root, 'upstream/pokemon-essentials/Data/Scripts/001_Technical/003_Intl_Messages.rb')
-%w[021_French 023_FrenchFollowers 024_FrenchNetwork 025_FrenchEngineMessages 026_FrenchCoreReview].each do |name|
+%w[021_French 023_FrenchFollowers 024_FrenchNetwork 025_FrenchEngineMessages 026_FrenchCoreReview 090_FrenchBattleWording].each do |name|
   path = File.join(root, "game-mod/Plugins/ArenaDemo/#{name}.rb")
   eval(File.read(path).gsub("\t", '  '), TOPLEVEL_BINDING, path)
 end

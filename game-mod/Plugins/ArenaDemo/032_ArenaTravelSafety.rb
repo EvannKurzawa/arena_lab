@@ -19,7 +19,8 @@ module ArenaDemo
   module SafeMapTransfer
     def transfer_player(*args)
       project_maps = [ArenaDemo::MAP_ID, ArenaDemo::ENTRANCE_MAP_ID, ArenaDemo::TOWN_MAP_ID]
-      guarded = project_maps.include?($game_map.map_id) || project_maps.include?($game_temp.player_new_map_id)
+      guarded = project_maps.include?($game_map.map_id) || project_maps.include?($game_temp.player_new_map_id) ||
+                ExpeditionLayout.map?($game_map.map_id) || ExpeditionLayout.map?($game_temp.player_new_map_id)
       ArenaDemo.settle_player_after_transfer if guarded
       result = super
       ArenaDemo.settle_player_after_transfer if guarded

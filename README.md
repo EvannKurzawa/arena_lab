@@ -1,6 +1,125 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Dernière version du code : v8.4
+## Dernière version du code : v9
+
+Version interne : **Arena Demo 0.21.1** ; visites multijoueurs au **protocole 12**.
+Cette version regroupe les correctifs Surf/suiveur, les arrivées praticables en
+expédition, les PNJ au repos, le pack d'animations de combat, les objets CS
+temporaires partagés, les dialogues et effets CS, les corrections de français
+et les 20 nouveaux meubles avec leur sélecteur visuel.
+
+Pour tester les CS, chaque profil reçoit une seule fois **un Mew niveau 100**
+avec **Coupe, Surf, Éclate-Roc et Force**, en remplacement de l'équipe actuelle
+conservée en secours dans la sauvegarde.
+
+Fermez les jeux, lancez **Arena Update sur les deux PC**, puis **Play-Arena.bat**.
+Redémarrez le serveur pour le protocole 12. L'updater récupère le code de `main` ;
+aucun nouvel exécutable de mise à jour n'est nécessaire. Le premier téléchargement
+du pack d'animations demande Internet ; ses ressources restent privées au runtime.
+Les détails et résultats de vérification figurent dans les sections suivantes
+et dans [SETUP_STATUS.md](SETUP_STATUS.md).
+
+## Dialogues CS et effets sur les objets (Arena Demo 0.21.1)
+
+Le rocher de Force demande désormais **Entrée**, face au rocher, pour activer
+Force puis pour chaque poussée. S'en approcher ne déclenche plus de dialogue.
+Les textes de Coupe, Éclate-Roc et Force reprennent les dialogues français de
+HeartGold/SoulSilver, avec une typographie adaptée à l'interface.
+Coupe affiche une entaille et l'arbuste se sépare ; Éclate-Roc disperse le
+caillou en fragments. Ces effets utilisent les graphismes déjà installés et
+les sons du moteur. L'autre joueur présent voit aussi la destruction validée
+par le serveur ; entrer après coup ne rejoue pas l'animation.
+Les règles de réinitialisation des objets restent celles décrites ci-dessous.
+Fermez le jeu puis relancez **Play-Arena.bat** pour charger ces corrections.
+Ces changements font partie de v9 et sont récupérés par Arena Update depuis `main`.
+
+## Nouveau mobilier et sélection visuelle (2026-11-01)
+
+La personnalisation propose **20 nouveaux meubles**, soit **23 types** avec
+les trois obstacles existants : sièges, petites tables, bibliothèque, plantes,
+statues, console et quatre poupées Pokémon. Chaque profil reçoit deux exemplaires
+de chaque nouveauté une seule fois, y compris les sauvegardes existantes.
+
+Dans **Personnalisation → Meubles**, les vignettes et l'aperçu agrandi utilisent
+un gabarit commun avec les proportions conservées. Le panneau affiche uniquement
+**En réserve** et **Occupe 1 case**, sans troisième ligne tronquée.
+Voir [le catalogue et son utilisation](docs/ARENA_FURNITURE.md).
+
+Validation : **26 tests / 1 200 assertions**, **1 test réseau / 16 assertions**
+et **101 contrôles moteur** dans une copie temporaire séparée. Les ajouts font
+partie de v9 : mettez les deux PC à jour puis relancez **Play-Arena.bat**.
+
+## Objets CS temporaires partagés et Mew de debug (Arena Demo 0.21.0)
+
+Coupe et Éclate-Roc font disparaître temporairement l'objet, sans ajout au Sac.
+Force déplace temporairement le rocher. Le plan sauvegardé reste inchangé.
+En solo, sortir de l'arène puis revenir, ou ouvrir le mode Custom, réinitialise
+tous ces changements. L'annulation du mode Custom garde cette réinitialisation.
+
+En multijoueur, les changements restent partagés tant qu'au moins un joueur
+occupe la pièce principale. Le joueur qui entre depuis le hub retrouve les
+objets disparus et les rochers déplacés. Le serveur réinitialise la pièce quand
+le dernier joueur sort ; un aller-retour d'un seul joueur ne suffit pas.
+
+Au premier lancement de chaque profil avec cette version, l'équipe est remplacée
+pour le debug par **un seul Mew niveau 100**, avec **Coupe, Surf, Éclate-Roc et
+Force**. L'équipe précédente reste conservée en secours dans la sauvegarde.
+Cette migration est unique par profil, sans remplacement répété après capture.
+
+Fermez les jeux et relancez **Play-Arena.bat** après mise à jour des deux PC.
+Redémarrez le serveur : les visites passent au **protocole 12** dans v9.
+Voir les [règles et vérifications](docs/ANIMATIONS_AND_FIELD_MOVES.md).
+
+## Pack d'animations complet et objets CS (Arena Demo 0.20.0)
+
+Le pack compatible Essentials 21.1 apporte des animations dédiées pour
+**738 des 740 attaques**, au lieu de 211. Les animations de charge/impact et
+les versions adverses sont conservées. Le lancement télécharge et prépare
+les ressources privées vérifiées si elles manquent ; une connexion Internet
+est nécessaire la première fois. Aucun nouveau moteur de combat n'est ajouté.
+
+Le moteur utilise désormais **OpenGL** pour contourner la voie D3D11 ayant
+signalé `0x887A0006`. Les animations ont été testées avec ce réglage ; le
+blocage graphique d'origine n'a pas été reproduit.
+
+Les trois objets plaçables répondent aux CS : **Coupe**, **Éclate-Roc** et
+**Force**. Les CS sont fournies dans le Sac au premier essai ; un Pokémon de
+l'équipe doit connaître la capacité. Les badges du scénario ne sont pas requis
+dans l'arène. La version 0.21.0 remplace le retrait permanent initial par l'état
+temporaire et partagé décrit ci-dessus.
+
+Fermez le jeu puis relancez **Play-Arena.bat**. Voir les
+[détails, crédits et limites](docs/ANIMATIONS_AND_FIELD_MOVES.md).
+
+## Surf dans les coins, animations et PNJ (Arena Demo 0.19.4)
+
+Le suiveur reste masqué pendant Surf même lorsque son déplacement lui fait
+franchir une rive dans un coin. Il revient sur terre si le suivi est activé.
+Les PNJ statiques du village, de l'entrée et de l'arène, ainsi que les Dresseurs
+placés, utilisent leur pose de repos et peuvent toujours se tourner pour parler.
+
+La bibliothèque d'animations d'Essentials installée est partielle. **Coup de
+Boue** et **Éclair Croix** n'ont pas d'animation dédiée : ils utilisent maintenant
+respectivement l'effet de poussière de Jet de Sable et l'effet électrique de
+Tonnerre, au lieu des effets génériques précédents. Une animation dédiée reste
+prioritaire si un pack compatible est installé plus tard. Les règles de combat
+et l'option d'activation des animations restent celles d'Essentials.
+
+Fermez le jeu puis relancez **Play-Arena.bat**. Les corrections prennent aussi
+en charge les modèles de cartes existants ; protocole multijoueur inchangé (**11**).
+
+## Correctifs Surf et expéditions (Arena Demo 0.19.3)
+
+Le Pokémon suiveur est masqué pendant Surf, y compris les Pokémon Eau ou
+volants, puis réapparaît à la sortie si le suivi est activé. Les passages entre
+secteurs choisissent une arrivée praticable reliée aux chemins, même dans une
+ancienne expédition. Charger une sauvegarde sur un obstacle ou un îlot isolé
+replace le joueur sur le terrain accessible le plus proche. Les transferts des
+expéditions réinitialisent aussi les mouvements en cours.
+Fermez le jeu et relancez **Play-Arena.bat** pour installer les corrections.
+Le protocole de visite reste **11**.
+
+## Version précédente : v8.4
 
 Version interne : **Arena Demo 0.19.2** ; visites multijoueurs au **protocole 11**.
 Cette version regroupe les corrections depuis v8.3 :
@@ -929,3 +1048,33 @@ The demo is complete when:
 Both upstream repositories are checked out under `upstream/`; the checked versions agree at Essentials v21.1. WSL Debian was inaccessible, so I set up a local Windows Ruby 3.3.12 + PostgreSQL 17.11 environment instead. The PEMK server starts on loopback port 9998. A private v21.1 game package is assembled under the ignored `tools/runtime/essentials-v21.1-base/` folder with PEMK and ArenaDemo installed. Two raw TCP sockets connected, but those were not authenticated game clients. Two non-auth PEMK tests pass; the authentication test crashes inside Windows bcrypt, and the full test suite did not complete. See [SETUP_STATUS.md](SETUP_STATUS.md) for exact commits, commands, test output, and blockers.
 
 The client package includes Essentials maps/assets and the mkxp-z runtime in the ignored local test copy, so it can be launched without installing RPG Maker XP. The Ruby map generator derives Map100 from Essentials' walkable Lappet Town map (map 2), reads the Player's House exit transfer to choose the town spawn, and adds reusable furniture/trainer event slots. The offline Arena Guide opens the tile editor, whose validated placements persist in the local save; the user has confirmed the latest custom editor workflow in-game. Online visits retain their existing fixed layout snapshot. See [game-mod/README.md](game-mod/README.md) and [SETUP_STATUS.md](SETUP_STATUS.md).
+
+## Révision des traductions de combat et des zones (2026-11-01)
+
+Les textes de commande, de rappel et d'envoi sont revus : « Que doit faire
+Dialga ? », « Envoyer » et des rappels adressés au Pokémon au singulier.
+Crush Girl s'affiche « Combattante » ; les 15 biomes et les noms de repli des
+secteurs s'affichent en français sans changer les identifiants sauvegardés.
+Voir [la révision, ses références et sa validation](docs/FRENCH_BATTLE_WORDING.md).
+Le plugin isolé `090_FrenchBattleWording.rb` préserve le pack téléchargé et
+les changements de gameplay en cours. Fermez le jeu et relancez Play-Arena.bat
+pour préparer le nouveau plugin. Vérification séparée : 94 contrôles réussis.
+
+## Catalogue de mobilier de base (2026-11-01)
+
+**20 nouveaux objets** complètent les trois obstacles existants : sièges,
+petites tables, bibliothèque, plantes, statues, console et quatre poupées Pokémon.
+Dans **Personnalisation → Meubles**, le sélecteur propose des vignettes,
+un aperçu agrandi et la quantité disponible, comme pour les sols.
+Deux exemplaires par nouveauté sont fournis une seule fois, même sur une
+sauvegarde existante. Les obstacles CS gardent leur fonctionnement.
+Voir [le catalogue, son utilisation et sa validation](docs/ARENA_FURNITURE.md).
+L'ajout est isolé dans `091_ArenaFurnitureCatalog.rb` ; les fichiers de gameplay
+actuellement modifiés par l'autre agent sont préservés. Fermez le jeu puis
+relancez Play-Arena.bat. Mettez les deux clients à jour pour les visites.
+
+### Lisibilité du sélecteur de meubles (2026-11-01)
+
+Les vignettes et aperçus des meubles utilisent un gabarit commun, calculé sur
+les pixels visibles, avec les proportions conservées. Le panneau garde seulement
+« En réserve » et « Occupe 1 case » ; la troisième ligne est supprimée.

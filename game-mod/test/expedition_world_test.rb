@@ -225,6 +225,48 @@ class ExpeditionWorldTest < Minitest::Test
     assert $reset_movement
   end
 
+  def test_crossings_land_in_connected_interior_for_every_lane_and_biome
+    ['snow', 'volcano', 'canyon', 'crystal'].each do |biome|
+      data = Layout.build_region(biome, Layout::RNG.new(42), 5)
+      World.state['regions'][5] = data
+      occupied = data['decorations'].to_h { |x, y, _| [y * 64 + x, true] }
+      reachable = Layout.reachable_cells(data['cells'], occupied)
+      [2, 4, 6, 8].each do |direction|
+        source = Layout.neighbor(5, 10 - direction)
+        (-1..1).each do |lane|
+          $game_map.map_id = Layout::FIRST_MAP + source
+          $game_player.x = [4, 6].include?(direction) ? (direction == 4 ? 0 : 63) : 32 + lane
+          $game_player.y = [2, 8].include?(direction) ? (direction == 8 ? 0 : 63) : 32 + lane
+          World.portal(direction)
+          map, x, y, facing = $transfers.last
+          assert_equal [115, direction], [map, facing]
+          assert x.between?(1, 62) && y.between?(1, 62)
+          assert reachable[y * 64 + x], "Unsafe #{biome}/#{direction}/#{lane}"
+          refute occupied[y * 64 + x]
+          assert_equal [x, y], World.landing_position(data, x, y)
+        end
+      end
+    end
+  end
+
+  def test_load_recovers_blocked_and_isolated_saved_positions_without_changing_layout
+    data = World.region(123)
+    data['cells'] = 'o' * (64 * 64)
+    (30..34).each { |y| (30..34).each { |x| data['cells'].setbyte(y * 64 + x, 112) } }
+    data['cells'].setbyte(10 * 64 + 10, 98) # dry but isolated
+    data['decorations'] = [[32, 31, 'Object boulder']]
+    World.assign_region_species(World.state, 13)
+    before = Marshal.dump(World.state)
+    [[1, 32], [10, 10], [32, 31]].each do |x, y|
+      $game_player.x, $game_player.y = x, y
+      $game_map.map_id = 123
+      World.recover_loaded_map
+      assert $game_player.x.between?(30, 34) && $game_player.y.between?(30, 34)
+      refute_equal [32, 31], [$game_player.x, $game_player.y]
+      assert_equal before, Marshal.dump(World.state)
+    end
+  end
+
   def test_species_pool_filters_generation_forms_habitat_and_special_species
     GameData::Species.entries = [
       Species.new(:CHARMANDER, 0, 1, [:FIRE], :Mountain, 309, []),

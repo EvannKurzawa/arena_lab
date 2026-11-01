@@ -84,7 +84,7 @@ module ArenaVisitTestSupport
     send_frame(socket, type: :ping, t: 1)
     pong = receive(socket)
     assert_equal :pong, pong[:type]
-assert_equal 11, pong[:arena_visits]
+assert_equal 12, pong[:arena_visits]
     assert_equal '0.0.0.0', pong[:arena_bind]
     socket
   end

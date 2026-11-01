@@ -111,6 +111,17 @@ module ArenaDemo::NativeReliefProbe
       check.call(!$PokemonGlobal.surfing && !ArenaDemo.surf_probe?, 'Surf access probe restores state and never starts surfing')
       $PokemonEncounters = PokemonEncounters.new
       $PokemonEncounters.setup(100)
+      # EX's recall animation needs a real map spriteset and miniupdate loop.
+      surf_previous_scene = $scene
+      surf_scene = Scene_Map.new
+      $scene = surf_scene
+      surf_scene.createSpritesets
+      if defined?(FollowingPkmn)
+        $player.party = [Pokemon.new(:SQUIRTLE, 10)]
+        FollowingPkmn.start_following(900, false) unless FollowingPkmn.get
+        FollowingPkmn.toggle(true, false)
+        check.call(FollowingPkmn.active?, 'water-type follower visible on bank')
+      end
       original_confirm = Object.instance_method(:pbConfirmMessage)
       $native_surf_requests = 0
       Object.send(:define_method, :pbConfirmMessage) { |*| $native_surf_requests += 1; true }
@@ -118,13 +129,31 @@ module ArenaDemo::NativeReliefProbe
       Object.send(:define_method, :pbConfirmMessage, original_confirm)
       check.call($native_surf_requests == 1, 'shore Surf actually starts without debug, badges or a Surf Pokemon')
       check.call($PokemonGlobal.surfing && [$game_player.x, $game_player.y] == [40, 40], 'native Surf jump enters marsh water')
+      if defined?(FollowingPkmn)
+        check.call(!FollowingPkmn.active? && FollowingPkmn.get_event.character_name.empty?, 'Surf hides even a water-type sole party follower')
+        check.call(ArenaDemo::FollowingIntegration.descriptor[:follower_species].empty?, 'Surf hides transmitted follower descriptor')
+        check.call($PokemonGlobal.follower_toggled, 'Surf preserves follower preference')
+      end
       $game_player.moveto(40, 40)
       $game_player.direction = 4
       check.call(pbEndSurf(-1, 0) && [$game_player.x, $game_player.y] == [39, 40], 'native dismount returns from marsh water to bank')
       pbCancelVehicles
       $game_temp.ending_surf = false
       $game_temp.surf_base_coords = nil
+      if defined?(FollowingPkmn)
+        FollowingPkmn.refresh(false)
+        check.call(FollowingPkmn.active? && !FollowingPkmn.get_event.character_name.empty?, 'follower returns on bank after Surf')
+        FollowingPkmn.toggle(false, false)
+        $PokemonGlobal.surfing = true
+        FollowingPkmn.refresh(false)
+        $PokemonGlobal.surfing = false
+        FollowingPkmn.refresh(false)
+        check.call(!FollowingPkmn.active? && !$PokemonGlobal.follower_toggled, 'manual follower disable survives Surf')
+        # Keep the fixture follower off for subsequent scene-less floor probes.
+      end
       $DEBUG = debug_before_surf
+      surf_scene.dispose
+      $scene = surf_previous_scene
       $game_player.moveto(49, 53)
       ArenaDemo.editor_apply_ground(records, placements, 40, 40, floor: 'field', ground: 'water')
       ArenaDemo::PLATFORM_STYLES.each_key do |style|

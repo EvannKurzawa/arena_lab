@@ -33,6 +33,10 @@ $config = @{
     subImageFix = $true
     # Use rendered glyph height; nominal RGSS height can clip font descenders.
     fontHeightReporting = 1
+    # Avoid ANGLE's D3D11 swap chain (DXGI_ERROR_DEVICE_HUNG on some PCs).
+    # Official mkxp-z renderer=2 selects OpenGL; do not change system drivers.
+    renderer = 2
+    enableBlitting = $false
 }
 # MIDI needs a SoundFont in mkxp-z. Reuse local assets when present; never
 # download or redistribute a bank as part of this source update.
