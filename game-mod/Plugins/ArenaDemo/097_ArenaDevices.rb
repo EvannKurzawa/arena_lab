@@ -28,6 +28,7 @@ module ArenaDemo::Devices
 
   def clear
     @web_hiding = false
+    @effect_hiding = {}
     end_transport
     (@spark_sprites || []).each(&:dispose)
     @spark_sprites = []
@@ -80,12 +81,18 @@ module ArenaDemo::Devices
     return nil unless @transport_kind == :magnet && @magnet_started
     [2,4,8,6][((System.uptime - @magnet_started) * 16 / 1.25).floor % 4]
   end
-  def hiding_follower?; @restore_follower == true && (!!@transport_kind || @web_hiding); end
+  def hiding_follower?; !!(@transport_kind || @web_hiding || (@effect_hiding && @effect_hiding.values.any?)); end
+
+  def hide_for_effect(reason, hidden)
+    @effect_hiding ||= {}
+    @effect_hiding[reason] = hidden
+    sync_follower_visibility
+  end
 
   def sync_follower_visibility
     return unless defined?(FollowingPkmn)
     changed = false
-    if @transport_kind || @web_hiding
+    if hiding_follower?
       if FollowingPkmn.active? && !FollowingPkmn.hidden?
         @restore_follower = true
         FollowingPkmn.hide_follower
@@ -94,6 +101,7 @@ module ArenaDemo::Devices
     elsif @restore_follower
       @restore_follower = nil
       FollowingPkmn.unhide_follower(false)
+      ArenaDemo::FollowingIntegration.settle_local_follower if defined?(ArenaDemo::FollowingIntegration)
       changed = true
     end
     PEMK::Presence.emit_now(:pos) if changed && defined?(PEMK::Presence)
@@ -201,6 +209,7 @@ module ArenaDemo::Devices
     menu_captured = true
     $game_temp.in_menu = true
     @busy = true
+    hide_for_effect(:teleport, true)
     PEMK::Presence.emit_now(:pos) if defined?(PEMK::Presence)
     # Reuse the installed Pokemon teleport sound; no external audio is bundled.
     pbSEPlay('Arena HGSS Teleport')
@@ -215,6 +224,8 @@ module ArenaDemo::Devices
     player.direction = direction if player && direction
     $game_temp.in_menu = previous_menu if menu_captured
     @busy = false
+    hide_for_effect(:teleport, false) if player
+    PEMK::Presence.emit_now(:pos) if player && defined?(PEMK::Presence)
   end
 
   def update

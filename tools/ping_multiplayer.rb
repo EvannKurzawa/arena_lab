@@ -27,7 +27,7 @@ loop do
       raise 'Incomplete server reply' unless payload && payload.bytesize == length
       reply = PEMK::Wire.decode_envelope(payload, false).fetch(:env)
       raise 'Server did not answer the PEMK ping' unless reply[:type] == :pong && reply[:t] == 123
-if ARGV.include?('arena') && reply[:arena_visits] != 14
+if ARGV.include?('arena') && (reply[:arena_visits] != 14 || reply[:arena_follower_pose] != true)
         warn 'An older PEMK service is running. Host online will verify whether it can safely replace it.'
         exit 2
       end

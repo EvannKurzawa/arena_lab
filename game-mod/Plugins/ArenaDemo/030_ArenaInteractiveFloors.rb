@@ -86,6 +86,7 @@ module ArenaDemo
       $game_temp.in_menu = true
       $PokemonGlobal.ice_sliding = false
       event.walk_anime = false
+      Devices.hide_for_effect(:quicksand, true) if defined?(Devices)
       # Send the entered trap before the nonadjacent return. The server accepts
       # that return only from a quicksand tile of this room's saved layout.
       PEMK::Presence.emit_now(:pos) if defined?(PEMK::Presence)
@@ -98,7 +99,7 @@ module ArenaDemo
       $game_temp.ending_surf = false
       pbCancelVehicles
       pbUpdateVehicle
-      $PokemonTemp.followers&.map_transfer_followers if defined?($PokemonTemp) && $PokemonTemp.respond_to?(:followers)
+      $game_temp.followers&.map_transfer_followers
       PEMK::Presence.emit_now(:pos) if defined?(PEMK::Presence)
       true
     ensure
@@ -107,6 +108,8 @@ module ArenaDemo
       event.walk_anime = old_walk
       $game_temp.in_menu = old_menu
       @quicksand_running = false
+      Devices.hide_for_effect(:quicksand, false) if defined?(Devices)
+      PEMK::Presence.emit_now(:pos) if defined?(PEMK::Presence)
     end
   end
 end

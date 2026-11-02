@@ -2,6 +2,30 @@
 require_relative 'arena_visit_harness'
 
 class ArenaVisitsServerTest < Minitest::Test
+  def test_follower_pose_is_relayed_and_invalid_or_hidden_pose_is_removed
+    sender, viewer = connect, connect
+    send_frame(sender, type: :ping, t: 99)
+    assert_equal true, until_type(sender, :pong)[:arena_follower_pose]
+    room = open_room(sender)
+    join(sender, viewer, room)
+    until_type(sender, :pos)
+    until_type(viewer, :pos)
+    frame = { type: :pos, map: 102, x: 4, y: 6, follower_species: 'LUGIA',
+              follower_x: 3, follower_y: 6, follower_dir: 6 }
+    send_frame(sender, frame)
+    pose = until_type(viewer, :pos)
+    assert_equal [3,6,6], pose.values_at(:follower_x, :follower_y, :follower_dir)
+    [[99,6,6], [3,6,5], ['3',6,6], [nil,nil,nil]].each do |x,y,direction|
+      send_frame(sender, frame.merge(follower_x: x, follower_y: y, follower_dir: direction))
+      rejected = until_type(viewer, :pos)
+      refute rejected.key?(:follower_x)
+      refute rejected.key?(:follower_dir)
+    end
+    send_frame(sender, frame.merge(follower_species: ''))
+    hidden = until_type(viewer, :pos)
+    assert_equal '', hidden[:follower_species]
+    refute hidden.key?(:follower_x)
+  end
   include ArenaVisitTestSupport
 
   def test_private_visit_layout_presence_restrictions_and_close

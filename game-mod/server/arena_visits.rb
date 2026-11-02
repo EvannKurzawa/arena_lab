@@ -29,7 +29,7 @@ module ArenaVisitsServer
   ].freeze
 
   def dispatch_frame(conn, env, type, authed, body)
-    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 14, arena_bind: @config.bind) if type == :ping
+    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 14, arena_bind: @config.bind, arena_follower_pose: true) if type == :ping
     if conn.data[:arena_local_world] && type == :save
       return reply(conn, type: :save_err, seq: env[:seq], reason: 'local_world')
     end
@@ -399,13 +399,20 @@ module ArenaVisitsServer
     gender = env[:follower_gender].is_a?(Integer) ? env[:follower_gender] : 0
     form = 0 unless form.between?(0, 255)
     gender = 0 unless gender.between?(0, 2)
-    frame.merge(
+    frame = frame.merge(
       follower_species: species,
       follower_form: form,
       follower_gender: gender,
       follower_shiny: env[:follower_shiny] == true,
       follower_shadow: env[:follower_shadow] == true
     )
+    x, y, direction = env.values_at(:follower_x, :follower_y, :follower_dir)
+    if !species.empty? && x.is_a?(Integer) && y.is_a?(Integer) && [2,4,6,8].include?(direction) &&
+       env[:x].is_a?(Integer) && env[:y].is_a?(Integer) && (x-env[:x]).abs + (y-env[:y]).abs <= 3 &&
+       x.between?(0, map == 100 ? ARENA_MAP_WIDTH-1 : 14) && y.between?(0, map == 100 ? ARENA_MAP_HEIGHT-1 : 12)
+      frame.merge!(follower_x: x, follower_y: y, follower_dir: direction)
+    end
+    frame
   end
 
   def handle_addressed(sender, env, body, account)

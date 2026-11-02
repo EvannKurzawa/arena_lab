@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 $destination = Join-Path $GameRoot 'Graphics/ArenaDevices'
 New-Item -ItemType Directory -Force -Path $destination | Out-Null
 Copy-Item -Path "$PSScriptRoot/../game-mod/Graphics/ArenaDevices/*.png" -Destination $destination -Force
+Copy-Item -LiteralPath "$PSScriptRoot/../game-mod/Graphics/ArenaDevices/device-art-style.txt" -Destination $destination -Force
 $ruby = Join-Path $PSScriptRoot 'runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe'
 & $ruby --disable-gems "$PSScriptRoot/../game-mod/tools/build_device_audio.rb" $GameRoot
 if ($LASTEXITCODE -ne 0) { throw 'Device audio generation failed' }

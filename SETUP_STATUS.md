@@ -1,5 +1,59 @@
 # Setup and implementation status
 
+## Follower synchronization, spacing and DS device art — 2026-11-02
+
+Arena Demo 0.24.1. 011 now relays the actual follower tile/direction as optional
+presence fields, updates poses without recreating characters, animates remote
+followers at rest, and follows the movement trail on older frames instead of
+orbiting a turning leader. The server validates optional poses (integer map
+coordinates, <=3 Manhattan tiles from player, cardinal direction). Protocol
+stays 14; update both PCs. Pong advertises arena_follower_pose=true and the
+launcher probe requires it, so Host online checks/replaces an old managed
+service rather than silently reusing a protocol-14 service without pose relay.
+No upstream commits, login flow, saves or gameplay collisions changed.
+
+Local/remote rendering shares a bounded species margin (8px default, max 16px)
+and radial correction to keep ground anchors 40px apart by default, max 48px
+for configured large species. 011 also supplies noninteractive movement
+callbacks/map_id for PEMK::RemotePlayer on current Essentials 21.1 runtimes.
+030/097 share nested follower hiding through quicksand and both teleport
+phases; restoration clears invisible_after_transfer and finds an accessible
+adjacent tile. Hidden/disabled followers are not advertised to remote clients.
+
+New built-in imagegen coil/antenna sheets are tracked in game-mod/AssetSources,
+with packed four-direction 32x64 hard-alpha PNGs installed by the device helper.
+All ten old images are saved in AssetSources/DeviceArt-previous and were verified
+against their previous Git blob hashes. DeviceArt-DS keeps the new packed set.
+tools/select-device-art.ps1 -Style previous restores the old set and its arc
+anchor style; -Style DS selects the new set. Prompts, source paths and rebuild
+procedure: docs/DEVICE_DS_SPRITES.md. Native screenshots were visually inspected.
+
+Executed successfully:
+- C:/msys64/mingw64/bin/python.exe tools/test-native-dark-lugia.py --devices:
+  **68 native checks passed**, including hidden outgoing descriptors during
+  quicksand/teleport, visible adjacent restoration, matching local/remote spacing
+  in four directions, idle animation on both characters, injected PEMK position
+  updates through eight steps/corners (39.0..40.5px measured for Mew), device
+  mechanics, catalogue drawing, live arcs and four-direction coil rendering.
+  Disposable in-memory player; no player save read or written.
+- remote_follower_test.rb **4/14**, following_ownership_test.rb **8/29**,
+  arena_devices_rules_test.rb **4/49**, arena_devices_server_test.rb **16/360**,
+  arena_visits_server_test.rb **7/124**: **39 runs / 576 assertions**, zero
+  failures/errors/skips. Server tests use the real TCP relay with injected auth.
+- tools/test-updater-plugin-install.ps1 passed after the metadata version bump:
+  the released updater helper deploys all 54 current scripts, repairs missing
+  PEMK cache entries and preserves personal-file sentinels. Ruby syntax on the
+  updated service probe passed. Original image backup hash comparisons passed.
+
+Iterations caught and corrected: a transfer flag keeping the restored follower
+invisible, a missing snake-case turn callback on PEMK's remote player, and a
+72px motion gap before applying the shared radial correction. Windows python
+alias was absent; the existing MSYS Python ran the probe. Initial art conversion
+used a Hashtable property unsupported by Measure-Object; changed to PSCustomObject.
+GUI/private-runtime writes and image packing used approved elevation after the
+sandbox denied creating image directories. No two-PC graphical multiplayer test
+is claimed. Original integration/versions and earlier reports remain below.
+
 ## Repeated old connection traceback after other-PC update — 2026-11-02
 
 User confirmed the other PC had run Update but reported the same old 007 line

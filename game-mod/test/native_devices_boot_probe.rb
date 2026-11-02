@@ -1,4 +1,18 @@
 if defined?(Game) && ENV['ARENA_DEVICES_PROBE']
+module ArenaFollowerTeleportProbe
+  def teleport_phase(outgoing)
+    (@follower_teleport_samples ||= []) << [FollowingPkmn.hidden?, ArenaDemo::FollowingIntegration.descriptor[:follower_species]]
+    super
+  end
+end
+ArenaDemo::Devices.singleton_class.prepend(ArenaFollowerTeleportProbe)
+module ArenaFollowerQuicksandProbe
+  def quicksand_tick(player, progress)
+    (@follower_quicksand_samples ||= []) << [FollowingPkmn.hidden?, ArenaDemo::FollowingIntegration.descriptor[:follower_species]]
+    super
+  end
+end
+ArenaDemo.singleton_class.prepend(ArenaFollowerQuicksandProbe)
 module ArenaDeviceProbeMessages
   def pbMessage(*args)
     ($device_probe_messages ||= []) << args[0]
@@ -42,7 +56,16 @@ module ArenaDemo::NativeDevicesProbe
 
   def device_frames(count)
     count.times do
+      if @follower_mirror_id
+        PEMK::Remotes.apply_pos(PEMK::Presence.build(:pos).merge(id: @follower_mirror_id))
+      end
       Graphics.update; Input.update; pbUpdateSceneMap
+      if @follower_mirror_id
+        follower = ArenaDemo::FollowingIntegration.followers.fetch(@follower_mirror_id)
+        leader = PEMK::Remotes.players.fetch(@follower_mirror_id)
+        dx,dy = follower.screen_x-leader.screen_x, follower.screen_y-leader.screen_y
+        (@follower_motion_gaps ||= []) << Math.sqrt(dx*dx+dy*dy)
+      end
       if ArenaDemo::Devices.sliding?
         raise 'Walking during forced slide' if $game_player.walk_anime || $game_player.pattern != ($game_player.instance_variable_get(:@original_pattern) || 0)
         if ArenaDemo::Devices.instance_variable_get(:@transport_kind) == :conveyor
@@ -233,12 +256,63 @@ module ArenaDemo::NativeDevicesProbe
       device_step(6)
       check.call([$game_player.x, $game_player.y] == [56, 50], 'paired teleporter animation completes at the other pad')
       follower = FollowingPkmn.get_event
-      check.call(follower && [follower.x, follower.y] == [56, 50], 'teleporter transfers the active native follower with the player')
+      check.call(follower && (follower.x-56).abs + (follower.y-50).abs == 1, 'teleporter restores follower on an adjacent tile without player overlap')
+      samples = ArenaDemo::Devices.instance_variable_get(:@follower_teleport_samples)
+      check.call(samples.length >= 2 && samples.all? { |hidden,species| hidden && species.empty? }, 'teleport hides local follower and outgoing remote descriptor throughout both spin phases')
       device_frames(8)
       check.call([$game_player.x, $game_player.y] == [56, 50], 'arrival pad does not instantly teleport back')
       device_step(4)
       device_step(6)
       check.call([$game_player.x, $game_player.y] == [50, 50], 'teleporter works again after stepping off and back on')
+      device_layout([], {'50,50' => {'floor' => 'field', 'ground' => 'quicksand'}})
+      $game_player.moveto(49,50)
+      device_step(6)
+      samples = ArenaDemo.instance_variable_get(:@follower_quicksand_samples)
+      check.call(samples && samples.length > 4 && samples.all? { |hidden,species| hidden && species.empty? }, 'quicksand hides local follower and outgoing remote descriptor throughout the spin')
+      follower = FollowingPkmn.get_event
+      check.call(!FollowingPkmn.hidden? && (follower.x-$game_player.x).abs + (follower.y-$game_player.y).abs == 1, 'quicksand restores follower adjacent to the returned player')
+      device_frames(2)
+      check.call(!ArenaDemo::FollowingIntegration.descriptor[:follower_species].empty?, 'restored follower is visible and announced after quicksand')
+      device_layout([])
+      ArenaDemo::FollowingIntegration.install_follower_hooks
+      $game_player.moveto(50,50)
+      $game_temp.in_menu = false
+      leader = PEMK::RemotePlayer.new(777, $game_map)
+      leader.spawn_at(50,50,2,$game_player.character_name)
+      PEMK::Remotes.players[777] = leader
+      descriptor = ArenaDemo::FollowingIntegration.descriptor.merge(follower_x: 50, follower_y: 49, follower_dir: 2)
+      ArenaDemo::FollowingIntegration.sync_remote(777,leader,descriptor)
+      remote = ArenaDemo::FollowingIntegration.followers.fetch(777)
+      [2,4,6,8].each do |direction|
+        dx = direction == 6 ? -1 : direction == 4 ? 1 : 0
+        dy = direction == 2 ? -1 : direction == 8 ? 1 : 0
+        follower.end_movement
+        follower.moveto(50+dx,50+dy)
+        follower.direction = direction
+        remote.accept_position(leader, descriptor.merge(follower_x: follower.x, follower_y: follower.y, follower_dir: direction))
+        remote.follow_remote(leader,true)
+        check.call([follower.screen_x,follower.screen_y] == [remote.screen_x,remote.screen_y], "#{direction} local and remote followers use identical visual spacing")
+      end
+      local_patterns, remote_patterns = [], []
+      45.times do
+        device_frames(1)
+        local_patterns << follower.pattern
+        remote_patterns << remote.pattern
+      end
+      check.call(local_patterns.uniq.length > 1 && remote_patterns.uniq.length > 1, 'both local and remote followers animate while their players stand still')
+      follower.end_movement
+      follower.moveto(49,50)
+      $game_player.direction = follower.direction = 6
+      leader.spawn_at(50,50,6,$game_player.character_name)
+      remote.accept_position(leader, descriptor.merge(follower_x: 49, follower_y: 50, follower_dir: 6))
+      remote.follow_remote(leader,true)
+      @follower_mirror_id = 777
+      [6,6,2,2,4,4,8,8].each { |direction| device_step(direction) }
+      @follower_mirror_id = nil
+      check.call(@follower_motion_gaps.min >= 24 && @follower_motion_gaps.max <= 64,
+        "remote follower spacing stays bounded through walking/corners (#{@follower_motion_gaps.min.round(1)}..#{@follower_motion_gaps.max.round(1)}px)")
+      ArenaDemo::FollowingIntegration.dispose_remote(777)
+      PEMK::Remotes.players.delete(777)
       device_layout([[ArenaDevices::COIL, 51, 50], [ArenaDevices::BUTTON, 50, 50]])
       coil = $game_map.events[ArenaDemo::FURNITURE_SLOT_BASE]
       check.call(!coil.through, 'active Tesla spark is impassable')

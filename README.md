@@ -1,5 +1,22 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Suiveurs multijoueurs et sprites DS — Arena Demo 0.24.1
+
+Les suiveurs sont masqués pendant le sable mouvant et les téléportations,
+puis reviennent à côté du joueur. Le Pokémon de l'autre joueur s'anime aussi
+au repos ; son écartement utilise la même règle que le suiveur local, sans
+tourner autour du joueur quand celui-ci change seulement de direction.
+Bobine et antenne magnétique ont de nouveaux sprites en quatre orientations,
+avec les anciens dessins conservés et une commande de retour arrière.
+
+Fermer les jeux, lancer **Arena Update** sur les deux PC, puis
+**Play-Arena.bat**, puis héberger l'arène. Le lanceur détecte l'ancien service
+et vérifie qu'il peut le relancer avec le relais des positions de suiveurs.
+Protocole **14** conservé (champs de position facultatifs).
+Validation : **68 contrôles natifs et 39 tests / 576 assertions réussis**.
+Voir [les suiveurs](docs/FOLLOWER_MULTIPLAYER.md) et
+[les dessins et leur restauration](docs/DEVICE_DS_SPRITES.md).
+
 Correctif connexion : si le PNJ de l'entrée affichait
 `uninitialized constant ArenaDemo::ConnectionMode::PEMK`, fermer le jeu,
 lancer **Arena Update.exe**, puis **Play-Arena.bat**. La préparation ajoute

@@ -14,6 +14,10 @@ module ArenaDemo
       return nil if defined?(ArenaDemo::Devices) && ArenaDemo::Devices.hiding_follower?
       return nil if defined?($PokemonGlobal) && $PokemonGlobal && $PokemonGlobal.surfing
       return nil unless defined?(FollowingPkmn) && FollowingPkmn.can_check?
+      return nil if FollowingPkmn.respond_to?(:active?) && !FollowingPkmn.active?
+      return nil if FollowingPkmn.respond_to?(:hidden?) && FollowingPkmn.hidden?
+      event = FollowingPkmn.get_event if FollowingPkmn.respond_to?(:get_event)
+      return nil if event && (event.transparent || event.character_name.to_s.empty? || event.opacity == 0)
       pokemon = FollowingPkmn.get_pokemon
       return nil if !pokemon || pokemon.egg?
       pokemon
@@ -29,13 +33,18 @@ module ArenaDemo
       return empty unless pokemon
       species = pokemon.species.to_s.upcase
       return empty unless species.match?(/\A[A-Z0-9_]{1,32}\z/) && GameData::Species.try_get(species.to_sym)
-      {
+      result = {
         :follower_species => species,
         :follower_form => pokemon.form.to_i,
         :follower_gender => pokemon.gender.to_i,
         :follower_shiny => pokemon.shiny? == true,
         :follower_shadow => pokemon.shadow == true
       }
+      event = FollowingPkmn.get_event if defined?(FollowingPkmn) && FollowingPkmn.respond_to?(:get_event)
+      if event && $game_player && event.map_id == $game_player.map_id
+        result.merge!(:follower_x => event.x, :follower_y => event.y, :follower_dir => event.direction)
+      end
+      result
     rescue StandardError
       empty
     end
@@ -57,8 +66,12 @@ module ArenaDemo
     def ensure_local_follower
       return if @pvp_active || ($game_temp && $game_temp.in_battle)
       return unless defined?(FollowingPkmn) && $game_map && ARENA_MAPS.include?($game_map.map_id)
-      return unless local_pokemon && $game_map.events[900]
+      return unless FollowingPkmn.can_check? && $game_map.events[900]
       return if FollowingPkmn.get
+      return if defined?(ArenaDemo::Devices) && ArenaDemo::Devices.hiding_follower?
+      return if defined?($PokemonGlobal) && $PokemonGlobal && $PokemonGlobal.surfing
+      pokemon = FollowingPkmn.get_pokemon
+      return unless pokemon && !pokemon.egg?
       FollowingPkmn.start_following(900, false)
     rescue StandardError => e
       echoln("[Arena Lab] Could not start following Pokémon: #{e.message}") if defined?(echoln)
@@ -66,8 +79,79 @@ module ArenaDemo
 
     def install_follower_hooks
       return unless defined?(FollowingPkmn) && FollowingPkmn.respond_to?(:change_sprite)
-      return if FollowingPkmn.singleton_class.ancestors.include?(SurfFollowerSprite)
-      FollowingPkmn.singleton_class.prepend(SurfFollowerSprite)
+      FollowingPkmn.singleton_class.prepend(SurfFollowerSprite) unless FollowingPkmn.singleton_class.ancestors.include?(SurfFollowerSprite)
+      if defined?(Game_FollowingPkmn) && !Game_FollowingPkmn.ancestors.include?(LocalFollowerSpacing)
+        Game_FollowingPkmn.prepend(LocalFollowerSpacing)
+      end
+    end
+
+    # One native tile plus a small species-dependent margin, applied equally
+    # locally and remotely. EX's unbounded facing offsets can add a full tile
+    # and change sides when a follower turns; use its actual relative position.
+    def spacing_offset(species)
+      species = :LUGIA if species.to_s == 'DARKLUGIA'
+      values = defined?(FollowingPkmn::FOLLOWER_DISTANCE_EXCEPTIONS) ? FollowingPkmn::FOLLOWER_DISTANCE_EXCEPTIONS : {}
+      [[values.fetch(species.to_sym, 8).to_i, 0].max, 16].min
+    end
+
+    def visual_spacing(character, leader, species)
+      return [0, 0] unless leader
+      dx, dy = character.real_x - leader.real_x, character.real_y - leader.real_y
+      if character.respond_to?(:map) && leader.respond_to?(:map) && character.map && leader.map
+        dx -= character.map.display_x - leader.map.display_x
+        dy -= character.map.display_y - leader.map.display_y
+      end
+      length = Math.sqrt(dx * dx + dy * dy)
+      if length >= 1
+        bearing = [dx / length, dy / length]
+        character.instance_variable_set(:@arena_follower_bearing, bearing)
+      else
+        bearing = character.instance_variable_get(:@arena_follower_bearing)
+        bearing ||= case leader.direction
+                    when 4 then [1,0]
+                    when 6 then [-1,0]
+                    when 8 then [0,1]
+                    else [0,-1] end
+      end
+      scale = defined?(Game_Map::X_SUBPIXELS) ? Game_Map::X_SUBPIXELS.to_f : 4.0
+      # Keep the rendered foot points one tile + the margin apart even during
+      # a corner, reversed step, or the receiver's delayed tile interpolation.
+      correction = 32 + spacing_offset(species) - length / scale
+      [(bearing[0] * correction).round, (bearing[1] * correction).round]
+    end
+
+    def settle_local_follower
+      return unless defined?(FollowingPkmn) && FollowingPkmn.respond_to?(:get_event)
+      event = FollowingPkmn.get_event
+      return unless event && $game_player && event.map_id == $game_player.map_id
+      data = FollowingPkmn.get_data if FollowingPkmn.respond_to?(:get_data)
+      data.invisible_after_transfer = false if data && data.respond_to?(:invisible_after_transfer=)
+      event.transparent = false
+      return if (event.x - $game_player.x).abs + (event.y - $game_player.y).abs == 1
+      behind = 10 - $game_player.direction
+      [behind, 4, 6, 2, 8].uniq.each do |direction|
+        dx = direction == 6 ? 1 : direction == 4 ? -1 : 0
+        dy = direction == 2 ? 1 : direction == 8 ? -1 : 0
+        x, y = $game_player.x + dx, $game_player.y + dy
+        next unless event.map.valid?(x, y) && event.map.passable?(x, y, 0, event)
+        next if event.map.events.values.any? { |other| other != event && !other.through && other.x == x && other.y == y }
+        event.end_movement if event.respond_to?(:end_movement)
+        event.moveto(x, y)
+        event.direction = 10 - direction
+        if data
+          data.x, data.y = x, y
+          data.direction = event.direction
+        end
+        break
+      end
+    end
+
+    def publish_local_changes
+      return unless defined?(PEMK::Presence) && PEMK::Presence.respond_to?(:emit)
+      current = descriptor
+      return if @published_descriptor == current
+      @published_descriptor = current
+      PEMK::Presence.emit(:pos)
     end
 
     def followers
@@ -111,14 +195,16 @@ module ArenaDemo
       return dispose_remote(id) if charset.empty?
       @last_descriptors ||= {}
       prior = @last_descriptors[id]
-      if prior != descriptor || !followers[id]
+      appearance = [:follower_species, :follower_form, :follower_gender, :follower_shiny, :follower_shadow]
+      if !prior || prior.values_at(*appearance) != descriptor.values_at(*appearance) || !followers[id]
         character = ArenaRemotePokemon.new(leader, charset)
         character.bind_owner(id)
         followers[id] = character
-        @last_descriptors[id] = descriptor.dup
         old = sprites.delete(id)
         old.dispose if old && !old.disposed?
       end
+      @last_descriptors[id] = descriptor.dup
+      followers[id].accept_position(leader, descriptor)
       return unless attach || (@spriteset && @viewport)
       return unless @spriteset && @viewport && $scene.is_a?(Scene_Map)
       old = sprites[id]
@@ -139,7 +225,7 @@ module ArenaDemo
       end
       descriptor = message.slice(
         :follower_species, :follower_form, :follower_gender,
-        :follower_shiny, :follower_shadow
+        :follower_shiny, :follower_shadow, :follower_x, :follower_y, :follower_dir
       )
       leader = PEMK::Remotes.players[id]
       sync_remote(id, leader, descriptor) if leader
@@ -168,6 +254,9 @@ module ArenaDemo
     end
 
     def install_network_hooks
+      if defined?(PEMK::RemotePlayer) && !PEMK::RemotePlayer.ancestors.include?(RemoteVisualCallbacks)
+        PEMK::RemotePlayer.prepend(RemoteVisualCallbacks)
+      end
       if defined?(PEMK::Presence) &&
          !PEMK::Presence.singleton_class.ancestors.include?(ArenaDemo::FollowingPresence)
         PEMK::Presence.singleton_class.prepend(ArenaDemo::FollowingPresence)
@@ -177,6 +266,28 @@ module ArenaDemo
         PEMK::Remotes.singleton_class.prepend(ArenaDemo::FollowingRemotes)
       end
     end
+  end
+end
+
+module ArenaDemo::RemoteVisualCallbacks
+  def map_id; map.map_id; end
+  def check_event_trigger_after_turning(*); false; end
+  def check_event_trigger_touch(*); false; end
+  def pbCheckEventTriggerAfterTurning(*); false; end
+  def pbCheckEventTriggerTouch(*); false; end
+  def pbCheckEventTriggerAfterMoving(*); false; end
+end
+
+module ArenaDemo::LocalFollowerSpacing
+  def screen_x(*args)
+    Game_Character.instance_method(:screen_x).bind(self).call(*args) + arena_spacing[0]
+  end
+  def screen_y(*args)
+    Game_Character.instance_method(:screen_y).bind(self).call(*args) + arena_spacing[1]
+  end
+  def arena_spacing
+    pokemon = FollowingPkmn.get_pokemon
+    ArenaDemo::FollowingIntegration.visual_spacing(self, $game_player, pokemon ? pokemon.species : :NONE)
   end
 end
 
@@ -238,21 +349,58 @@ class ArenaRemotePokemon < Game_Character
     super($game_map)
     @through = true
     @walk_anime = true
-    @step_anime = false
+    @step_anime = true
     self.move_speed = 4
     self.character_name = charset
     follow_remote(leader, true)
+  end
+
+  def accept_position(leader, message)
+    @species = message[:follower_species].to_s.to_sym
+    x, y, direction = message.values_at(:follower_x, :follower_y, :follower_dir)
+    if x.is_a?(Integer) && y.is_a?(Integer) && [2,4,6,8].include?(direction) &&
+       (x - leader.x).abs + (y - leader.y).abs <= 3
+      first = !@network_target
+      if @network_target && @network_target[0,2] != [x,y] && moving?
+        # Like PEMK's remote leader, collapse a previous glide before chaining
+        # a newer tile. Never accumulate an extra tile of lag on each packet.
+        @real_x, @real_y = @x * Game_Map::REAL_RES_X, @y * Game_Map::REAL_RES_Y
+        @move_timer = @jump_timer = nil
+      end
+      @network_target = [x, y, direction]
+      follow_remote(leader, first)
+    else
+      @network_target = nil
+    end
+  end
+
+  def screen_x
+    super + ArenaDemo::FollowingIntegration.visual_spacing(self, arena_leader, @species || :NONE)[0]
+  end
+  def screen_y
+    super + ArenaDemo::FollowingIntegration.visual_spacing(self, arena_leader, @species || :NONE)[1]
+  end
+  def arena_leader
+    PEMK::Remotes.players[@owner_id] if @owner_id && defined?(PEMK::Remotes)
   end
 
   def follow_remote(leader, snap = false)
     return unless leader
     return if @owner_id && leader.respond_to?(:player_id) && leader.player_id != @owner_id
     self.move_speed = leader.move_speed if leader.respond_to?(:move_speed)
-    self.direction = leader.direction if [2, 4, 6, 8].include?(leader.direction)
     dx = (leader.direction == 6) ? -1 : (leader.direction == 4) ? 1 : 0
     dy = (leader.direction == 2) ? -1 : (leader.direction == 8) ? 1 : 0
-    target_x = leader.x + dx
-    target_y = leader.y + dy
+    tile = [leader.x, leader.y]
+    previous = @leader_tile
+    @leader_tile = tile
+    if @network_target
+      target_x, target_y, facing = @network_target
+      self.direction = facing
+    else
+      @trail_target = [leader.x + dx, leader.y + dy] if snap || !previous || (previous[0]-leader.x).abs + (previous[1]-leader.y).abs > 1
+      @trail_target = previous if previous && previous != tile && (previous[0]-leader.x).abs + (previous[1]-leader.y).abs == 1
+      target_x, target_y = @trail_target
+    end
     if snap || (self.x - target_x).abs + (self.y - target_y).abs > 3
       moveto(target_x, target_y)
       return
@@ -265,6 +413,7 @@ class ArenaRemotePokemon < Game_Character
     when [0, -1] then move_up(false)
     else moveto(target_x, target_y)
     end
+    self.direction = facing if @network_target
   end
 
   def name; "Arena remote follower"; end
@@ -286,9 +435,9 @@ module ArenaDemo::FollowingPresence
   end
 
   def key_of(frame)
-    super + ArenaDemo::FollowingIntegration.descriptor.values_at(
+    super + frame.values_at(
       :follower_species, :follower_form, :follower_gender,
-      :follower_shiny, :follower_shadow
+      :follower_shiny, :follower_shadow, :follower_x, :follower_y, :follower_dir
     )
   end
 end
@@ -318,6 +467,7 @@ EventHandlers.add(:on_frame_update, :arena_demo_following_update, proc {
   ArenaDemo::FollowingIntegration.install_follower_hooks
   ArenaDemo::FollowingIntegration.install_network_hooks
   ArenaDemo::FollowingIntegration.ensure_local_follower
+  ArenaDemo::FollowingIntegration.publish_local_changes
   ArenaDemo::FollowingIntegration.update_remote_followers if defined?(PEMK::Remotes)
 })
 EventHandlers.add(:on_game_map_setup, :arena_following_sprite_guard, proc { |*|

@@ -8,6 +8,7 @@ module EventHandlers
 end
 require_relative '../Plugins/ArenaDemo/011_ArenaFollowingIntegration'
 require_relative '../Plugins/ArenaDemo/014_VisibleWildPokemon'
+require_relative '../../upstream/pokemon-essentials-mmo-kit/Plugins/PEMK/003_Game/002_RemotePlayer'
 
 class Scene_Map
   attr_reader :requested_map
@@ -21,6 +22,17 @@ module Settings
 end
 
 class RemoteFollowerTest < Minitest::Test
+  def test_remote_player_movement_uses_visual_callbacks_on_current_essentials
+    ArenaDemo::FollowingIntegration.install_network_hooks
+    player = PEMK::RemotePlayer.allocate
+    player.define_singleton_method(:can_move_in_direction?) { |_| false }
+    [2,4,6,8].each do |direction|
+      player.move_generic(direction)
+      assert_equal false, player.check_event_trigger_touch(direction)
+    end
+    player.instance_variable_set(:@map, Struct.new(:map_id).new(100))
+    assert_equal 100, player.map_id
+  end
   def test_visible_wild_character_supports_actual_essentials_grass_step_callback
     source = File.read(File.expand_path('../../upstream/pokemon-essentials/Data/Scripts/012_Overworld/001_Overworld.rb', __dir__))
     eval(source[/EventHandlers.add\(:on_step_taken, :grass_rustling,.*?^\)/m], TOPLEVEL_BINDING)

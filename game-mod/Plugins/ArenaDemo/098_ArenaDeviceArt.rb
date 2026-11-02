@@ -107,7 +107,10 @@ module ArenaDemo::DeviceArt
   def coil(direction, disabled, phase)
     image = Bitmap.new(96,96)
     _dir, dx, dy = ArenaDevices::DIRECTIONS.fetch(direction)
-    head = { 'R' => [58,26], 'L' => [40,26], 'U' => [48,25], 'D' => [48,29] }.fetch(direction)
+    ds = File.file?('Graphics/ArenaDevices/device-art-style.txt') && File.read('Graphics/ArenaDevices/device-art-style.txt').strip == 'DS'
+    heads = ds ? { 'R' => [58,32], 'L' => [38,32], 'U' => [48,26], 'D' => [48,38] } :
+                 { 'R' => [58,26], 'L' => [40,26], 'U' => [48,25], 'D' => [48,29] }
+    head = heads.fetch(direction)
     arc = []
     unless disabled
       target = [48+dx*32,48+dy*32]
