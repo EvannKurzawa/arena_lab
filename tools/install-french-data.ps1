@@ -6,6 +6,13 @@ param(
     [string]$TranslationDirectory = ''
 )
 $ErrorActionPreference = 'Stop'
+# Compatibility entry point: released updater EXEs call this downloaded helper
+# after copying main, even when French data is already present. Deploy the game
+# scripts here too so their success dialog cannot leave the old runtime cache.
+$pluginInstaller = Join-Path $ProjectRoot 'tools/install-game-plugins.ps1'
+if (Test-Path -LiteralPath $pluginInstaller) {
+    & $pluginInstaller -GameRoot $GameRoot -ProjectRoot $ProjectRoot
+}
 $runtime = Join-Path $ProjectRoot 'tools/runtime'
 $output = Join-Path $GameRoot 'Data/messages_french_core.dat'
 if ((Test-Path -LiteralPath $output) -and (Get-Item -LiteralPath $output).Length -gt 0) {

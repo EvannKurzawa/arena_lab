@@ -1,5 +1,31 @@
 # Setup and implementation status
 
+## Repeated old connection traceback after other-PC update — 2026-11-02
+
+User confirmed the other PC had run Update but reported the same old 007 line
+numbers (31/111/186/206), preceding the guarded code in 7f5ec5a. This proves
+that traceback ran the older script; the remote folder/launch path itself
+has not been inspected. Reviewed the released v6.2.8 updater source: it copies
+game-mod/tools but only invokes install-french-data.ps1, then reports success.
+Actual game plugin deployment/cache sync previously depended on later Prepare.
+
+Added tools/install-game-plugins.ps1 to copy current ArenaDemo scripts into
+the chosen runtime, preserve changed runtime scripts in content-addressed
+arena-plugin-backups, restore missing PEMK from the pinned local kit, and
+run the cache synchronizer with explicit arguments/error checks. The French
+helper now invokes it BEFORE its already-installed early return. This is a
+compatibility hook for already-distributed updater EXEs: no replacement EXE
+needed. Sources/assets remain delivered by the existing main archive. Saves,
+credentials and server data are not modified. Other-PC root cause beyond
+stale execution remains unverified; no claim of a remote multiplayer test.
+
+Executed tools/test-updater-plugin-install.ps1: passed. Reproduced the exact
+released updater helper call on a temporary installation with existing French
+data, old runtime source, old compiled Arena Demo and absent PEMK cache.
+Verified all 54 compiled arena scripts match current sources, PEMK loads first,
+repeated update leaves identical cache, previous runtime script is backed up,
+and saved-game/config/account sentinels are unchanged. No network downloads.
+
 ## Missing PEMK at entrance attendant — 2026-11-02
 
 User reported NameError in 007 stop_connection from the LAN visit flow on

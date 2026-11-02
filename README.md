@@ -4,6 +4,8 @@ Correctif connexion : si le PNJ de l'entrée affichait
 `uninitialized constant ArenaDemo::ConnectionMode::PEMK`, fermer le jeu,
 lancer **Arena Update.exe**, puis **Play-Arena.bat**. La préparation ajoute
 PEMK au cache compilé et le charge avant Arena Demo. Les sauvegardes sont conservées.
+L'updater distribué applique maintenant aussi les scripts au jeu et synchronise
+son cache directement pendant l'update, même si le français est déjà installé.
 
 ## v9.3 — Arena Demo 0.24.0
 
