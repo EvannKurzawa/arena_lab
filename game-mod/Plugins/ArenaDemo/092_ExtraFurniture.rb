@@ -101,10 +101,10 @@ module ArenaDemo
       if ArenaFurnitureRules.raised?(item)
         @raised_furniture_previews ||= {}
         return @raised_furniture_previews[item] ||= begin
-          records = { '40,40' => { 'floor'=>'field', 'height'=>1, 'stair'=>nil, 'ground'=>'wood', 'platform_style'=>'wood' } }
           preview = Bitmap.new(32,64)
-          preview.blt(0,0,relief_bitmap(records,40,40),Rect.new(0,0,32,32))
-          preview.blt(0,32,relief_bitmap(records,40,41),Rect.new(0,0,32,32))
+          original = ExpeditionTerrain.source("ArenaFurniture/#{EXTRA_FURNITURE.fetch(item)[1]}")
+          rect = item.to_s == 'ARENA_FURNITURE_RSE_STAND' ? Rect.new(0,32,64,32) : Rect.new(8,32,16,32)
+          preview.stretch_blt(Rect.new(0,32,32,32),original,rect)
           preview
         end
       end
@@ -263,9 +263,8 @@ module ArenaDemo
     def update
       super
       item = @character.instance_variable_get(:@arena_furniture_item)
-      # Raised objects ARE the native relief. A second event picture previously
-      # put the original stand/board graphic over the platform and its wall.
-      self.visible = false if ArenaFurnitureRules.raised?(item)
+      # Raised furniture paints the summit; the native relief supplies its front.
+      self.y += 6 * self.zoom_y if item.to_s == 'ARENA_FURNITURE_HGSS_RED_CARPET'
       self.z -= 32 if ArenaFurnitureRules.walkable?(item)
     end
   end

@@ -9,8 +9,9 @@ entries = JSON.parse(File.read(File.join(source_root, 'sources.json'), encoding:
 entries.reject! { |entry| entry['name'] == 'hgss-blackthorn' }
 entries.each { |entry| entry['source'] = File.join(source_root, entry['name'] + '.png'); entry['mask'] = 'alpha' }
 outside = File.join(ROOT,'tools/runtime/essentials-v21.1-base/Graphics/Tilesets/Outside.png')
+individual_tree = File.join(ROOT,'tools/runtime/essentials-v21.1-base/Graphics/Characters/Object tree 1.png')
 [
-  ['tree-leafy', outside, [96,1952,96,96], 'alpha', 'local Essentials v21.1: Outside.png'],
+  ['tree-leafy', individual_tree, [0,0,32,32], 'alpha', 'local Essentials v21.1: Characters/Object tree 1.png, first intact frame'],
   ['tree-pine', outside, [128,1664,64,96], 'alpha', 'local Essentials v21.1: Outside.png'],
   ['hgss-red-carpet', File.join(source_root,'hgss-blackthorn.png'), [186,1118,28,18], 'red', 'https://www.pokepedia.fr/images/1/16/Int%C3%A9rieur_Ar%C3%A8ne_%C3%89b%C3%A8nelle_HGSS.png'],
   ['hgss-spikes', File.join(source_root,'hgss-blackthorn.png'), [96,1016,16,32], 'cone', 'https://www.pokepedia.fr/images/1/16/Int%C3%A9rieur_Ar%C3%A8ne_%C3%89b%C3%A8nelle_HGSS.png'],
@@ -51,7 +52,7 @@ entries.each do |entry|
       keep = case entry['mask']
              when 'red' then pixel.red > pixel.green * 1.6 && pixel.red > pixel.blue * 1.5
              when 'snow' then ((x-8)/8.5)**2 + ((y-8)/8.5)**2 <= 1 && pixel.red > 160 && pixel.green > 180
-             when 'cone' then y.between?(1,29) && (x-7.5).abs <= [7.5,1+y*0.28].min
+             when 'cone' then y.between?(1,29) && (x-7.5).abs <= [7.5,1+y*0.28].min && !(pixel.red > pixel.green * 1.3 && pixel.red > pixel.blue * 1.3)
              else true
              end
       crop.set_pixel(x,y,Color.new(0,0,0,0)) unless keep
@@ -71,7 +72,8 @@ entries.each do |entry|
     w.times do |x|
       pixel = crop.get_pixel([((x+0.5)/scale).floor,crop.width-1].min,[((y+0.5)/scale).floor,crop.height-1].min)
       pixel = Color.new(pixel.red,pixel.green,pixel.blue,pixel.alpha > 128 ? 255 : 0) if name == 'chandelier'
-      image.set_pixel((canvas_w-w)/2+x,canvas_h-h+y,pixel)
+      target_y = canvas_h-h+y
+      image.set_pixel((canvas_w-w)/2+x,target_y,pixel) if target_y < canvas_h
     end
   end
   target = File.join(output,name+'.png')

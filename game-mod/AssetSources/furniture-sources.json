@@ -467,14 +467,14 @@
   {
     "name": "tree-leafy",
     "rect": [
-      96,
-      1952,
-      96,
-      96
+      0,
+      0,
+      32,
+      32
     ],
     "mask": "alpha",
-    "url": "local Essentials v21.1: Outside.png",
-    "sha256": "3362ca6e7f87c4cfddd85b666170d998f2582434fd9b4a01353c268af06bd9de",
+    "url": "local Essentials v21.1: Characters/Object tree 1.png, first intact frame",
+    "sha256": "2fb64ca060ab7450692e6087d28067daa61e5f9ee8c279727325a48504893e06",
     "size": [
       64,
       64
@@ -483,7 +483,7 @@
       64,
       64
     ],
-    "packed_sha256": "ec53f81b6e0a133f9c496fa6ca26071c3ffcd0b2a01bcd619878e2363ada6c5b"
+    "packed_sha256": "4e6750c588347ff37704995f548f2c9ba9f3efb7290e0f361f7b036447214f72"
   },
   {
     "name": "tree-pine",
@@ -546,7 +546,7 @@
       32,
       64
     ],
-    "packed_sha256": "82474dfc157a7b1d2668138bda2160b186ad2b2d5d204af93a38c3bf758a5315"
+    "packed_sha256": "7c9414dde7a69a5b826c27fc47946ad05da31a075a0232b042fb255dc2a26715"
   },
   {
     "name": "snowball",

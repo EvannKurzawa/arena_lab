@@ -1,5 +1,13 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Mobilier et étincelle — Arena Demo 0.25.2
+
+Pics sans ajout rouge, tapis abaissé de 6 pixels et arbre feuillu provenant
+d'une pose intacte de l'arbre individuel. Estrade et planche redeviennent
+visibles avec leur dessin sommet/paroi aligné sur le relief. Étincelle Tesla
+redessinée en neuf poses d'arcs bleus et blancs inspirés de Major Bob HGSS.
+Fermer les jeux, **Arena Update.exe**, puis **Play-Arena.bat** sur les deux PC.
+
 ## Mobilier : découpes et proportions corrigées — Arena Demo 0.25.1
 
 Boule de neige détourée seule, tapis rouge transparent, arbre feuillu entier,

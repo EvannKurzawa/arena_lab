@@ -1,5 +1,25 @@
 # Setup and implementation status
 
+## Furniture follow-up and Tesla spark — 2026-11-02
+
+Arena Demo 0.25.2. Removed red pixels from the spikes' cone mask. Moved carpet
+6px down through its sprite position, preserving the complete alpha image.
+Replaced leafy forest tiles with the intact first 32x32 character frame of
+Graphics/Characters/Object tree 1.png, packed to the existing 64x64 footprint.
+The previous change hid raised furniture events completely; their original
+artwork now fills the summit's 32x32 area, with the native relief drawing the
+front below it. Collision/height unchanged.
+Replaced the concentric Tesla orb with nine transparent blue/cyan/white jagged
+arc frames drawn at native resolution using the existing Bitmap API.
+Reference: https://www.pokepedia.fr/Ar%C3%A8ne_de_Carmin_sur_Mer (Major Bob,
+HGSS electrical barriers). This is an inspired drawing, not an extracted ROM sprite.
+PNG changes remain in SharedAssets and install through the existing updater.
+
+Executed extra_furniture_test.rb: 41 runs / 1880 assertions, all passed.
+Executed tools/test-native-furniture.py: 266 native checks passed, including
+visible/aligned raised sprites, save/load and visits. Inspected the actual map
+capture and all nine Tesla frames. No manual two-PC session claimed.
+
 ## Furniture visual revision — 2026-11-02
 
 Arena Demo 0.25.1. Replaced uniform fit-to-32x64 packing with per-object native

@@ -125,7 +125,7 @@ module ArenaDemo::NativeFurnitureProbe
         expected = ArenaDemo.furniture_bitmap(item)
         check.call(sprite.bitmap && [sprite.bitmap.width, sprite.bitmap.height] == [expected.width,expected.height], "extra native graphic: #{item}")
         check.call(event.width == ArenaFurnitureRules.width(item), "extra native footprint: #{item}")
-        check.call(!sprite.visible, "raised furniture uses relief only: #{item}") if ArenaFurnitureRules.raised?(item)
+        check.call(sprite.visible && sprite.y == event.screen_y, "raised furniture remains visible and aligned: #{item}") if ArenaFurnitureRules.raised?(item)
         check.call(event.through == ArenaFurnitureRules.walkable?(item), "extra native collision: #{item}")
         check.call(ArenaDemo.relief_code(records, x, y) == 1, "raised native floor: #{item}") if ArenaFurnitureRules.raised?(item)
         sprites << sprite
@@ -159,6 +159,9 @@ module ArenaDemo::NativeFurnitureProbe
       $scene.createSpritesets
       4.times { $scene.updateSpritesets; Graphics.update }
       shots << [Graphics.snap_to_bitmap,path.sub(/\.log$/, '-revised-map.png')]
+      sparks = Bitmap.new(288,32)
+      9.times { |phase| sparks.blt(phase*32,0,ArenaDemo::DeviceArt.spark(phase),Rect.new(0,0,32,32)) }
+      shots << [sparks,path.sub(/\.log$/, '-tesla-frames.png')]
       $PokemonGlobal.arena_wide_furniture_layout_version = 0
       legacy_tree = {'kind'=>'furniture','item'=>'ARENA_FURNITURE_TREE_LEAFY','x'=>44,'y'=>44}
       legacy_snow = {'kind'=>'furniture','item'=>'ARENA_FURNITURE_SNOWBALL','x'=>45,'y'=>44}

@@ -27,29 +27,22 @@ module ArenaDemo::DeviceArt
     @sparks ||= {}
     @sparks[phase] ||= begin
       image = Bitmap.new(32, 32)
-      palette = [[16, 20, 176], [0, 70, 245], [0, 155, 255],
-                 [37, 211, 245], [120, 241, 250], [236, 255, 255]]
-      inks = palette.map { |rgb| color(*rgb) }
-      turn = phase * Math::PI * 2 / 9
-      # Draw at the final resolution in 2px blocks. Solid concentric blue
-      # bands and a moving white core follow the reference's full energy orb.
-      (0...32).step(2) do |y|
-        (0...32).step(2) do |x|
-          dx, dy = x + 1 - 16, y + 1 - 16
-          angle = Math.atan2(dy, dx)
-          radius = 15 + Math.sin(angle * 3 - turn) * 0.8
-          distance = Math.sqrt(dx * dx + dy * dy)
-          next if distance > radius
-          swirl = distance / radius + Math.sin(angle * 2 + turn) * 0.07
-          band = if swirl < 0.36 then 5
-                 elsif swirl < 0.52 then 4
-                 elsif swirl < 0.68 then 3
-                 elsif swirl < 0.82 then 2
-                 elsif swirl < 0.94 then 1
-                 else 0 end
-          image.fill_rect(x, y, 2, 2, inks[band])
+      # Nine pixel-native electric-barrier poses: broken blue arcs with white
+      # lightning cores and transparent gaps, rather than a filled blue disc.
+      blue, cyan, white = color(26,60,211),color(76,196,255),color(239,255,255)
+      6.times do |arm|
+        angle = arm * Math::PI / 3 + phase * 0.10
+        bend = ((phase + arm) % 3 - 1) * 0.22
+        points = [[16,16]] + [[5,angle],[9,angle+bend+0.25],[11,angle+bend-0.2],[15,angle]].map do |radius,theta|
+          [(16 + Math.cos(theta)*radius).round.clamp(1,30),(16 + Math.sin(theta)*radius).round.clamp(1,30)]
+        end
+        points.each_cons(2) do |a,b|
+          [-1,0,1].each { |offset| line(image,a[0]+offset,a[1],b[0]+offset,b[1],blue) }
+          line(image,*a,*b,cyan)
+          line(image,a[0],a[1]-1,b[0],b[1]-1,white) if arm.even?
         end
       end
+      image.fill_rect(14,14,4,4,white)
       image
     end
   end

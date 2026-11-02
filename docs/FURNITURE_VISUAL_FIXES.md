@@ -1,5 +1,13 @@
 # Mobilier : corrections visuelles 0.25.1
 
+Révision 0.25.2 : les pics perdent leurs pixels rouges, le tapis est décalé de
+6 pixels vers le bas sans rogner l'image, et l'arbre feuillu utilise la pose
+intacte d'un arbre individuel de `Characters/Object tree 1.png`.
+Le dessin original de l'estrade et de la planche est de nouveau visible,
+ajusté sur toute la case du sommet ; le relief dessine la paroi. La Tesla utilise neuf poses
+d'arcs électriques bleus et blancs, inspirées des barrières de Major Bob HGSS.
+Les descriptions du masquage des sprites ci-dessous concernent la 0.25.1.
+
 Les identifiants des objets sont conservés : pas de nouvel achat ni de nouvelle
 dotation. Les noms du Sac sont rafraîchis même lorsqu'ils proviennent de données
 compilées plus anciennes : Tapis rouge, Pics, Plante en pot, Jolies fleurs,
