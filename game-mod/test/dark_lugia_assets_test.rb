@@ -4,7 +4,7 @@ require 'digest'
 require_relative '../tools/install_dark_lugia'
 
 class DarkLugiaAssetsTest < Minitest::Test
-  SOURCE = File.expand_path('../../xd001.png', __dir__)
+  SOURCE = File.expand_path('../AssetSources/xd001.png', __dir__)
 
   def test_gif_recolor_keeps_frames_timing_and_transparency_unchanged
     %w[front back].each do |side|
@@ -39,7 +39,7 @@ class DarkLugiaAssetsTest < Minitest::Test
   end
 
   def test_imports_expected_pngs_and_reuses_verified_private_source
-    skip 'Private source sheet is unavailable in this checkout.' unless File.file?(SOURCE)
+    assert File.file?(SOURCE), 'Tracked Dark Lugia source sheet is required.'
     Dir.mktmpdir do |dir|
       game = File.join(dir, 'game')
       DarkLugiaAssets.install(game, SOURCE)

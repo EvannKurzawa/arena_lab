@@ -233,5 +233,5 @@ end
 
 if $PROGRAM_NAME == __FILE__
   project = File.expand_path('../..', __dir__)
-  DarkLugiaAssets.install(File.expand_path(ARGV.fetch(0)), File.expand_path(ARGV[1] || File.join(project, 'xd001.png')))
+  DarkLugiaAssets.install(File.expand_path(ARGV.fetch(0)), File.expand_path(ARGV[1] || File.join(project, 'game-mod/AssetSources/xd001.png')))
 end

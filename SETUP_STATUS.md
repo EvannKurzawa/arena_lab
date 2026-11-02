@@ -1,5 +1,36 @@
 # Setup and implementation status
 
+## Shared assets through Arena Update — 2026-11-02
+
+User explicitly requested that Arena Update.exe carry Gold and future game
+resources without separate copies. Added Gold map/battle PNGs and OGG, and
+the blind rune MP3 to game-mod/SharedAssets (4 files); Dark Lugia's original
+sheet is now in game-mod/AssetSources/xd001.png. No full runtime, saves,
+accounts or credentials included. This changes the previous local-only policy
+for these explicitly requested assets; redistribution terms remain unverified.
+
+New tools/install-shared-assets.ps1 recursively installs Graphics/Audio assets,
+updates changed files with backups, and skips identical files. Prepare runs it
+after the graphics/audio generators and before trainer configuration, so local
+caches cannot override published revisions or report missing shared Gold assets.
+Dark Lugia defaults to the tracked source; rune importer uses the tracked MP3.
+The updater source invokes shared installation with its normal rollback backup.
+Already distributed updater EXEs copy game-mod/tools from main, so they receive
+the files without replacing their EXE; installation occurs on the next
+Play-Arena.bat preparation. Future files in the shared tree are automatic;
+sources requiring conversion still need an importer. Removed assets are not
+automatically deleted on receiving PCs.
+
+Executed: tools/test-shared-assets.ps1 passed (4 assets in an empty fixture,
+matching hashes, repeat-install idempotence, changed-file replacement with
+personal backup, updater rollback backup, arbitrary future audio file).
+tools/test-updater.ps1 passed; custom_trainers_install_test.rb passed
+3 runs / 8 assertions; dark_lugia_assets_test.rb passed 4 runs / 64 assertions,
+zero skips, using the tracked sheet. package-deliverables.ps1 compiled both
+EXE wrappers locally (not uploaded as a new release; existing EXEs suffice).
+No other-PC GUI update run. Upstream versions and
+multiplayer protocol unchanged. Original integration report remains below.
+
 ## v9.3 publication preparation — 2026-11-02 (Arena Demo 0.24.0)
 
 User requested commit message v9.3 and push of the accumulated changes.

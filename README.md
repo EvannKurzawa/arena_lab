@@ -9,9 +9,11 @@ sons personnalisés, tapis animés, bobines dorées orientées reliées à leur
 de sprites Dark Lugia. **58 contrôles natifs et 33 tests / 509 assertions réussis.**
 
 Fermer les clients, lancer **Arena Update**, puis **Play-Arena.bat**. Protocole
-inchangé (**14**). Le PBS de Gold est inclus ; ses sprites et sa musique restent
-personnels et sont conservés dans un cache local privé. Pour les copier sur
-un autre PC : [ressources de Gold](docs/GOLD_TRAINER.md).
+inchangé (**14**). **Arena Update.exe récupère aussi les ressources de Gold,
+Dark Lugia et le son de la rune**, installées automatiquement au lancement
+suivant avec Play-Arena.bat, même avec l'ancien updater. Les futurs sons et
+graphismes placés dans `game-mod/SharedAssets/` suivent le même circuit.
+Voir [les ressources partagées](docs/GOLD_TRAINER.md).
 
 Dernière révision locale : le suiveur se cache dans les toiles et revient sur
 la première case sans toile. L'attraction magnétique fait tourner le joueur

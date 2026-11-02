@@ -1,4 +1,34 @@
-# Gold — configuration et ressources personnelles
+# Gold et ressources partagées
+
+**Procédure actuelle : fermer le jeu, utiliser Arena Update.exe, puis lancer
+Play-Arena.bat. Aucune copie manuelle de Gold, Dark Lugia ou du son de la rune
+n'est nécessaire.** Les anciens EXE récupèrent aussi ces fichiers avec l'archive
+GitHub ; Play-Arena les installe à la préparation suivante. Le nouvel EXE installe
+en plus les graphismes et sons partagés pendant la mise à jour.
+
+Sur demande explicite de l'utilisateur, les deux sprites de Gold et sa musique
+sont versionnés dans `game-mod/SharedAssets/`, ainsi que le son de la rune.
+La planche de Dark Lugia est dans `game-mod/AssetSources/xd001.png` ; l'importeur
+habituel génère les variantes sur chaque PC. Crédit de la planche : ShadowGate31.
+Les conditions de redistribution de ces ressources restent non vérifiées.
+
+Pour les futurs graphismes et sons, ajouter les fichiers dans
+`game-mod/SharedAssets/Graphics/...` ou `game-mod/SharedAssets/Audio/...`, avec
+le chemin attendu par Essentials, puis les commit/push avec leur code.
+L'installation parcourt automatiquement ces dossiers, sans liste à maintenir.
+Une source nécessitant une conversion doit avoir son importeur branché dans
+Prepare, comme Dark Lugia. Ne pas y placer le runtime entier, les sauvegardes
+ou les identifiants.
+
+Les fichiers publiés remplacent les anciennes versions au même chemin. Les
+versions remplacées sont sauvegardées dans `arena-asset-backups/` du jeu, ou
+dans `update-backup-...` pendant le nouvel updater. Les ressources retirées du
+dépôt ne sont pas supprimées automatiquement des installations.
+
+## Ancienne procédure privée (v9.3, remplacée)
+
+Les instructions ci-dessous décrivent l'ancien fonctionnement et ne sont plus
+nécessaires pour les ressources maintenant partagées.
 
 Le profil `ARENA_TRAINER_GOLD` est inclus dans 009_ArenaCustomMode.rb :
 Léviator chromatique 82, Typhlosion 85, Togekiss 83 et Raikou 87.

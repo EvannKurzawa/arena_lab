@@ -83,7 +83,9 @@ try {
     [IO.File]::WriteAllText((Join-Path $root 'arena-install.json'), (@{ updatedUtc=[DateTime]::UtcNow.ToString('o'); source='GitHub main'; backup=(Split-Path $backup -Leaf); files=$updated } | ConvertTo-Json -Depth 4), [Text.UTF8Encoding]::new($false))
     $stage = 'Downloading and compiling French Essentials data'
     & (Join-Path $root 'tools/install-french-data.ps1') -GameRoot (Join-Path $root 'tools/runtime/essentials-v21.1-base') -Download
-    [Windows.Forms.MessageBox]::Show("Arena Lab updated from GitHub main. French data is ready.`n`nBackup: $backup`nYour game assets, saves, accounts and local server data were left in place. Run Play-Arena.bat to play.", 'Arena Lab update complete') | Out-Null
+    $stage = 'Installing shared game graphics and audio'
+    & (Join-Path $root 'tools/install-shared-assets.ps1') -GameRoot (Join-Path $root 'tools/runtime/essentials-v21.1-base') -BackupRoot $backup
+    [Windows.Forms.MessageBox]::Show("Arena Lab updated from GitHub main. French data and shared graphics/audio are ready.`n`nBackup: $backup`nYour saves, accounts and local server data were left in place. Run Play-Arena.bat to complete preparation and play.", 'Arena Lab update complete') | Out-Null
 } catch {
     if (Test-Path -LiteralPath $backup) { Get-ChildItem -LiteralPath $backup -File -Recurse | ForEach-Object { $relative = $_.FullName.Substring($backup.Length + 1); Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $root $relative) -Force } }
     throw

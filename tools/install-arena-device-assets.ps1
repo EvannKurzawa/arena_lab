@@ -22,6 +22,8 @@ foreach ($entry in $entries) {
 }
 Write-Host 'Arena device graphics and HGSS teleport sound installed.'
 $runeSource = Join-Path $PSScriptRoot 'runtime/device-src-rune-cecite.mp3'
+$sharedRune = Join-Path $PSScriptRoot '../game-mod/SharedAssets/Audio/SE/Arena Blind Rune.mp3'
+if (Test-Path -LiteralPath $sharedRune) { $runeSource = $sharedRune }
 if (Test-Path -LiteralPath $runeSource) {
   Copy-Item -LiteralPath $runeSource -Destination (Join-Path $audio 'Arena Blind Rune.mp3') -Force
 } else {
