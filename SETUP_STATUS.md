@@ -1,5 +1,27 @@
 # Setup and implementation status
 
+## Draft stand artwork, transparent gaps and moving Tesla rim — 2026-11-03
+
+Arena Demo 0.25.7. Stand relief rendering used saved custom_placements while
+the editor supplied draft surface records. It now pairs draft records with
+the placements passed to refresh_custom_placements and refreshes the renderer
+after updating editor events. Saving/cancelling returns to the saved layout.
+The editor owns a dedicated placement draft so scene sprite rebuilds also use
+that draft; both draft references clear before committing, cancelling or
+recovering from an error. Layout migration 5 restores the underlying ground
+under the central facade of existing stands so alpha reveals terrain, not wood.
+The stand builder converts the source's white matte (RGB channels >=245),
+including corner cutouts and open facade gaps, to alpha before scaling.
+Grey structural highlights remain. Tesla rows move in coherent groups by
+one pixel across nine phases; the asymmetric filled core and orientation stay
+stable while its edge and highlights flicker.
+
+Validation: 45 tests / 1901 assertions passed in extra_furniture_test.rb,
+including a stand present only in the editor draft, alpha regression checks
+and migration of the ground beneath an existing stand. The disposable native
+game passed 266 checks; its editor-draft map composition and nine Tesla frames
+were inspected. No live two-PC session was run.
+
 ## Complete RSE stand and solid irregular Tesla discharge — 2026-11-03
 
 Arena Demo 0.25.6. The RSE reference already includes its stairs; the previous

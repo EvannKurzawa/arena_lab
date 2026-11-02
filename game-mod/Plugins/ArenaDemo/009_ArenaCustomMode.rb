@@ -9666,6 +9666,7 @@ module ArenaDemo
     original_surface_edits = copy_tile_edits(tile_edit_records)
     draft_surface_edits = copy_tile_edits(original_surface_edits)
     @editor_surface_edits = draft_surface_edits
+    @editor_placements = draft
     apply_tile_edits($game_map, draft_surface_edits)
     player = $game_player
     original_player = [player.x, player.y, player.direction, player.transparent, player.through]
@@ -9815,6 +9816,7 @@ module ArenaDemo
     end
     viewport.visible = false
     map_viewport.visible = true
+    @editor_placements = @editor_surface_edits = nil
     if result == :commit
       restore_editor_player(player, original_player, original_camera, old_menu_state)
       previous = $PokemonGlobal.arena_demo_placements
@@ -9843,6 +9845,7 @@ module ArenaDemo
     end
   rescue StandardError => error
     if original && draft && $PokemonGlobal
+      @editor_placements = @editor_surface_edits = nil
       $PokemonGlobal.arena_demo_placements = original
       $PokemonGlobal.arena_demo_tile_edits = original_surface_edits if original_surface_edits
       apply_tile_edits($game_map, original_surface_edits) if original_surface_edits
@@ -9854,6 +9857,7 @@ module ArenaDemo
     pbMessage("Custom mode closed safely: #{error.message}")
   ensure
     @editor_surface_edits = nil
+    @editor_placements = nil
     reset_editor_zoom(map_viewport) if map_viewport
     restore_editor_player(player, original_player, original_camera, old_menu_state) if menu_state_captured
     overview.bitmap.dispose if overview && overview.bitmap && !overview.bitmap.disposed?

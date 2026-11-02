@@ -49,7 +49,8 @@ module ArenaDemo
   module ExtraFurnitureIntegration
     # Floor tiles sort below players; a tall event sorts at its low anchor.
     def relief_bitmap(records, x, y)
-      placed = custom_placements.find do |p|
+      placements = records.equal?(@editor_surface_edits) && @editor_placements ? @editor_placements : custom_placements
+      placed = placements.find do |p|
         p['kind'] == 'furniture' && p['item'].to_s == ArenaFurnitureRules::STAND &&
           ArenaFurnitureRules.relief_cells(p['item'],p['x'],p['y']).include?([x,y])
       end
@@ -179,7 +180,7 @@ module ArenaDemo
       placements = super
       purge_retired_furniture!(placements) unless defined?(Visits) && Visits.snapshot
       return placements if !$PokemonGlobal || (defined?(Visits) && Visits.snapshot)
-      return placements if $PokemonGlobal.arena_wide_furniture_layout_version.to_i >= 4
+      return placements if $PokemonGlobal.arena_wide_furniture_layout_version.to_i >= 5
       records = tile_edit_records
       remove_legacy_stands!(placements,records)
       migrate_raised_furniture!(placements,records)
@@ -208,7 +209,21 @@ module ArenaDemo
           placements.delete(placed)
         end
       end
-      $PokemonGlobal.arena_wide_furniture_layout_version = 4
+      placements.each do |p|
+        next unless p['kind'] == 'furniture' && p['item'].to_s == ArenaFurnitureRules::STAND
+        [1,2].each do |dx|
+          px,py = p['x']+dx,p['y']-1
+          key = tile_edit_key(px,py)
+          next unless records[key] && records[key]['height'].to_i == 0
+          saved = (p['arena_under_surfaces'] || []).find { |e| e['x']==px && e['y']==py }
+          ground = saved && saved['surface'] && saved['surface']['ground']
+          ground ||= tile_surface_state(records,px,p['y'])['ground']
+          next if records[key]['ground'] == ground
+          records[key] = records[key].merge('ground'=>ground)
+          apply_tile_surface($game_map,px,py,records[key]) if $game_map
+        end
+      end
+      $PokemonGlobal.arena_wide_furniture_layout_version = 5
       placements
     end
 
@@ -249,7 +264,8 @@ module ArenaDemo
     end
 
     def refresh_custom_placements(placements = custom_placements)
-      super
+      placements = @editor_placements if @editor_surface_edits && @editor_placements
+      super(placements)
       return unless $game_map && $game_map.map_id == MAP_ID
       MAX_ARENA_FURNITURE.times do |slot|
         event = $game_map.events[FURNITURE_SLOT_BASE + slot]
@@ -264,6 +280,7 @@ module ArenaDemo
           event.width = ArenaFurnitureRules.width(item)
         end
       end
+      refresh_map_renderer if @editor_surface_edits
     end
 
     def editor_occupied(placements, x, y)
@@ -374,7 +391,7 @@ module ArenaDemo
           stair = stairs.include?([px,py])
           height = is_stand && py == anchor_y-1 && !stair ? 0 : 1
           candidate[tile_edit_key(px,py)] = state.merge('height' => height, 'stair' => stair ? 8 : nil,
-            'platform_style' => 'wood', 'ground' => 'wood')
+            'platform_style' => 'wood', 'ground' => height == 0 ? state['ground'] : 'wood')
           { 'x'=>px, 'y'=>py, 'surface'=>records[tile_edit_key(px,py)]&.dup }
         end
         placed = { 'kind' => kind, 'item' => selected[:item].to_s, 'x' => x, 'y' => y,

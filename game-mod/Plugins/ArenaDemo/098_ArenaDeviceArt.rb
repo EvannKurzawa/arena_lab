@@ -27,15 +27,21 @@ module ArenaDemo::DeviceArt
     @sparks ||= {}
     @sparks[phase] ||= begin
       image = Bitmap.new(32,32)
-      # A solid asymmetric discharge. Its silhouette stays fixed while the
-      # rim and branching white-hot channels flicker, without rotating.
+      # A solid discharge with a gently deforming rim. Neighbouring scanlines
+      # move together so the contour breathes without rotating or breaking up.
       rows = [[17,18],[16,18],[14,19],[13,20],[13,23],[10,22],
               [9,22],[10,24],[7,25],[6,24],[7,23],[5,24],
               [4,25],[5,27],[6,26],[4,24],[6,25],[7,25],
               [6,24],[8,22],[9,23],[8,21],[10,21],[11,20],
               [11,18],[13,19],[14,18],[15,16]]
       mask = {}
-      rows.each_with_index { |(left,right),i| (left..right).each { |x| mask[[x,i+2]]=true } }
+      ripple = [0,1,1,0,-1,-1,0,1,0]
+      rows.each_with_index do |(left,right),i|
+        group = i/3
+        dl = ripple[(phase+group*2)%9]
+        dr = right-left < 5 ? dl : ripple[(phase+group*2+3)%9]
+        ((left+dl)..(right+dr)).each { |x| mask[[x,i+2]]=true }
+      end
       dark,blue,cyan,pale,white = color(39,73,170),color(58,136,229),color(98,198,255),color(178,235,255),color(242,255,255)
       mask.each_key do |x,y|
         depth = (1..5).find do |d|

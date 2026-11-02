@@ -1,13 +1,10 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Estrade RSE et décharge Tesla — Arena Demo 0.25.6
+## Aperçu de pose et transparence — Arena Demo 0.25.7
 
-Sprite complet de l'estrade RSE agrandi uniformément : plateforme, marches
-latérales et façade centrale. La pose réserve 4 cases de large sur 3 vers
-le haut depuis le coin bas gauche choisi; la façade centrale est bloquante.
-Les anciennes estrades sont retirées et remises dans le Sac, avec restauration
-de leur sol; les vestiges isolés de l'ancien modèle sont nettoyés.
-L'étincelle est pleine et irrégulière, avec des filaments lumineux sans rotation.
+L'estrade RSE apparaît dès la pose dans le brouillon de l'éditeur, avec le
+même dessin qu'après validation. Les creux blancs du sprite sont transparents.
+Le contour plein de l'étincelle Tesla se déforme légèrement sans rotation.
 Fermer le jeu, **Arena Update.exe**, puis **Play-Arena.bat** sur les deux PC.
 
 ## Estrade RSE et décharge Tesla — Arena Demo 0.25.6

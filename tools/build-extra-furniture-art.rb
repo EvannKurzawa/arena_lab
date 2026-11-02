@@ -51,7 +51,11 @@ entries.each do |entry|
       crop = Bitmap.new(128,96)
       64.times do |y|
         128.times do |x|
-          crop.set_pixel(x,y,source.get_pixel(x/2,y/2))
+          pixel = source.get_pixel(x/2,y/2)
+          # The reference uses white as its matte, including open gaps below
+          # the facade. Keep the grey structural highlights intact.
+          pixel = Color.new(0,0,0,0) if [pixel.red,pixel.green,pixel.blue].min >= 245
+          crop.set_pixel(x,y,pixel)
         end
       end
     else

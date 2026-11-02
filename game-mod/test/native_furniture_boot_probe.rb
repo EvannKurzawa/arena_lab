@@ -167,16 +167,35 @@ module ArenaDemo::NativeFurnitureProbe
         ArenaDemo.editor_apply_placement(placements,records,'furniture',{item:item},x,y)
       end
       check.call(placements.length == 14, 'native visual scene retains all scaled furniture')
+      # During editing the saved layout may be empty while the draft has a stand.
+      $PokemonGlobal.arena_demo_placements = []
+      ArenaDemo.instance_variable_set(:@editor_surface_edits,records)
+      ArenaDemo.instance_variable_set(:@editor_placements,placements)
+      ArenaDemo.refresh_custom_placements(placements)
+      draft_tile = ArenaDemo.relief_bitmap(records,45,44)
+      stand_art = ArenaDemo.furniture_bitmap(:ARENA_FURNITURE_RSE_STAND)
+      check.call(draft_tile.get_pixel(16,8) == stand_art.get_pixel(16,8), 'editor draft renders the RSE stand before saving')
+      check.call(draft_tile.get_pixel(0,0).alpha == 0 && stand_art.get_pixel(40,62).alpha == 0, 'stand corners and facade gaps are transparent')
       check.call(GameData::Item.get(:ARENA_FURNITURE_HGSS_RED_CARPET).real_name == 'Tapis rouge', 'saved bag item names refreshed')
       $game_player.moveto(49,50)
       $game_player.center(49,49)
       $scene = Scene_Map.new
       $scene.createSpritesets
       4.times { $scene.updateSpritesets; Graphics.update }
+      check.call(ArenaDemo.relief_bitmap(records,45,44).get_pixel(16,8) == stand_art.get_pixel(16,8), 'draft stand artwork survives scene sprite refresh')
       shots << [Graphics.snap_to_bitmap,path.sub(/\.log$/, '-revised-map.png')]
       sparks = Bitmap.new(288,32)
       9.times { |phase| sparks.blt(phase*32,0,ArenaDemo::DeviceArt.spark(phase),Rect.new(0,0,32,32)) }
       shots << [sparks,path.sub(/\.log$/, '-tesla-frames.png')]
+      masks = 9.times.map do |phase|
+        bitmap = ArenaDemo::DeviceArt.spark(phase)
+        (0...32).flat_map { |y| (0...32).map { |x| bitmap.get_pixel(x,y).alpha > 0 } }
+      end
+      check.call(masks.uniq.length >= 3, 'Tesla silhouette changes across animation frames')
+      check.call(9.times.all? { |phase| ArenaDemo::DeviceArt.spark(phase).get_pixel(16,16).alpha == 255 }, 'Tesla core stays filled while the rim moves')
+      ArenaDemo.instance_variable_set(:@editor_surface_edits,nil)
+      ArenaDemo.instance_variable_set(:@editor_placements,nil)
+      $PokemonGlobal.arena_demo_placements = placements
       $PokemonGlobal.arena_wide_furniture_layout_version = 0
       legacy_tree = {'kind'=>'furniture','item'=>'ARENA_FURNITURE_TREE_LEAFY','x'=>44,'y'=>44}
       legacy_snow = {'kind'=>'furniture','item'=>'ARENA_FURNITURE_SNOWBALL','x'=>45,'y'=>44}

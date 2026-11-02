@@ -1,4 +1,10 @@
-# Mobilier : corrections visuelles 0.25.6
+# Mobilier : corrections visuelles 0.25.7
+
+Le dessin de l'estrade utilise le brouillon de placement pendant l'édition :
+son aspect RSE est visible avant la validation. Le blanc de fond de la source,
+dans les coins et sous la façade, devient transparent à la génération du PNG.
+Les contours de l'étincelle pleine se déplacent par groupes de pixels voisins,
+sur neuf images, sans rotation ni déplacement global de l'effet.
 
 L'estrade utilise désormais le sprite RSE entier, marches comprises, agrandi
 uniformément à 128 × 64. Emprise : 4 cases de large, 3 vers le haut depuis

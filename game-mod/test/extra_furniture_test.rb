@@ -9,6 +9,8 @@ require_relative '../Plugins/ArenaDemo/031_ArenaLiquidAnimation'
 class ExtraFurnitureTest < FurnitureCatalogTest
   def setup
     super
+    ArenaDemo.instance_variable_set(:@editor_surface_edits,nil)
+    ArenaDemo.instance_variable_set(:@editor_placements,nil)
     current = File.expand_path('../SharedAssets',__dir__)
     runtime = @game
     Object.send(:define_method,:pbResolveBitmap) do |path|
@@ -74,6 +76,44 @@ class ExtraFurnitureTest < FurnitureCatalogTest
         assert_equal 2, $bag.quantity(item)
       end
     end
+  end
+
+  def test_stand_draft_uses_current_layout_and_keeps_matte_transparent
+    stock
+    records=ArenaDemo.tile_edit_records
+    $PokemonGlobal.arena_demo_placements=[]
+    draft=[{'kind'=>'furniture','item'=>ArenaFurnitureRules::STAND,'x'=>44,'y'=>44}]
+    ArenaDemo.instance_variable_set(:@editor_surface_edits,records)
+    ArenaDemo.instance_variable_set(:@editor_placements,draft)
+    art=ArenaDemo.furniture_bitmap(ArenaFurnitureRules::STAND.to_sym)
+    tile=ArenaDemo.relief_bitmap(records,44,42)
+    assert_equal art.get_pixel(16,8).bytes,tile.get_pixel(16,8).bytes
+    assert_equal 0,tile.get_pixel(0,0).alpha
+    assert_equal 0,art.get_pixel(40,62).alpha
+    assert_equal 255,art.get_pixel(32,16).alpha
+    assert_empty $PokemonGlobal.arena_demo_placements
+  ensure
+    ArenaDemo.instance_variable_set(:@editor_surface_edits,nil)
+    ArenaDemo.instance_variable_set(:@editor_placements,nil)
+  end
+
+  def test_existing_stand_reveals_original_ground_through_facade_gaps
+    stock
+    records=ArenaDemo.tile_edit_records
+    placements=$PokemonGlobal.arena_demo_placements=[]
+    ArenaDemo.stub(:refresh_custom_placements,nil) do
+      ArenaDemo.stub(:apply_tile_surface,nil) do
+        assert ArenaDemo.editor_apply_placement(placements,records,'furniture',{item: :ARENA_FURNITURE_RSE_STAND},44,44)
+      end
+    end
+    original=records['45,43']['ground']
+    records['45,43']['ground']='wood'
+    records['46,43']['ground']='wood'
+    $PokemonGlobal.arena_wide_furniture_layout_version=4
+    ArenaDemo.stub(:apply_tile_surface,nil) { ArenaDemo.custom_placements }
+    assert_equal original,records['45,43']['ground']
+    assert_equal original,records['46,43']['ground']
+    assert_equal 5,$PokemonGlobal.arena_wide_furniture_layout_version
   end
 
   def test_legacy_stand_and_isolated_orphan_are_removed_once
