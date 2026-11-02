@@ -27,22 +27,25 @@ module ArenaDemo::DeviceArt
     @sparks ||= {}
     @sparks[phase] ||= begin
       image = Bitmap.new(32, 32)
-      # Nine pixel-native electric-barrier poses: broken blue arcs with white
-      # lightning cores and transparent gaps, rather than a filled blue disc.
+      # Nine full, rounded bursts of Pokémon-style electric barrier energy.
       blue, cyan, white = color(26,60,211),color(76,196,255),color(239,255,255)
-      6.times do |arm|
-        angle = arm * Math::PI / 3 + phase * 0.10
-        bend = ((phase + arm) % 3 - 1) * 0.22
-        points = [[16,16]] + [[5,angle],[9,angle+bend+0.25],[11,angle+bend-0.2],[15,angle]].map do |radius,theta|
-          [(16 + Math.cos(theta)*radius).round.clamp(1,30),(16 + Math.sin(theta)*radius).round.clamp(1,30)]
-        end
-        points.each_cons(2) do |a,b|
-          [-1,0,1].each { |offset| line(image,a[0]+offset,a[1],b[0]+offset,b[1],blue) }
-          line(image,*a,*b,cyan)
-          line(image,a[0],a[1]-1,b[0],b[1]-1,white) if arm.even?
-        end
+      # Broad electric core with a broken jagged corona; interior pixels make
+      # the spark feel solid while retaining a crisp native-game silhouette.
+      image.fill_rect(12,5,8,22,blue)
+      image.fill_rect(6,12,20,8,blue)
+      image.fill_rect(9,9,14,14,blue)
+      8.times do |arm|
+        angle = arm * Math::PI / 4 + phase * 0.08
+        bend = ((phase + arm) % 3 - 1) * 0.16
+        r1, r2 = 10, 15
+        a = [(16 + Math.cos(angle)*r1).round,(16 + Math.sin(angle)*r1).round]
+        b = [(16 + Math.cos(angle+bend)*r2).round.clamp(1,30),(16 + Math.sin(angle+bend)*r2).round.clamp(1,30)]
+        [-1,0,1].each { |offset| line(image,a[0]+offset,a[1],b[0]+offset,b[1],blue) }
+        line(image,*a,*b,cyan)
       end
-      image.fill_rect(14,14,4,4,white)
+      image.fill_rect(10,11,12,10,cyan)
+      image.fill_rect(12,9,8,14,cyan)
+      image.fill_rect(13,12,6,8,white)
       image
     end
   end

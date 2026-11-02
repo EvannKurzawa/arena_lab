@@ -1,5 +1,24 @@
 # Setup and implementation status
 
+## Furniture art and raised platforms — 2026-11-02
+
+Arena Demo 0.25.3. Replaced the fragile HGSS spike crop with a manually
+pixel-drawn pair of complete stone spikes (no black base or red cap). Restored
+the rounded leafy-tree art from its previous version and kept one isolated
+tree source in game-mod/AssetSources/tree-leafy-master.png. Tesla's nine poses
+now have a broader, brighter filled core with a jagged electric edge.
+
+Redesigned the stand and solid board as two-cell-wide wood surfaces with a red
+center runner on the stand. Their native artwork is now visible across the full
+footprint; the engine draws the matching wood front from two raised cells.
+Both items reserve two cells in local and server collision rules. New placements
+store the underlying surface for every cell. Existing one-cell raised items are
+migrated to the nearest clear two-cell footprint where possible, preserving the
+old surface and returning an item to the Bag if no safe footprint exists.
+Generated PNGs and the source manifest are tracked by SharedAssets, installed
+by the existing updater/Play-Arena flow. No game client was launched and no new
+automated tests were run for this revision.
+
 ## Furniture follow-up and Tesla spark — 2026-11-02
 
 Arena Demo 0.25.2. Removed red pixels from the spikes' cone mask. Moved carpet

@@ -1,17 +1,20 @@
 # Mobilier de base pour la personnalisation — 2026-11-01
 
-## Révision visuelle 0.25.1 — 2026-11-02
+## Révision visuelle 0.25.3 — 2026-11-02
 
 Les nouveaux meubles ont maintenant des proportions propres à chaque objet,
 des découpes corrigées et des noms courts. Arbre feuillu, sapin, machine de
 laboratoire et set de barils occupent deux cases de large ; les collisions,
 le retrait depuis l'une ou l'autre case et les visites utilisent cette même
-empreinte. Les quatre meubles existants sont décalés au minimum seulement si
-leur nouvelle deuxième case est occupée ; si aucune place ne convient au même
-niveau, l'objet retourne au Sac. Les autres placements sont conservés.
-Estrade et planche sont dessinées par le relief natif, sans deuxième sprite
-par-dessus. Le tapis n'a plus de fond opaque, la neige n'inclut plus d'escalier
-et l'arbre feuillu ne contient plus deux morceaux d'arbres.
+empreinte. Les meubles qui occupent désormais deux cases sont décalés au
+minimum seulement si la deuxième case est occupée ; si aucune place sûre ne
+convient au même niveau, l'objet retourne au Sac. Les autres placements sont
+conservés.
+Les pics sont des pointes de pierre sans fragments rouges/noirs, l'arbre feuillu
+est isolé avec sa silhouette arrondie, et l'étincelle Tesla a un cœur plus plein.
+Estrade et planche ont un plateau en bois de deux cases, assorti à la paroi
+du relief. Les anciennes poses sont migrées en conservant le sol sous les deux
+cases. Le tapis n'a plus de fond opaque et la neige n'inclut plus d'escalier.
 Voir [les tailles, l'aperçu et le chandelier](FURNITURE_VISUAL_FIXES.md).
 Les sections 0.25.0 et précédentes ci-dessous sont historiques.
 
@@ -32,7 +35,7 @@ Choix utilisateur : Boule de Boue, Porte Cassable, Déco de Sable et Cogne-Cogne
 sont des **décorations avec collisions**. Les machines sont aussi décoratives.
 La boule de neige et les pics sont solides, sans dégâts ou mini-jeu.
 Le tapis est traversable. Estrade et planche solide créent un sommet de hauteur
-1 avec le relief natif ; l'accès se construit avec les escaliers de l'éditeur.
+1 sur deux cases avec le relief natif ; l'accès se construit avec les escaliers de l'éditeur.
 Le retrait restaure le sol précédent et refuse de supprimer l'appui d'un
 escalier encore présent. Les meubles sont adaptés à une case ; le tapis se
 pose par morceaux. Pas de meuble multi-case.

@@ -1,4 +1,18 @@
-# Mobilier : corrections visuelles 0.25.1
+# Mobilier : corrections visuelles 0.25.3
+
+La révision 0.25.3 redessine les pics comme une paire de pointes de pierre,
+sans la base noire ni les pixels rouges du fragment HGSS d'origine. L'arbre
+reprend le feuillage arrondi précédent, isolé en un seul arbre. L'étincelle
+Tesla a un noyau plus large et plus lumineux, avec un contour électrique
+irrégulier. L'estrade et la planche occupent maintenant deux cases côte à côte :
+plateau en bois à l'échelle du jeu, tapis rouge central pour l'estrade, paroi
+bois générée par le relief natif. Les anciennes poses sont migrées avec leur
+sol sous-jacent enregistré pour chaque case. Les PNG finaux sont générés par
+`tools/build-extra-furniture-art.rb` et installés par Arena Update/Play-Arena.
+
+La révision 0.25.2 précédente retirait déjà les pixels rouges, abaissait le
+tapis de 6 pixels et rétablissait le dessin du meuble sur le sommet. Les détails
+ci-dessous gardent les tailles, noms et comportements précédents.
 
 Révision 0.25.2 : les pics perdent leurs pixels rouges, le tapis est décalé de
 6 pixels vers le bas sans rogner l'image, et l'arbre feuillu utilise la pose
@@ -29,7 +43,7 @@ Bouquet de fleurs. Les mentions HGSS/Hoenn/Sinnoh sont retirées des noms.
 | Estrade / planche | Une seule représentation : sommet et paroi du relief natif |
 
 Les sprites peuvent dépasser vers le haut sans bloquer la case sous leur cime.
-Les quatre meubles larges réservent deux cases côte à côte au même niveau,
+Les six meubles larges réservent deux cases côte à côte au même niveau,
 hors vide, eau, escaliers, parois et autres meubles. Cliquer sur l'une des deux
 cases permet le retrait. Les validations serveur appliquent aussi ces règles.
 Une ancienne implantation serrée est ajustée une seule fois : priorité à la

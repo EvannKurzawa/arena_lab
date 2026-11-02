@@ -132,7 +132,7 @@ module ArenaDemo::NativeFurnitureProbe
       end
       payload = ArenaDemo.visit_snapshot_payload
       decoded = ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], payload[:relief], payload[:styles])
-      expected = placements.map { |p| p.reject { |key,_| key == 'arena_under_surface' } }
+      expected = placements.map { |p| p.reject { |key,_| %w[arena_under_surface arena_under_surfaces].include?(key) } }
       check.call(decoded && decoded[:placements] == expected, 'extra native visit snapshot round trip')
       check.call(Game.save('Data/furniture-probe-save.rxdata'), 'extra disposable save written')
       Game.load(SaveData.read_from_file('Data/furniture-probe-save.rxdata'))

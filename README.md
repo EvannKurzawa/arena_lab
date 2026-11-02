@@ -1,12 +1,12 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Mobilier et étincelle — Arena Demo 0.25.2
+## Mobilier et étincelle — Arena Demo 0.25.3
 
-Pics sans ajout rouge, tapis abaissé de 6 pixels et arbre feuillu provenant
-d'une pose intacte de l'arbre individuel. Estrade et planche redeviennent
-visibles avec leur dessin sommet/paroi aligné sur le relief. Étincelle Tesla
-redessinée en neuf poses d'arcs bleus et blancs inspirés de Major Bob HGSS.
-Fermer les jeux, **Arena Update.exe**, puis **Play-Arena.bat** sur les deux PC.
+Pics redessinés sans la plateforme noire/rouge, arbre feuillu arrondi isolé,
+étincelle Tesla plus pleine en pixel art. Estrade et planche couvrent deux
+cases, avec dessus en bois assorti à la paroi du relief. Les anciennes estrades
+sont migrées sans perdre le sol dessous. Fermer les jeux, **Arena Update.exe**,
+puis **Play-Arena.bat** sur les deux PC.
 
 ## Mobilier : découpes et proportions corrigées — Arena Demo 0.25.1
 
@@ -14,9 +14,9 @@ Boule de neige détourée seule, tapis rouge transparent, arbre feuillu entier,
 sapin agrandi et tailles individuelles pour les plantes, fleurs, lampe,
 poubelle, machines et barils. Chandelier redessiné en pixel art. Les noms du
 catalogue et du Sac ne contiennent plus les mentions de région ou HGSS.
-Arbres, machine de laboratoire et set de barils occupent **2 cases côte à côte**,
-avec les mêmes collisions en solo et en visite. Estrade et planche utilisent
-uniquement le relief natif, sans dessin superposé à la plateforme.
+Arbres, machine de laboratoire, set de barils, estrade et planche occupent
+**2 cases côte à côte**, avec les mêmes collisions en solo et en visite. Les
+plateformes ont un sommet en bois assorti au relief natif.
 
 Les meubles élargis déjà posés conservent leur position si la deuxième case
 est libre ; sinon ils sont déplacés au plus proche, au même niveau, sans perte

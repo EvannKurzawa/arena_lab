@@ -2,8 +2,8 @@
 module ArenaFurnitureRules
   RAISED = %w[ARENA_FURNITURE_RSE_STAND ARENA_FURNITURE_RSE_SOLID_BOARD].freeze
   WALKABLE = (RAISED + %w[ARENA_FURNITURE_HGSS_RED_CARPET]).freeze
-  WIDE = %w[ARENA_FURNITURE_DPPT_LABMACHINE ARENA_FURNITURE_DPPT_BIGOILDRUM
-            ARENA_FURNITURE_TREE_LEAFY ARENA_FURNITURE_TREE_PINE].freeze
+  WIDE = (%w[ARENA_FURNITURE_DPPT_LABMACHINE ARENA_FURNITURE_DPPT_BIGOILDRUM
+             ARENA_FURNITURE_TREE_LEAFY ARENA_FURNITURE_TREE_PINE] + RAISED).freeze
   def self.raised?(item); RAISED.include?(item.to_s); end
   def self.walkable?(item); WALKABLE.include?(item.to_s); end
   def self.width(item); WIDE.include?(item.to_s) ? 2 : 1; end

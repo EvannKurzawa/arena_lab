@@ -410,14 +410,14 @@
     "sha256": "aa1e6a12334393c78f69aa9ebdd9fe8df4c261eb17bc66a7a95b7dd137c3db17",
     "mask": "alpha",
     "size": [
-      32,
+      64,
       64
     ],
     "visible_size": [
-      16,
+      64,
       32
     ],
-    "packed_sha256": "8d9c1743042854a3552d0e356e7411e160fd9c684ff08e44204c4c35713c7a61"
+    "packed_sha256": "299f1631731475e8618e765960f8785320de686cbd8b46619f68a3076d41d807"
   },
   {
     "name": "rse-stand",
@@ -432,7 +432,7 @@
       64,
       32
     ],
-    "packed_sha256": "242c4f7a5f47f0782743d3b008f7333138f27354ec2d538815fec3b4ac006349"
+    "packed_sha256": "2e275b3a3d7aa850eece18b6cce283da103f68bcc66569f4a0230989a226cf2b"
   },
   {
     "name": "rse-tire",
@@ -469,12 +469,12 @@
     "rect": [
       0,
       0,
-      32,
-      32
+      64,
+      64
     ],
     "mask": "alpha",
-    "url": "local Essentials v21.1: Characters/Object tree 1.png, first intact frame",
-    "sha256": "2fb64ca060ab7450692e6087d28067daa61e5f9ee8c279727325a48504893e06",
+    "url": "single rounded tree isolated from Essentials v21.1 Outside.png crop [96,1952,96,96]",
+    "sha256": "ec53f81b6e0a133f9c496fa6ca26071c3ffcd0b2a01bcd619878e2363ada6c5b",
     "size": [
       64,
       64
@@ -483,7 +483,7 @@
       64,
       64
     ],
-    "packed_sha256": "4e6750c588347ff37704995f548f2c9ba9f3efb7290e0f361f7b036447214f72"
+    "packed_sha256": "ec53f81b6e0a133f9c496fa6ca26071c3ffcd0b2a01bcd619878e2363ada6c5b"
   },
   {
     "name": "tree-pine",
@@ -535,7 +535,7 @@
       16,
       32
     ],
-    "mask": "cone",
+    "mask": "pixel-spikes",
     "url": "https://www.pokepedia.fr/images/1/16/Int%C3%A9rieur_Ar%C3%A8ne_%C3%89b%C3%A8nelle_HGSS.png",
     "sha256": "81f33d0b80f596738d075f771e1d0178096417416bd9775c6c90aed188a8cdd4",
     "size": [
@@ -546,7 +546,7 @@
       32,
       64
     ],
-    "packed_sha256": "7c9414dde7a69a5b826c27fc47946ad05da31a075a0232b042fb255dc2a26715"
+    "packed_sha256": "4b5c83ff4cea09ce5ad97689e0c845da6afd277ef9415dfd95ba1f4f5582a455"
   },
   {
     "name": "snowball",
