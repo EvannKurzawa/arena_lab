@@ -1,5 +1,50 @@
 # Assets des objets interactifs — 0.23.0
 
+## Bobines traditionnelles et sons fournis
+
+Les sprites actifs `coil-R.png`, `coil-L.png`, `coil-U.png`, `coil-D.png`
+reprennent le socle métallique et les trois plateaux dorés de l'ancien
+`coil.png`, avec une hauteur visible maximale de 40px et une borne orientée.
+Génération imagegen intégrée, originaux privés ; prompts exacts :
+[TESLA_SPRITE_PROMPTS.md](TESLA_SPRITE_PROMPTS.md). L'arc électrique reste
+dessiné par 098 pour atteindre précisément la boule voisine.
+
+Le son actuel du bouton est le [MP3 fourni par l'utilisateur](https://www.myinstants.com/media/sounds/electricity-charge-sound-effect.mp3),
+installé sous `Audio/SE/Arena Tesla Button.mp3`. Source et SHA256 sont épinglés
+dans tools/install-arena-device-assets.ps1 ; le binaire reste dans le runtime
+privé. Il remplace l'ancien son synthétique `Arena Coil Off` pour ce bouton.
+
+Le son personnel de la rune a été déplacé de `rune_cecite.mp3` à
+`tools/runtime/device-src-rune-cecite.mp3`, puis copié dans le jeu sous
+`Audio/SE/Arena Blind Rune.mp3`. Prepare conserve cette installation en
+recopiant le cache personnel. Pour un autre PC, fournir ce fichier cache
+séparément ; il n'est pas distribué par Git et sa présence reste facultative.
+
+## Raccords des toiles et bobines orientées
+
+`098_ArenaDeviceArt.rb` dessine les raccords des toiles à partir d'un masque
+de voisinage à quatre bits, avec trois fils partageant les mêmes coordonnées
+sur les bords contigus. Le rendu est recalculé si les voisins changent.
+
+La bobine compacte et ses quatre extrémités orientées sont également dessinées
+par Bitmap. Un canevas transparent 96×96 contient le corps sur sa case et
+l'arc jusqu'au centre de la case voisine. L'origine du sprite préserve la
+position de la case et le catalogue utilise un recadrage adapté. L'arc suit
+l'animation à neuf phases de la boule ; il n'est pas dessiné à l'état désactivé.
+L'ancien `coil.png` est historique et ne détermine plus le rendu actif.
+
+## Dessins natifs : boule électrique, rune et toile
+
+La révision suivante remplace l'ancien éclair par une boule bleue pleine
+32×32, en neuf phases à 12 images/s : bord bleu foncé, bandes cyan et cœur
+blanc. La rune et la toile sont désormais tracées directement par
+`ArenaDemo::DeviceArt.floor_glyph` dans `098_ArenaDeviceArt.rb`, pour garantir
+des lignes continues à la résolution du jeu. La toile utilise des fils blancs
+avec ombre décalée bleu-gris ; la rune, deux cercles et quelques traits simples.
+Les anciens PNG `rune.png` et `web.png` restent historiques et ne sont plus
+chargés pour ces objets. Le dessin Bitmap est également utilisé dans leurs
+aperçus de catalogue. Aucun nouveau fichier image externe n'est nécessaire.
+
 ## Correction du rendu — 2 novembre 2026
 
 Le tapis est maintenant construit par un motif périodique natif : période de

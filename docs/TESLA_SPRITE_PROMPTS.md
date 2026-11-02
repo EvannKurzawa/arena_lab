@@ -1,0 +1,21 @@
+# Compact traditional Tesla coil — built-in imagegen
+
+Reference/edit target: game-mod/Graphics/ArenaDevices/coil.png (the original generated upright brass coil).
+Final assets: game-mod/Graphics/ArenaDevices/coil-R.png, coil-L.png, coil-U.png, coil-D.png.
+Transparent generation, then nearest-neighbour reduction to at most 30×40 visible pixels on a 32×64 canvas.
+
+## R
+
+Edit this original Tesla coil reference into a compact matching Pokemon RPG overworld sprite. Preserve the traditional upright brass tower with THREE distinct golden horizontal capacitor disks and its substantial beveled silver-grey hexagonal pedestal with dark outline and tiny cyan gauge. Make the tower shorter, roughly 32x40 logical pixels overall, wider and readable rather than a thin tall pole. Add a short SILVER rounded discharge terminal at the very TOP of the tower aimed toward screen-right (east), long silver terminal visibly extending to the RIGHT. Directional change applies to the TOP TERMINAL only: the base remains upright on the ground and the capacitor disks remain horizontal. No electricity or beam in this image. Crisp restrained 16-bit pixel art, enlarged using nearest-neighbor, completely transparent background, one single complete centered sprite, no labels, arrows, text or scene. Same brass/silver palette as reference, highlight upper left.
+
+## L
+
+Edit this original Tesla coil reference into a compact matching Pokemon RPG overworld sprite. Preserve the traditional upright brass tower with THREE distinct golden horizontal capacitor disks and its substantial beveled silver-grey hexagonal pedestal with dark outline and tiny cyan gauge. Make the tower shorter, roughly 32x40 logical pixels overall, wider and readable rather than a thin tall pole. Add a short SILVER rounded discharge terminal at the very TOP of the tower aimed toward screen-left (west), long silver terminal visibly extending to the LEFT. Directional change applies to the TOP TERMINAL only: the base remains upright on the ground and the capacitor disks remain horizontal. No electricity or beam in this image. Crisp restrained 16-bit pixel art, enlarged using nearest-neighbor, completely transparent background, one single complete centered sprite, no labels, arrows, text or scene. Same brass/silver palette as reference, highlight upper left.
+
+## U
+
+Edit this original Tesla coil reference into a compact matching Pokemon RPG overworld sprite. Preserve the traditional upright brass tower with THREE distinct golden horizontal capacitor disks and its substantial beveled silver-grey hexagonal pedestal with dark outline and tiny cyan gauge. Make the tower shorter, roughly 32x40 logical pixels overall, wider and readable rather than a thin tall pole. Add a short SILVER rounded discharge terminal at the very TOP of the tower aimed toward up the screen (north, away from camera), terminal at BACK of the top cap. Directional change applies to the TOP TERMINAL only: the base remains upright on the ground and the capacitor disks remain horizontal. No electricity or beam in this image. Crisp restrained 16-bit pixel art, enlarged using nearest-neighbor, completely transparent background, one single complete centered sprite, no labels, arrows, text or scene. Same brass/silver palette as reference, highlight upper left.
+
+## D
+
+Edit this original Tesla coil reference into a compact matching Pokemon RPG overworld sprite. Preserve the traditional upright brass tower with THREE distinct golden horizontal capacitor disks and its substantial beveled silver-grey hexagonal pedestal with dark outline and tiny cyan gauge. Make the tower shorter, roughly 32x40 logical pixels overall, wider and readable rather than a thin tall pole. Add a short SILVER rounded discharge terminal at the very TOP of the tower aimed toward down the screen (south, toward camera), terminal projecting FORWARD from the top cap. Directional change applies to the TOP TERMINAL only: the base remains upright on the ground and the capacitor disks remain horizontal. No electricity or beam in this image. Crisp restrained 16-bit pixel art, enlarged using nearest-neighbor, completely transparent background, one single complete centered sprite, no labels, arrows, text or scene. Same brass/silver palette as reference, highlight upper left.

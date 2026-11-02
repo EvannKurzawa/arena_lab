@@ -22,8 +22,7 @@ require_relative '../Plugins/ArenaDemo/038_DebugParty'
 module ArenaDemo::DarkLugia
   def self.register; true; end
   def self.make(level)
-    pokemon = Pokemon.new(:LUGIA, level)
-    pokemon.form = 1
+    pokemon = Pokemon.new(:DARKLUGIA, level)
     pokemon.name = 'Dark Lugia'
     pokemon
   end
@@ -39,8 +38,8 @@ class DebugPartyTest < Minitest::Test
   def test_replaces_party_once_and_preserves_previous_team
     old = $player.party.dup
     assert ArenaDemo::DebugParty.apply
-    assert_equal [:KYUREM, :LUGIA, :ZEKROM, :LUGIA, :GIRATINA, :MEW], $player.party.map(&:species)
-    assert_equal [1, 1, 0, 0, 1, 0], $player.party.map(&:form)
+    assert_equal [:KYUREM, :DARKLUGIA, :ZEKROM, :LUGIA, :GIRATINA, :MEW], $player.party.map(&:species)
+    assert_equal [1, 0, 0, 0, 1, 0], $player.party.map(&:form)
     assert_equal [100] * 6, $player.party.map(&:level)
     assert_equal :GRISEOUSORB, $player.party[4].item
     assert_equal [:MEW, 100, [:CUT, :SURF, :ROCKSMASH, :STRENGTH]],

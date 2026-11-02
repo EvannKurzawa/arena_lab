@@ -1,5 +1,38 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## v9.3 — Arena Demo 0.24.0
+
+Ajoute Gold et de nouvelles équipes de dresseurs, dont le Léviator chromatique
+de Gold. Objets interactifs revus : toiles jointes avec suiveur masqué, rune et
+sons personnalisés, tapis animés, bobines dorées orientées reliées à leur
+étincelle, rotation pendant l'attraction magnétique. Corrige aussi les alias
+de sprites Dark Lugia. **58 contrôles natifs et 33 tests / 509 assertions réussis.**
+
+Fermer les clients, lancer **Arena Update**, puis **Play-Arena.bat**. Protocole
+inchangé (**14**). Le PBS de Gold est inclus ; ses sprites et sa musique restent
+personnels et sont conservés dans un cache local privé. Pour les copier sur
+un autre PC : [ressources de Gold](docs/GOLD_TRAINER.md).
+
+Dernière révision locale : le suiveur se cache dans les toiles et revient sur
+la première case sans toile. L'attraction magnétique fait tourner le joueur
+comme les sables mouvants. Bobines dorées à socle métallique, plus petites,
+en quatre orientations reliées à leur étincelle. Son du bouton remplacé par
+le MP3 Myinstants fourni ; son de la rune installé depuis `rune_cecite.mp3`.
+**55 contrôles natifs réussis.** Fermer les clients puis relancer
+**Play-Arena.bat**. Le son personnel de la rune reste dans le runtime privé.
+
+Toiles voisines raccordées automatiquement, horizontalement et verticalement.
+Bobine Tesla compacte en quatre orientations, reliée à sa boule électrique par
+un arc animé qui s'éteint avec le bouton. Choisir l'orientation à la pose.
+**46 contrôles natifs réussis.** Relancer **Play-Arena.bat** pour charger cette
+révision locale.
+
+Révision visuelle locale : boule électrique bleue pleine animée sur neuf
+images, rune simplifiée avec anneaux continus et toile plus contrastée.
+Ces trois dessins utilisent directement la grille native 32×32, sans réduction
+d'image. **38 contrôles natifs réussis.** Fermer le jeu puis relancer
+**Play-Arena.bat** pour charger les scripts modifiés.
+
 ## v9.2.1 — Arena Demo 0.23.1
 
 Corrige le blocage au démarrage après une réécriture des données d'animations
@@ -779,14 +812,6 @@ compiled locally. Existing compiled French data is kept. The launcher also
 repairs missing data after an older updater has fetched current source.
 Internet access is required on the first download; no translation pack is
 bundled in GitHub or in the EXEs.
-
-If the updater reports a generic Windows error immediately after selecting the
-folder, use a rebuilt updater containing the process-check fix. The updater now
-checks running games without WMI/CIM, reports the failing step and writes a
-diagnostic to `%TEMP%/ArenaLab-Update-error-*.log`. Running games still block
-updates; an unreadable game process asks you to close its window and retry.
-For a folder-dialog issue, the source script also accepts `-InstallDirectory`.
-See SETUP_STATUS.md for local build versus published-package status.
 
 If the updater reports a generic Windows error immediately after selecting the
 folder, use a rebuilt updater containing the process-check fix. The updater now

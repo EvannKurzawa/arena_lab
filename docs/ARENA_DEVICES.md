@@ -22,6 +22,22 @@ Les sols interactifs restent traversables ; ils n'exigent pas Entrée en jeu.
 
 ## Poser et retirer un lot
 
+Le Pokémon suiveur est masqué pendant la traversée des toiles et revient à
+l'arrivée sur la première case sans toile. Plusieurs toiles jointes ne le font
+pas réapparaître entre deux cases. Le joueur tourne sur lui-même pendant
+l'attraction magnétique, à la cadence des sables mouvants, puis regarde vers
+l'antenne à l'arrêt. Le bouton utilise le MP3 électrique fourni ; la rune
+utilise le fichier personnel installé localement et conserve sa durée de
+cécité de 60 secondes.
+
+Les toiles posées sur deux cases voisines se raccordent automatiquement sur
+leur bord commun, à l'horizontale et à la verticale. Les raccords disparaissent
+quand la toile voisine est retirée. Les diagonales seules ne sont pas reliées.
+
+La bobine compacte possède quatre orientations : choisir son orientation et
+le côté de sa boule électrique à la pose. Un arc animé relie son extrémité à
+la boule voisine ; le bouton éteint la boule et cet arc. La bobine reste solide.
+
 Sélectionner le lot, puis valider la première case avec Entrée. Déplacer le
 curseur et valider une deuxième case libre. Pour Tesla, la première case est
 la bobine et la seconde le bouton. Le lot est consommé seulement quand les

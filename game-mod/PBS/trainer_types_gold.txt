@@ -1,0 +1,6 @@
+[GOLD]
+Name = PokemonTrainer
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle GOLD
+VictoryBGM = Battle Champion

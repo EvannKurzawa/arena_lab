@@ -39,7 +39,7 @@ for ($index = 0; $index -lt $Names.Length; $index++) {
       }
     }
   }
-  $heightLimit = if ($Names[$index] -like 'antenna*') {46} else {30}
+  $heightLimit = if ($Names[$index] -like 'antenna*') {46} elseif ($Names[$index] -like 'coil-*') {40} else {30}
   $scale=[Math]::Min(30.0/($right-$left+1),$heightLimit/($bottom-$top+1))
   $width=[int](($right-$left+1)*$scale); $height=[int](($bottom-$top+1)*$scale)
   $tile=New-Object Drawing.Bitmap 32,64

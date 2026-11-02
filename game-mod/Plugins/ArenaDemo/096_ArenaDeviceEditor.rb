@@ -64,7 +64,7 @@ module ArenaDemo
       return entry.dup unless ArenaDevices::CONVEYORS.include?(item) || ArenaDevices::MAGNETS.include?(item) || ArenaDevices.coil?(item)
       labels = ['Bas', 'Gauche', 'Droite', 'Haut']
       prompt = if ArenaDevices.coil?(item)
-                 'De quel côté de la bobine placer la case électrifiée ?'
+                 'Orientation de la bobine et de sa case électrifiée ?'
                elsif ArenaDevices::MAGNETS.include?(item)
                  "Attirer les joueurs situés de quel côté de l'antenne ?"
                else 'Direction du tapis roulant ?' end

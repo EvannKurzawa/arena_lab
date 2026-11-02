@@ -1,5 +1,151 @@
 # Setup and implementation status
 
+## v9.3 publication preparation — 2026-11-02 (Arena Demo 0.24.0)
+
+User requested commit message v9.3 and push of the accumulated changes.
+Included device/follower/sound revisions, trainer profile additions and shiny
+team support in 009, Gold PBS metadata, directional generated coil sprites,
+and pending Dark Lugia sprite aliases/debug-party changes. Removed two exact
+duplicate profile entries (POKEMONBREEDER_1 and PSYCHIC_F_1) without changing
+their teams. Plugin version is now 0.24.0; visits protocol stays 14.
+
+Gold's user runtime PBS defines Name=PokemonTrainer, Gender=Male, BaseMoney=100,
+BattleBGM=Battle GOLD and VictoryBGM=Battle Champion. Exported only that config
+as a supported split PBS file. Its map sprite (21587 bytes), trainer sprite
+(17655 bytes), and OGG (2394367 bytes) remain private, now cached by the
+custom-trainer installer in tools/runtime/custom-trainer-assets. Existing
+runtime assets and user Gold definitions are preserved. See docs/GOLD_TRAINER.md
+for exact transfer steps to another PC. No local game directory, saves,
+credentials, proprietary base assets or personal sound/music files are staged.
+The local title-screen design deck and old forms handoff draft are excluded.
+
+Executed publication checks:
+- Native devices/Gold probe: **58 passed**, including all trainer type IDs,
+  Gold shiny-team config, map/battle sprites and BGM resolution, plus the 55
+  device checks. Disposable in-memory player state; no player save read/written.
+- Devices rules **4/49**, devices server **16/360**, Dark Lugia assets **4/63**,
+  debug party **6/29**, private trainer installer **3/8**: **33 runs, 509
+  assertions, zero failures/errors/skips**.
+- Ruby syntax on 009, 097 and 098 passed. Existing customization-test fixture
+  stops before running because MenuHandlers.remove is absent from its stub;
+  that unrelated fixture was left unchanged. No claim of a full test-suite pass.
+
+Installer development initially timed out in PowerShell PBS enumeration;
+replaced it with a standard-library Ruby importer. New fixture tests exposed
+Windows glob enumeration failures; explicit Dir.children traversal fixed the
+issue. The native/private install and subsequent native Gold check passed.
+New tests cover split PBS idempotence, existing personal definitions/assets
+and missing-cache backup. Native GUI and private asset writes used approved
+elevation. Commit/push are the requested next operations; final remote status
+will be reported after execution. Upstream versions remain unchanged.
+
+## Web follower, supplied sounds, traditional coils and magnetic spin — 2026-11-02
+
+Implemented in 097: shared device visibility ownership now hides the follower
+while entering/crossing/leaving web tiles, including connected webs, and
+restores it on arrival at the first clear tile. Explicitly disabled followers
+stay disabled. Conveyor/magnet visibility and animation restoration still pass.
+Magnetic travel spins the player through [2,4,8,6] at 16 direction changes per
+1.25 seconds, matching 030 quicksand_tick; the spin stops facing the travel
+direction at arrival or blockage. Presence direction updates use the existing
+quicksand path. Physical movement/collision and save/network formats unchanged.
+
+New coil-R/L/U/D PNGs use built-in imagegen with the original coil.png as edit
+reference: traditional three gold plates and silver hexagonal pedestal,
+directional top terminal, at most 40px high rather than the original tall
+sprite. 098 draws the existing animated connection from the terminal to the
+orb on the surrounding 96px transparent canvas. Reviewed packed bodies and
+native four-direction connection preview. Prompts: docs/TESLA_SPRITE_PROMPTS.md;
+reconstruction: tools/rebuild-tesla-sprites.ps1 -SourceRoot <private originals>.
+
+Downloaded the exact user-supplied Myinstants MP3 into ignored
+tools/runtime/device-src-electricity-charge.mp3. SHA256:
+3cde7eb720b5418cf315907cbb02c88dc6aeae1917edf2fbbbb43ea506a119f4.
+ffprobe: MP3, stereo 44100Hz, 1.554286 seconds. Initial sandbox curl failed;
+approved elevated curl succeeded. Installer pins the hash and copies/downloads
+to Audio/SE/Arena Tesla Button.mp3; local and shared coil disabling use that
+new name, avoiding the obsolete synthesized WAV taking precedence.
+
+Moved the user's C:/arena-lab/rune_cecite.mp3 to ignored
+tools/runtime/device-src-rune-cecite.mp3 (290063 bytes), then installed it as
+Audio/SE/Arena Blind Rune.mp3 in the private Essentials runtime. SHA256:
+415c677cf91c777cab52e351035f21197d431e70ef474fb36e0379356727e346.
+ffprobe duration: 9.064469 seconds. The rune plays it on entry; blindness still
+lasts 60 seconds. Prepare recopies the personal cached MP3 when present.
+Neither sound binary is added to Git. On another PC, provide the private rune
+cache separately; absence is optional and does not prevent play.
+
+Executed Ruby -c on 097 and 098: Syntax OK. Executed
+`C:/msys64/mingw64/bin/python.exe tools/test-native-dark-lugia.py --devices`:
+**55 native checks passed**, no player save read/written. Tests cover normal
+web entry/connected traversal/first clear exit, disabled followers, all four
+magnetic spin facings and final facing, supplied sound resolution and calls to
+the native SE backend, existing connections/collisions and 60-second timer.
+An initial probe failed an assumption that Following EX's temporary hide
+would persist through walking; the preservation test now uses the actual
+explicit follower-disable toggle. No live two-client or human listening test.
+PNG output, MP3 move/download and native GUI launch used approved elevation.
+No upstream/protocol changes, commit or push; unrelated local work preserved.
+
+Manual step: close all clients, then run Play-Arena.bat on updated PCs.
+
+## Connected webs and compact directional Tesla coil — 2026-11-02
+
+Updated native Bitmap art in 098_ArenaDeviceArt.rb: webs detect cardinal
+neighbours and draw three matching edge threads, both horizontally and
+vertically. The neighbour mask is part of the graphic cache key, so adding or
+removing a neighbouring web refreshes the connection. Diagonal-only webs do
+not join. One tile of slowdown/collision rules per placement is preserved.
+
+Tesla coils now use a smaller brass/grey upright body with four directional
+tips and an animated cyan arc from tip to orb centre. A transparent 96px
+canvas provides space for that arc while the solid footprint remains one
+tile. Character origin/source rectangle and catalog crop handle this canvas.
+The coil follows the existing direction chosen for its spark; legacy coils
+follow their actual automatically selected spark position. Disabled coils
+retain the body/orientation but draw no arc. Static graphics no longer clone
+on each animation tick. Updated the editor's orientation prompt in 096.
+No new placement format, protocol, inventory entry or external art dependency.
+
+Executed: Ruby syntax check on 098 (Syntax OK), then
+`C:/msys64/mingw64/bin/python.exe tools/test-native-dark-lugia.py --devices`:
+**46 native checks passed**, no player save read or written. New checks cover
+all four tip-to-orb endpoints, no arc when disabled, uninterrupted horizontal
+and vertical threads, neighbour removal, and four live coils on the map.
+Inspected `tools/runtime/devices-native-connections.png` and
+`tools/runtime/devices-native-connections-map.png` (ignored QA captures).
+Approved elevation was required to launch the native GUI. No live two-client
+session, commit or push for this revision. Unrelated local changes preserved.
+
+Manual step: close clients and relaunch Play-Arena.bat on each updated PC.
+Select the coil's direction during placement; adjacent webs connect without
+any additional action. Existing directed coils use their saved orientation.
+
+## Native Tesla orb, simple rune and visible web — 2026-11-02
+
+Reworked the three visuals in `098_ArenaDeviceArt.rb` at native 32px tile
+resolution. Tesla spark is now a full circular blue/cyan energy orb with white
+core and nine looping frames at 12fps, inspired by the supplied sheet. Rune
+has continuous rings, four cardinal strokes and a simple central diamond;
+web has eight spokes, two continuous rings, white threads and a single offset
+blue-grey shadow for contrast on pale tiles. These glyphs are drawn by Bitmap
+code; legacy rune.png/web.png no longer determine their live appearance.
+No image downsampling or added external asset dependency.
+
+Fixed `update_sparks` adding each indexed sprite twice, which caused disposal
+and recreation on subsequent frames. One live sprite is now reused per spark.
+Map collision, Tesla button logic and multiplayer protocol are unchanged.
+
+Executed: Ruby syntax check on 098 (Syntax OK) and
+`C:/msys64/mingw64/bin/python.exe tools/test-native-dark-lugia.py --devices`:
+**38 native checks passed**, no player save read/written. Added checks for
+nine distinct solid orb frames and persistent sprite reuse. Reviewed native
+`tools/runtime/devices-native-glyphs.png` and map capture; captures are ignored
+runtime artifacts. GUI test required approved elevation. No live two-client
+test, commit or push for this revision; unrelated local work preserved.
+
+Manual step: close game clients and restart Play-Arena.bat on each updated PC.
+
 ## v9.2.1 publication preparation — 2026-11-02 (Arena Demo 0.23.1)
 
 Pre-publication rerun: battle_animation_install_test.rb **7/44**,

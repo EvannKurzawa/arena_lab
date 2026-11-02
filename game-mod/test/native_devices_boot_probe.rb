@@ -19,6 +19,10 @@ module ArenaDeviceProbeCatalogInput
 end
 Input.singleton_class.prepend(ArenaDeviceProbeCatalogInput)
 module ArenaDeviceProbeAudio
+  def se_play(*args)
+    ($device_se_calls ||= []) << args
+    super
+  end
   def bgs_play(*args)
     ($device_bgs_calls ||= []) << args
     super
@@ -48,6 +52,7 @@ module ArenaDemo::NativeDevicesProbe
           raise 'Follower visible during magnetic attraction' unless FollowingPkmn.hidden?
           raise 'Magnetic sound missing' unless $game_system.playing_bgs&.name == 'Arena Magnet'
           @magnet_sampled = true
+          (@magnet_directions ||= []) << $game_player.direction
         end
       end
     end
@@ -63,8 +68,8 @@ module ArenaDemo::NativeDevicesProbe
     raise 'Forced movement failed to finish within 300 frames'
   end
 
-  def device_screenshot(path)
-    bitmap = Graphics.snap_to_bitmap
+  def device_screenshot(path, bitmap = nil)
+    bitmap ||= Graphics.snap_to_bitmap
     rows = String.new.b
     bitmap.height.times do |y|
       rows << "\0"
@@ -87,9 +92,63 @@ module ArenaDemo::NativeDevicesProbe
       SaveData.initialize_bootup_values
       SaveData.load_new_game_values
       check.call(FileTest.audio_exist?('Audio/BGS/Arena Magnet'), 'magnetic loop is installed and resolvable by the engine')
+      check.call(FileTest.audio_exist?('Audio/SE/Arena Tesla Button'), 'requested Myinstants button MP3 is installed and resolvable')
+      check.call(FileTest.audio_exist?('Audio/SE/Arena Blind Rune'), 'personal blindness rune MP3 is installed and resolvable')
       wave = File.binread('Audio/BGS/Arena Magnet.wav')
       check.call(wave[0, 4] == 'RIFF' && wave[8, 4] == 'WAVE' && wave[40, 4].unpack1('V') == wave.bytesize - 44, 'magnetic loop has a complete PCM WAV payload')
       ArenaDemo::Devices.install
+      missing_types = ArenaDemo::TRAINER_PROFILES.values.map { |p| p[:type] }.uniq.reject { |id| GameData::TrainerType.exists?(id) }
+      check.call(missing_types.empty?, "all trainer profiles have registered types: #{missing_types.inspect}")
+      gold = ArenaDemo::TRAINER_PROFILES.fetch(:ARENA_TRAINER_GOLD)
+      check.call(gold[:team].first == [:GYARADOS,82,true] && GameData::TrainerType.get(:GOLD).battle_BGM == 'Battle GOLD',
+        'Gold profile retains shiny Gyarados and personal battle music')
+      check.call(!!pbResolveBitmap('Graphics/Trainers/GOLD') && !!pbResolveBitmap('Graphics/Characters/trainer_GOLD') && FileTest.audio_exist?('Audio/BGM/Battle GOLD'),
+        'Gold personal battle/map sprites and music resolve in the local runtime')
+      orbs = 9.times.map { |phase| ArenaDemo::DeviceArt.spark(phase) }
+      pixels = orbs.map do |orb|
+        32.times.flat_map { |y| 32.times.map { |x| orb.get_pixel(x,y) } }
+      end
+      check.call(pixels.all? { |frame| frame.count { |p| p.alpha > 0 } >= 640 }, 'all nine spark frames are solid orbs covering most of the tile')
+      check.call(pixels.map { |frame| frame.map { |p| [p.red,p.green,p.blue,p.alpha] } }.uniq.length == 9, 'spark animation has nine distinct blue frames')
+      board = Bitmap.new(288, 144)
+      board.fill_rect(0,0,288,144,Color.new(165,224,203))
+      orbs.each_with_index { |orb,i| board.blt(i*32,0,orb,orb.rect) }
+      [ArenaDevices::RUNE,ArenaDevices::WEB].each_with_index do |item,i|
+        glyph = ArenaDemo::DeviceArt.bitmap(item)
+        board.stretch_blt(Rect.new(16+i*96,48,80,80),glyph,Rect.new(0,32,32,32))
+      end
+      board.stretch_blt(Rect.new(208,48,80,80),orbs.first,Rect.new(0,0,32,32))
+      device_screenshot(path.sub('.log','-glyphs.png'),board)
+      connected = Bitmap.new(384,256)
+      connected.fill_rect(0,0,384,256,Color.new(165,224,203))
+      %w[R L U D].each_with_index do |direction,i|
+        coil = ArenaDemo::DeviceArt.bitmap("ARENA_TESLA_#{direction}")
+        connected.blt(i*96,0,coil,coil.rect)
+        _dir,dx,dy = ArenaDevices::DIRECTIONS.fetch(direction)
+        connected.blt(i*96+32+dx*32,32+dy*32,orbs.first,orbs.first.rect)
+        off = ArenaDemo::DeviceArt.bitmap("ARENA_TESLA_#{direction}",true)
+        endpoint = [48+dx*32,48+dy*32]
+        check.call(coil.get_pixel(*endpoint).alpha > 0 && off.get_pixel(*endpoint).alpha == 0,
+          "#{direction} coil reaches its orb centre and disconnects when disabled")
+      end
+      patch = Bitmap.new(64,64)
+      webs = [[0,ArenaDevices::WEB,0,0],[0,ArenaDevices::WEB,1,0],
+              [0,ArenaDevices::WEB,0,1],[0,ArenaDevices::WEB,1,1]]
+      webs.each do |p|
+        links = ArenaDemo::DeviceArt.web_connections(p[2],p[3],webs)
+        glyph = ArenaDemo::DeviceArt.bitmap(ArenaDevices::WEB,false,0,links)
+        patch.blt(p[2]*32,p[3]*32,glyph,Rect.new(0,32,32,32))
+      end
+      check.call([7,16,25].all? { |n| patch.get_pixel(31,n).alpha == 255 && patch.get_pixel(32,n).alpha == 255 },
+        'adjacent horizontal webs have three unbroken shared threads')
+      check.call([7,16,25].all? { |n| patch.get_pixel(n,31).alpha == 255 && patch.get_pixel(n,32).alpha == 255 },
+        'adjacent vertical webs have three unbroken shared threads')
+      check.call(ArenaDemo::DeviceArt.web_connections(0,0,webs) == 5 &&
+        ArenaDemo::DeviceArt.web_connections(0,0,[webs.first]) == 0,
+        'web links follow neighbouring placements and disappear when removed')
+      connected.stretch_blt(Rect.new(16,112,128,128),patch,patch.rect)
+      patch.dispose
+      device_screenshot(path.sub('.log','-connections.png'),connected)
       $PokemonGlobal.arena_demo_centered_layout_migration_version = 3
       $map_factory = PokemonMapFactory.new(100)
       $PokemonEncounters = PokemonEncounters.new
@@ -126,6 +185,8 @@ module ArenaDemo::NativeDevicesProbe
       device_step(2)
       check.call([$game_player.x, $game_player.y] == [54, 50], 'magnet attracts on its configured half-line until adjacent')
       check.call(@magnet_sampled && $game_player.walk_anime && !FollowingPkmn.hidden? && $game_system.playing_bgs&.name != 'Arena Magnet', 'magnet hides follower, loops audio and restores both at arrival')
+      check.call(@magnet_directions.uniq.sort == [2,4,6,8] && $game_player.direction == 6,
+        'magnetic attraction spins through four facings like quicksand and stops facing the antenna')
       check.call(($device_bgs_calls || []).any? { |args| args[0].include?('Arena Magnet') && args[1] > 0 }, 'magnetic loop reaches the native Audio backend at nonzero volume')
       device_layout([['ARENA_MAGNET_L', 55, 50], ['ARENA_FURNITURE_ROCK', 52, 50]])
       $game_player.moveto(50, 49)
@@ -148,6 +209,21 @@ module ArenaDemo::NativeDevicesProbe
       after = device_step(2)
       clear = device_step(2)
       check.call(after > clear * 3.4, 'web slowdown also applies leaving the tile and clears afterwards')
+      device_layout([[ArenaDevices::WEB,50,50],[ArenaDevices::WEB,51,50]])
+      $game_player.moveto(49,50)
+      device_step(6)
+      check.call(FollowingPkmn.hidden?, 'follower disappears on entry into a web')
+      device_step(6)
+      check.call(FollowingPkmn.hidden?, 'follower stays hidden across adjacent webs')
+      device_step(6)
+      check.call(!FollowingPkmn.hidden?, 'follower returns on the first non-web tile')
+      FollowingPkmn.toggle(false,false)
+      $game_player.moveto(49,50)
+      device_step(6)
+      device_step(4)
+      check.call(!FollowingPkmn.active?, 'web exit preserves an explicitly disabled follower')
+      FollowingPkmn.toggle(true,false)
+      FollowingPkmn.refresh(false)
       device_layout([[ArenaDevices::TELEPORT, 50, 50], [ArenaDevices::TELEPORT, 56, 50]])
       $player.party = [Pokemon.new(:MEW, 10)]
       FollowingPkmn.start_following(900, false) unless FollowingPkmn.get
@@ -169,6 +245,8 @@ module ArenaDemo::NativeDevicesProbe
       $game_player.moveto(49, 50)
       device_step(6)
       check.call(ArenaDemo::Devices.disabled == [0] && !coil.through, 'red floor button disables spark while coil stays solid')
+      check.call(($device_se_calls || []).any? { |args| args[0].include?('Arena Tesla Button') && args[1] > 0 },
+        'red button sends the requested MP3 to the native sound backend')
       device_step(6)
       check.call([$game_player.x, $game_player.y] == [50, 50], 'player cannot cross the disabled coil')
       device_layout([])
@@ -197,6 +275,8 @@ module ArenaDemo::NativeDevicesProbe
       device_step(6)
       mask = ArenaDemo::Devices.instance_variable_get(:@darkness)
       check.call(mask && !mask.disposed? && mask.radius == 64, 'blind rune creates the native unlit-cave vision circle')
+      check.call(($device_se_calls || []).any? { |args| args[0].include?('Arena Blind Rune') && args[1] > 0 },
+        'stepping onto blindness rune sends personal MP3 to the native sound backend')
       check.call(mask.instance_variable_get(:@center) == [$game_player.screen_x, $game_player.screen_y - 16], 'blindness circle stays centered on the player at native window size')
       Graphics.transition(0)
       device_screenshot(path.sub('.log', '-darkness.png'))
@@ -213,9 +293,22 @@ module ArenaDemo::NativeDevicesProbe
         [ArenaDevices::WEB, 51, 50], [ArenaDevices::TELEPORT, 53, 50], [ArenaDevices::TELEPORT, 55, 50],
         [ArenaDevices::COIL, 47, 52], [ArenaDevices::BUTTON, 49, 52], [ArenaDevices::RUNE, 51, 52]])
       $game_player.moveto(51, 54)
-      device_frames(3)
+      device_frames(12)
+      spark_sprites = ArenaDemo::Devices.instance_variable_get(:@spark_sprites)
+      check.call(spark_sprites.length == 1 && !spark_sprites.first.disposed?, 'one persistent live sprite renders the Tesla orb without duplicate disposal')
       Graphics.transition(0)
       device_screenshot(path.sub('.log', '-objects.png'))
+      device_layout([['ARENA_TESLA_R',47,50],[ArenaDevices::BUTTON,47,52],
+        ['ARENA_TESLA_L',52,50],[ArenaDevices::BUTTON,52,52],
+        ['ARENA_TESLA_U',56,51],[ArenaDevices::BUTTON,56,53],
+        ['ARENA_TESLA_D',60,49],[ArenaDevices::BUTTON,60,51],
+        [ArenaDevices::WEB,48,54],[ArenaDevices::WEB,49,54],
+        [ArenaDevices::WEB,48,55],[ArenaDevices::WEB,49,55]])
+      $game_player.moveto(53,55)
+      device_frames(6)
+      check.call(ArenaDemo::Devices.instance_variable_get(:@spark_sprites).length == 4,
+        'all four compact directional coils render their live orb in the native map')
+      device_screenshot(path.sub('.log','-connections-map.png'))
       $scene.dispose
       lines << "#{lines.length} native device checks passed. No player save read or written."
       File.write(path, lines.join("\n"))

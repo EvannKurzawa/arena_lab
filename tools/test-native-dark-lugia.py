@@ -18,6 +18,8 @@ process = None
 try:
     report.unlink(missing_ok=True)
     if devices:
+        shutil.copy2(root / 'tools/runtime/device-src-rune-cecite.mp3', game / 'Audio/SE/Arena Blind Rune.mp3')
+        shutil.copy2(root / 'tools/runtime/device-src-electricity-charge.mp3', game / 'Audio/SE/Arena Tesla Button.mp3')
         subprocess.run([str(ruby), '--disable-gems', str(root / 'game-mod/tools/build_device_audio.rb'), str(game)], check=True)
         shutil.copytree(root / 'game-mod/Graphics/ArenaDevices', game / 'Graphics/ArenaDevices', dirs_exist_ok=True)
         shutil.copy2(root / 'tools/runtime/device-src-hgss-gym.jpg', game / 'Graphics/ArenaDevices/hgss-map.jpg')

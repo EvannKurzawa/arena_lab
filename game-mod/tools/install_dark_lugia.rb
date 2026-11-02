@@ -177,8 +177,9 @@ module DarkLugiaAssets
       end
     end
     marker = File.join(private_root, 'installed.txt')
-    signature = "layout=7; source=#{SHA256}; gif=#{has_gifs}"
-    required = OUTPUTS + (has_gifs ? gif_outputs : [])
+    signature = "layout=8; source=#{SHA256}; gif=#{has_gifs}"
+    aliases = OUTPUTS.first(4).map { |path| path.sub('LUGIA_1', 'DARKLUGIA') }
+    required = OUTPUTS + aliases + (has_gifs ? gif_outputs : [])
     if File.file?(marker) && File.read(marker).start_with?(signature) && required.all? { |p| File.file?(File.join(game, p)) }
       puts 'Dark Lugia local sprites already installed.'
       return
@@ -213,6 +214,7 @@ module DarkLugiaAssets
       crops << pose(sheet, back_strip, [128, 90, 98, 90], i * 224, -i * 2, 224, 224, 4, fixed_scale: 2)
     end
     [front, back, icons, follower, front_strip, back_strip].zip(OUTPUTS).each { |image, path| save(image, File.join(game, path)) }
+    OUTPUTS.first(4).zip(aliases).each { |from, to| FileUtils.cp(File.join(game, from), File.join(game, to)) }
     if has_gifs
       gif_sources.each do |side, path|
         File.binwrite(File.join(game, "Graphics/Pokemon/ArenaAnimated/#{side}/LUGIA_1.gif"), recolor_gif(File.binread(path)))

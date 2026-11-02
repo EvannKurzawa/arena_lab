@@ -1,5 +1,17 @@
 # Updates
 
+## v9.3 (2026-11-02, Arena Demo 0.24.0)
+
+- Add Gold and additional trainer teams; retain Gold's shiny Gyarados and
+  personal battle music. Include the Gold PBS type and a private asset cache
+  installer that preserves existing personal PBS and runtime artwork/music.
+- Update interactive-device art, connected web threads, follower visibility,
+  directional Tesla coils and electrical links, supplied button/rune sounds,
+  and quicksand-style spinning during magnetic attraction.
+- Fix Dark Lugia sprite aliases and retain the related debug-party changes.
+- Validate 58 native checks and 33 tests/509 assertions. An older customization
+  fixture still lacks MenuHandlers.remove; see SETUP_STATUS.md for that limit.
+
 ## v6.2.6 (2026-10-29)
 
 - Bump the host-service arena capability probe to protocol 3. An idle older

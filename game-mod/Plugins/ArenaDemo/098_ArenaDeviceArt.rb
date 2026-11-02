@@ -23,23 +23,123 @@ module ArenaDemo::DeviceArt
     line(image, ex, ey, ex - dx * 5 - dy * 4, ey - dy * 5 + dx * 4, ink)
   end
   def spark(phase)
+    phase %= 9
     @sparks ||= {}
     @sparks[phase] ||= begin
-      image = Bitmap.new(32,32)
-      shift = phase.even? ? 0 : 4
-      points = [[4,24],[12,14+shift],[8,9],[23,3],[17,17-shift],[26,13],[18,29]]
-      points.each_cons(2) do |p,q|
-        [-1,0,1].each { |dx| line(image,p[0]+dx,p[1],q[0]+dx,q[1],color(40,115,235)) }
-        line(image,*p,*q,color(255,252,160))
+      image = Bitmap.new(32, 32)
+      palette = [[16, 20, 176], [0, 70, 245], [0, 155, 255],
+                 [37, 211, 245], [120, 241, 250], [236, 255, 255]]
+      inks = palette.map { |rgb| color(*rgb) }
+      turn = phase * Math::PI * 2 / 9
+      # Draw at the final resolution in 2px blocks. Solid concentric blue
+      # bands and a moving white core follow the reference's full energy orb.
+      (0...32).step(2) do |y|
+        (0...32).step(2) do |x|
+          dx, dy = x + 1 - 16, y + 1 - 16
+          angle = Math.atan2(dy, dx)
+          radius = 15 + Math.sin(angle * 3 - turn) * 0.8
+          distance = Math.sqrt(dx * dx + dy * dy)
+          next if distance > radius
+          swirl = distance / radius + Math.sin(angle * 2 + turn) * 0.07
+          band = if swirl < 0.36 then 5
+                 elsif swirl < 0.52 then 4
+                 elsif swirl < 0.68 then 3
+                 elsif swirl < 0.82 then 2
+                 elsif swirl < 0.94 then 1
+                 else 0 end
+          image.fill_rect(x, y, 2, 2, inks[band])
+        end
       end
       image
     end
   end
-  def bitmap(item, disabled = false, phase = 0)
-    phase = 0 unless ArenaDevices::CONVEYORS.include?(item) || item == ArenaDevices::COIL || item == ArenaDevices::TELEPORT
+  WEB_LINKS = { 'D' => 1, 'L' => 2, 'R' => 4, 'U' => 8 }.freeze
+  def web_connections(x, y, objects)
+    WEB_LINKS.sum do |direction, bit|
+      _dir, dx, dy = ArenaDevices::DIRECTIONS.fetch(direction)
+      objects.any? { |p| p[1] == ArenaDevices::WEB && p[2,2] == [x+dx,y+dy] } ? bit : 0
+    end
+  end
+  def floor_glyph(item, links = 0)
+    image = Bitmap.new(32, 64)
+    if item == ArenaDevices::RUNE
+      # Two continuous rings and four cardinal strokes; no tiny runic noise.
+      32.times do |x|
+        32.times do |y|
+          r = Math.sqrt((x - 15.5)**2 + (y - 15.5)**2)
+          ink = if r.between?(12, 14) then color(242, 66, 213)
+                elsif r.between?(14, 15) then color(82, 28, 100)
+                elsif r.between?(9, 10) then color(138, 48, 179) end
+          image.set_pixel(x, y + 32, ink) if ink
+        end
+      end
+      [[15, 33, 2, 6], [15, 57, 2, 6], [1, 47, 6, 2], [25, 47, 6, 2]].each do |rect|
+        image.fill_rect(*rect, color(255, 174, 244))
+      end
+      [[16,43],[21,48],[16,53],[11,48],[16,43]].each_cons(2) do |p,q|
+        line(image,*p,*q,color(174,48,190))
+      end
+    else
+      # A sparse, legible web with eight spokes and two intact thread rings.
+      # A single offset shadow supplies contrast without a thick black halo.
+      points = [[16,33],[26,37],[30,48],[26,59],[16,62],[5,58],[1,48],[5,37]]
+      segments = points.map { |p| [[16,48],p] }
+      [0.48, 0.86].each do |scale|
+        ring = points.map { |x,y| [(16+(x-16)*scale).round,(48+(y-48)*scale).round] }
+        (ring+[ring.first]).each_cons(2) { |p,q| segments << [p,q] }
+      end
+      # Matching edge endpoints join neighbouring tiles without a gap.
+      edges = { 1 => [[7,63],[16,63],[25,63]], 2 => [[0,39],[0,48],[0,57]],
+                4 => [[31,39],[31,48],[31,57]], 8 => [[7,32],[16,32],[25,32]] }
+      edges.each do |bit, points|
+        points.each { |p| segments << [[16,48],p] } if links & bit != 0
+      end
+      segments.each { |(x,y),(u,v)| line(image,x,y+1,u,[v+1,63].min,color(61,78,96,210)) }
+      segments.each do |p,q|
+        line(image,*p,*q,color(255,255,255))
+        # Widen the main cross to anchor the web visibly on pale floor tiles.
+        line(image,p[0]+1,p[1],q[0]+1,q[1],color(255,255,255)) if p[0] == q[0]
+      end
+      image.fill_rect(15,47,3,3,color(255,255,255))
+    end
+    image
+  end
+  def coil(direction, disabled, phase)
+    image = Bitmap.new(96,96)
+    _dir, dx, dy = ArenaDevices::DIRECTIONS.fetch(direction)
+    head = { 'R' => [58,26], 'L' => [40,26], 'U' => [48,25], 'D' => [48,29] }.fetch(direction)
+    arc = []
+    unless disabled
+      target = [48+dx*32,48+dy*32]
+      bend = [(head[0]+target[0])/2+dy*(phase%3-1)*2,
+              (head[1]+target[1])/2+dx*(phase%3-1)*2]
+      arc = [head,bend,target]
+    end
+    body = Bitmap.new("Graphics/ArenaDevices/coil-#{direction}.png")
+    image.blt(32,0,body,body.rect)
+    body.dispose
+    # Keep the south-facing discharge visible over the front of the pedestal.
+    arc.each_cons(2) do |p,q|
+      [-1,0,1].each { |offset| line(image,p[0]+offset,p[1],q[0]+offset,q[1],color(25,97,224)) }
+      line(image,*p,*q,color(164,250,255))
+    end
+    image.fill_rect(head[0]-1,head[1]-1,2,2,color(205,255,255)) unless disabled
+    image
+  end
+  def bitmap(item, disabled = false, phase = 0, links = 0, coil_direction = nil)
+    phase = 0 unless ArenaDevices::CONVEYORS.include?(item) || ArenaDevices.coil?(item)
+    phase %= ArenaDevices.coil?(item) ? 9 : 4
+    phase = 0 if disabled && ArenaDevices.coil?(item)
     @cache ||= {}
-    key = [item, disabled, phase % 4]
+    key = [item, disabled, phase, links, coil_direction]
     return @cache[key] if @cache[key] && !@cache[key].disposed?
+    if [ArenaDevices::RUNE, ArenaDevices::WEB].include?(item)
+      return @cache[key] = floor_glyph(item, links)
+    end
+    if ArenaDevices.coil?(item)
+      direction = coil_direction || (ArenaDevices.direction(item) ? item.split('_').last : 'R')
+      return @cache[key] = coil(direction, disabled, phase)
+    end
     image = Bitmap.new(32, 64)
     dark, steel, light = color(31, 37, 53), color(95, 115, 137), color(190, 212, 225)
     cyan, purple, yellow = color(72, 235, 246), color(164, 78, 235), color(255, 232, 79)
@@ -72,7 +172,8 @@ module ArenaDemo::DeviceCatalogArt
     return cached if cached && !cached.disposed?
     image = Bitmap.new(96, 96)
     source = ArenaDemo::DeviceArt.bitmap(entry[:item].to_s)
-    image.stretch_blt(Rect.new(16, 0, 64, 96), source, Rect.new(0, 16, 32, 48))
+    rect = ArenaDevices.coil?(entry[:item]) ? Rect.new(24,16,48,64) : Rect.new(0,16,32,48)
+    image.stretch_blt(Rect.new(16, 0, 64, 96), source, rect)
     @device_previews[entry[:item]] = image
   end
   def material_catalog_description(entry)
@@ -95,19 +196,30 @@ module ArenaDemo::DeviceCharacterArt
       slot = ArenaDevices.partner(ArenaDemo::Devices.wire, slot)
     end
     disabled = ArenaDemo::Devices.disabled.include?(slot)
-    phase = (System.uptime * 8).floor % 4
-    key = [item, disabled, phase]
+    links, coil_direction = 0, nil
+    if item == ArenaDevices::WEB
+      links = ArenaDemo::DeviceArt.web_connections(@character.x,@character.y,ArenaDevices.furniture(ArenaDemo::Devices.wire))
+    elsif ArenaDevices.coil?(item)
+      target = ArenaDevices.spark_target(ArenaDemo::Devices.wire,slot)
+      if target
+        coil_direction = ArenaDevices::DIRECTIONS.find { |_key, (_dir,dx,dy)| [@character.x+dx,@character.y+dy] == target }&.first
+      end
+    end
+    phase = if ArenaDevices.coil?(item) && !disabled then (System.uptime * 12).floor % 9
+            elsif ArenaDevices::CONVEYORS.include?(item) then (System.uptime * 8).floor % 4
+            else 0 end
+    key = [item, disabled, phase, links, coil_direction]
     return if @arena_device_graphic == key && @charbitmap && !@charbitmap.disposed?
     @charbitmap&.dispose
     @bushbitmap&.dispose
     @bushbitmap = nil
-    @charbitmap = ArenaDemo::DeviceArt.bitmap(item, disabled, phase).clone
+    @charbitmap = ArenaDemo::DeviceArt.bitmap(item, disabled, phase, links, coil_direction).clone
     @charbitmapAnimated = false
     @arena_device_graphic = key
-    @tile_id, @cw, @ch = 384, 32, 64
-    self.src_rect.set(0, 0, 32, 64)
-    self.ox, self.oy = 16, 64
-    @character.sprite_size = [32, 64]
+    @tile_id, @cw, @ch = 384, @charbitmap.width, @charbitmap.height
+    self.src_rect.set(0, 0, @cw, @ch)
+    self.ox, self.oy = @cw / 2, 64
+    @character.sprite_size = [@cw, @ch]
   end
 
   def update(*args)

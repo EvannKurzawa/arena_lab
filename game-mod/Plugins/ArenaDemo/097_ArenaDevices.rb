@@ -22,11 +22,12 @@ module ArenaDemo::Devices
   end
 
   def apply_disabled(values)
-    pbSEPlay('Arena Coil Off') if @disabled_scope == scope && (values - disabled).any?
+    pbSEPlay('Arena Tesla Button') if @disabled_scope == scope && (values - disabled).any?
     @disabled_scope, @disabled, @button_pending = scope, values.dup, nil
   end
 
   def clear
+    @web_hiding = false
     end_transport
     (@spark_sprites || []).each(&:dispose)
     @spark_sprites = []
@@ -56,11 +57,10 @@ module ArenaDemo::Devices
     points.each_with_index do |(x, y), index|
       sprite = @spark_sprites[index]
       sprite = @spark_sprites[index] = Sprite.new(Spriteset_Map.viewport) if !sprite || sprite.disposed?
-      sprite.bitmap = ArenaDemo::DeviceArt.spark((System.uptime * 12).floor % 4)
+      sprite.bitmap = ArenaDemo::DeviceArt.spark((System.uptime * 12).floor % 9)
       sprite.x = x * 32 - $game_map.display_x.to_f / Game_Map::X_SUBPIXELS
       sprite.y = y * 32 - $game_map.display_y.to_f / Game_Map::Y_SUBPIXELS
       sprite.z = 80
-      @spark_sprites << sprite
     end
   end
   def object_at(x, y)
@@ -76,7 +76,38 @@ module ArenaDemo::Devices
 
   def forcing?; active? && (@busy || @queued || @forced); end
   def sliding?; active? && !!@transport_kind; end
-  def hiding_follower?; !!@transport_kind && @restore_follower == true; end
+  def magnet_facing
+    return nil unless @transport_kind == :magnet && @magnet_started
+    [2,4,8,6][((System.uptime - @magnet_started) * 16 / 1.25).floor % 4]
+  end
+  def hiding_follower?; @restore_follower == true && (!!@transport_kind || @web_hiding); end
+
+  def sync_follower_visibility
+    return unless defined?(FollowingPkmn)
+    changed = false
+    if @transport_kind || @web_hiding
+      if FollowingPkmn.active? && !FollowingPkmn.hidden?
+        @restore_follower = true
+        FollowingPkmn.hide_follower
+        changed = true
+      end
+    elsif @restore_follower
+      @restore_follower = nil
+      FollowingPkmn.unhide_follower(false)
+      changed = true
+    end
+    PEMK::Presence.emit_now(:pos) if changed && defined?(PEMK::Presence)
+  end
+
+  def update_web_follower
+    @web_hiding = active? && $game_player &&
+      if $game_player.moving?
+        web_step?($game_player)
+      else
+        ArenaDevices.furniture(wire).any? { |p| p[1] == ArenaDevices::WEB && p[2,2] == [$game_player.x,$game_player.y] }
+      end
+    sync_follower_visibility
+  end
 
   def begin_transport(kind)
     return if @transport_kind == kind
@@ -87,9 +118,9 @@ module ArenaDemo::Devices
     $game_player.instance_variable_set(:@step_anime, false)
     $game_player.instance_variable_set(:@arena_device_sliding, true)
     $game_player.pattern = $game_player.instance_variable_get(:@original_pattern) || 0
-    @restore_follower = defined?(FollowingPkmn) && FollowingPkmn.active? && !FollowingPkmn.hidden?
-    FollowingPkmn.hide_follower if @restore_follower
+    sync_follower_visibility
     if kind == :magnet
+      @magnet_started = System.uptime
       @previous_bgs = $game_system.playing_bgs&.clone
       # Use the standard audio helper and an audible midrange loop. The native
       # probe also verifies the file and the backend call, beyond playing_bgs.
@@ -104,14 +135,16 @@ module ArenaDemo::Devices
       $game_system.bgs_play(@previous_bgs)
       @previous_bgs = nil
     end
-    player, animation, restore = @transport_player, @transport_animation, @restore_follower
-    @transport_kind = @transport_player = @transport_animation = @restore_follower = nil
+    player, animation = @transport_player, @transport_animation
+    @transport_kind = @transport_player = @transport_animation = nil
     if player && animation
       player.walk_anime = animation[0]
       player.instance_variable_set(:@step_anime, animation[1])
       player.instance_variable_set(:@arena_device_sliding, false)
+      player.direction = @transport_exit_direction if @transport_exit_direction
     end
-    FollowingPkmn.unhide_follower(false) if restore && defined?(FollowingPkmn)
+    @magnet_started = @transport_exit_direction = nil
+    sync_follower_visibility
     PEMK::Presence.emit_now(:pos) if player && defined?(PEMK::Presence)
   end
 
@@ -141,7 +174,7 @@ module ArenaDemo::Devices
         :room => ArenaDemo::Visits.scope, :slot => slot)
     else
       disabled << coil
-      pbSEPlay('Arena Coil Off')
+      pbSEPlay('Arena Tesla Button')
       ArenaDemo.refresh_custom_placements
     end
   end
@@ -193,6 +226,7 @@ module ArenaDemo::Devices
       clear if previous == ArenaDemo::MAP_ID
     end
     update_sparks
+    update_web_follower
     return unless active? && $scene.is_a?(Scene_Map) && $game_temp && $game_player
     update_blindness
     return if $game_temp.in_battle || $game_temp.in_menu || $game_temp.message_window_showing || pbMapInterpreterRunning?
@@ -207,6 +241,7 @@ module ArenaDemo::Devices
       item = slot && objects[slot][1]
       push_button(slot) if item == ArenaDevices::BUTTON
       if item == ArenaDevices::RUNE
+        pbSEPlay('Arena Blind Rune') if FileTest.audio_exist?('Audio/SE/Arena Blind Rune')
         @blind = true
         @blind_until = System.uptime + 60.0
         @darkness ||= ArenaDemo::DeviceDarkness.new
@@ -231,6 +266,7 @@ module ArenaDemo::Devices
           @chain << point
           @forced = true
           begin_transport(ArenaDevices::CONVEYORS.include?(item) ? :conveyor : :magnet)
+          @transport_exit_direction = direction if @transport_kind == :magnet
           $game_player.move_generic(direction)
         else
           @blocked_at, @forced, @chain = point, false, []
@@ -273,6 +309,11 @@ module ArenaDemo::DevicePlayerMovement
   def update_pattern
     if ArenaDemo::Devices.sliding?
       @pattern = @original_pattern || 0
+      direction = ArenaDemo::Devices.magnet_facing
+      if direction && @direction != direction
+        self.direction = direction
+        PEMK::Presence.emit_now(:dir) if defined?(PEMK::Presence)
+      end
       return
     end
     super

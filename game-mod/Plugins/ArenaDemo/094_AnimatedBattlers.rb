@@ -19,7 +19,7 @@ module ArenaDemo::AnimatedBattlers
   def self.filename(pkmn, back)
     return nil if pkmn.egg? || pkmn.shadowPokemon?
     form = pkmn.form
-    if pkmn.species == :LUGIA && form == 1
+    if pkmn.species == :DARKLUGIA || (pkmn.species == :LUGIA && form == 1)
       gif = "#{ROOT}/#{back ? 'back' : 'front'}/LUGIA_1.gif"
       return gif if File.file?(gif)
       path = "#{ROOT}/#{back ? 'back/[2,8]' : 'front/[4,4]'}LUGIA_1.png"

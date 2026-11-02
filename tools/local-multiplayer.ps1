@@ -67,6 +67,8 @@ function Prepare-Clients {
     if (!$?) { throw 'Dark Lugia sprite setup failed.' }
     & "$PSScriptRoot/install-arena-device-assets.ps1" -GameRoot $gameRoot
     if (!$?) { throw 'Arena device asset setup failed.' }
+    & "$PSScriptRoot/install-custom-trainers.ps1" -GameRoot $gameRoot
+    if (!$?) { throw 'Custom trainer setup failed.' }
     # Repair only the generated local junction after moving the workspace.
     $linkPath = Join-Path $gameRoot 'server'
     $link = Get-Item -LiteralPath $linkPath -Force -ErrorAction SilentlyContinue

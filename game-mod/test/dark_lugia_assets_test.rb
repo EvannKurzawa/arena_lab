@@ -83,6 +83,12 @@ class DarkLugiaAssetsTest < Minitest::Test
           assert_equal areas[direction][pose] * 4, actual, 'complete follower silhouette, including every wing-tip pixel'
         end
       end
+      DarkLugiaAssets::OUTPUTS.first(4).each do |relative|
+        legacy = File.join(game, relative)
+        independent = File.join(game, relative.sub('LUGIA_1', 'DARKLUGIA'))
+        assert_equal Digest::SHA256.file(legacy).hexdigest, Digest::SHA256.file(independent).hexdigest,
+          'independent species retains the exact reviewed sprite artwork'
+      end
       # Icons use the native Lugia 2x scale even when a wing reaches the edge.
       source_rows = DarkLugiaAssets.read_sheet(SOURCE)
       icon_rows = decode.call('Graphics/Pokemon/Icons/LUGIA_1.png')
