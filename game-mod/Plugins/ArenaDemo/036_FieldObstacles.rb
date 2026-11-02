@@ -21,6 +21,7 @@ module ArenaDemo
     end
 
     def clear
+      Devices.clear if defined?(Devices)
       @scope = nil
       @states, @revision, @incoming, @pending, @notice = {}, 0, nil, nil, nil
     end
@@ -50,6 +51,7 @@ module ArenaDemo
       return unless revision.is_a?(Integer) && revision >= 0 && revision >= @revision
       data = geometry
       return unless ArenaFieldState.valid?(message[:field_states], data[:placements], data[:surface], data[:relief])
+      return unless ArenaDevices.valid_disabled?(message[:disabled_devices] || [], data[:placements])
       @incoming = message.merge(:field_states => message[:field_states].transform_values { |p| p&.dup }) if !@incoming || revision >= @incoming[:field_revision]
     end
 
@@ -77,6 +79,7 @@ module ArenaDemo
             end
           end
           @states, @revision = message.values_at(:field_states, :field_revision)
+          Devices.apply_disabled(message[:disabled_devices] || []) if defined?(Devices)
           if @pending && (@revision > @pending[:revision] ||
               (message[:actor] == PEMK.self_id && message[:request] == @pending[:request]))
             @notice = 'Cet objet a changé. Son état a été actualisé.' if message[:rejected]
@@ -177,8 +180,10 @@ module ArenaDemo
       # Held movement against a blocked destination must stop locally rather
       # than repeatedly submitting pushes the server will reject.
       data = geometry
+      reserved = ArenaDemo.relief_reserved
+      reserved += ArenaDevices.sparks(data[:placements], Devices.disabled).values if defined?(Devices)
       proposed = ArenaFieldState.proposal(data[:placements], states, slot, move, $game_player.direction,
-        data[:surface], data[:relief], ArenaDemo.relief_reserved, [[$game_player.x, $game_player.y]])
+        data[:surface], data[:relief], reserved, [[$game_player.x, $game_player.y]])
       return false unless proposed
       if network?
         return false if @revision < 0

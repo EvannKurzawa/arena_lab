@@ -1,5 +1,35 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Objets interactifs et Pokédex de 650 Pokémon (Arena Demo 0.23.0, local)
+
+**Dark Lugia possède désormais sa propre entrée nationale 650** ; Lugia normal
+reste au numéro 249. Les anciens exemplaires sont convertis dans l'équipe et
+le PC, en conservant leurs données et leurs attaques personnalisées. Le
+Pokédex contient exactement **650 espèces** : les **649 Pokémon des générations
+1 à 5**, puis **Dark Lugia**. Les générations suivantes sont exclues de la liste
+et des compteurs ; les évolutions vers ces espèces sont bloquées. Leurs données
+techniques d'origine restent internes au moteur pour préserver sa compatibilité.
+
+Six meubles interactifs sont disponibles en Custom mode : **tapis roulant**,
+**antenne magnétique directionnelle**, **toile d'araignée (vitesse ÷4)**,
+**téléporteurs liés**, **bobine Tesla avec bouton rouge**, **rune cécité**.
+Les déplacements forcés s'arrêtent devant les obstacles et le vide. Les lots
+se posent sur deux cases et se retirent ensemble. Les bobines partagent leur
+état en multijoueur ; la cécité est individuelle et dure **60 secondes**.
+Les tapis et antennes font glisser le joueur sans animation de marche ; le
+suiveur est caché pendant les tapis et réapparaît à leur sortie. La bobine
+reste solide : le bouton enfoncé désactive seulement son étincelle voisine,
+dont le côté est choisi à la pose. Les sprites et le son sont revus.
+Le catalogue de meubles corrige aussi l'erreur `DeviceCatalogArt::DeviceArt` :
+ses six nouveaux aperçus et l'ouverture de la liste sont vérifiés dans le moteur.
+
+Relancer **Play-Arena.bat** pour charger les changements locaux. Protocole de
+visites **14** : les deux clients et le serveur doivent être mis à jour.
+Le téléporteur reprend la dalle et le son HGSS, préparés dans le jeu local.
+Sources et installation : [assets des objets](docs/ARENA_DEVICE_ASSETS.md).
+Voir [le fonctionnement et les contrôles](docs/ARENA_DEVICES.md).
+Ces changements ne sont pas encore commit/push.
+
 ## Dernière version du code : v9.1 (Arena Demo 0.21.4)
 
 Cette version ajoute Dark Lugia et ses animations, les sprites de combat animés

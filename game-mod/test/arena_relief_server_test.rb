@@ -43,10 +43,10 @@ class ArenaReliefServerTest < Minitest::Test
     socket = TCPSocket.new('127.0.0.1', @backend.reactor.port)
     @clients << socket
     send_frame(socket, type: :arena_hello)
-    assert_equal 12, receive(socket)[:version]
+assert_equal 14, receive(socket)[:version]
     send_frame(socket, type: :pos, map: 102, x: 4, y: 6)
     send_frame(socket, type: :ping, t: 1)
-    assert_equal 12, until_type(socket, :pong)[:arena_visits]
+assert_equal 14, until_type(socket, :pong)[:arena_visits]
     socket
   end
   def relief_payload

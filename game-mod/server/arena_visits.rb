@@ -2,6 +2,7 @@
 require 'securerandom'
 require_relative '../Plugins/ArenaDemo/000_ReliefRules'
 require_relative '../Plugins/ArenaDemo/000_FieldStateRules'
+require_relative '../Plugins/ArenaDemo/000_ArenaDeviceRules'
 
 # Reactor-owned, temporary rooms. Loaded after PEMK by our launcher.
 module ArenaVisitsServer
@@ -24,11 +25,11 @@ module ArenaVisitsServer
   TYPES = %i[
     arena_hello arena_open arena_invite arena_accept arena_decline arena_close
     arena_visit_request arena_visit_accept arena_visit_decline
-    arena_field_request
+    arena_field_request arena_device_request
   ].freeze
 
   def dispatch_frame(conn, env, type, authed, body)
-    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 12, arena_bind: @config.bind) if type == :ping
+    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 14, arena_bind: @config.bind) if type == :ping
     if conn.data[:arena_local_world] && type == :save
       return reply(conn, type: :save_err, seq: env[:seq], reason: 'local_world')
     end
@@ -39,7 +40,7 @@ module ArenaVisitsServer
       arena_detach_zone(conn)
       conn.data[:arena_cap] = true
       conn.data[:arena_local_world] ||= env[:local_world] == true
-      return reply(conn, type: :arena_ready, version: 12)
+      return reply(conn, type: :arena_ready, version: 14)
     end
     return arena_error(conn, 'Restart the updated client') unless conn.data[:arena_cap]
     case type
@@ -52,6 +53,7 @@ module ArenaVisitsServer
     when :arena_visit_accept then arena_visit_decision(conn, env, true)
     when :arena_visit_decline then arena_visit_decision(conn, env, false)
     when :arena_field_request then arena_field_request(conn, env)
+    when :arena_device_request then arena_device_request(conn, env)
     end
   end
 
@@ -76,9 +78,10 @@ module ArenaVisitsServer
             valid_arena_surface?(surface) && valid_arena_placements?(placements, surface) &&
             ArenaRelief.valid?(env[:relief], surface,
               [ARENA_START, ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT], placements) &&
-            ArenaRelief.valid_styles?(env[:styles], env[:relief])
+            ArenaRelief.valid_styles?(env[:styles], env[:relief]) &&
+            ArenaDevices.valid_sparks?(placements, surface, env[:relief], [ARENA_START, ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT])
     return arena_error(conn, 'Invalid or oversized arena customization. Reopen the game and try again.') unless valid
-    room = { token: SecureRandom.hex(12), host: conn, guest: nil, field_states: {}, field_revision: 0,
+    room = { token: SecureRandom.hex(12), host: conn, guest: nil, field_states: {}, field_revision: 0, disabled_devices: [],
              objects: objects.dup.freeze, layout: layout, difficulty: difficulty,
              surface: surface.dup.freeze,
              relief: env[:relief].dup.freeze,
@@ -97,12 +100,12 @@ module ArenaVisitsServer
           host: room[:host].data[:account_id], guest: room[:guest]&.data&.fetch(:account_id),
           objects: room[:objects], layout: room[:layout], difficulty: room[:difficulty],
           surface: room[:surface], relief: room[:relief], styles: room[:styles], placements: room[:placements],
-          field_states: room[:field_states], field_revision: room[:field_revision])
+          field_states: room[:field_states], field_revision: room[:field_revision], disabled_devices: room[:disabled_devices] || [])
   end
 
   def arena_field_state(conn, room, extra = {})
     reply(conn, **{ type: :arena_field_state, room: room[:token], field_states: room[:field_states],
-                   field_revision: room[:field_revision] }.merge(extra)) unless conn.closing
+                   field_revision: room[:field_revision], disabled_devices: room[:disabled_devices] || [] }.merge(extra)) unless conn.closing
   end
 
   def arena_broadcast_field(room, extra = {})
@@ -110,9 +113,10 @@ module ArenaVisitsServer
   end
 
   def arena_reset_field_if_empty(room)
-    return if room[:field_states].empty?
+    return if room[:field_states].empty? && (room[:disabled_devices] || []).empty?
     return if [room[:host], room[:guest]].compact.any? { |c| !c.closing && c.data[:map_id] == 100 }
     room[:field_states] = {}
+    room[:disabled_devices] = []
     room[:field_revision] += 1
     arena_broadcast_field(room)
   end
@@ -138,11 +142,37 @@ module ArenaVisitsServer
       pos[1, 2] if !member.closing && pos && pos[0] == 100
     end
     proposed = ArenaFieldState.proposal(room[:placements], room[:field_states], slot, move, direction,
-      room[:surface], room[:relief], [ARENA_START, ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT], players)
+      room[:surface], room[:relief], [ARENA_START, ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT] + ArenaDevices.sparks(room[:placements], room[:disabled_devices] || []).values, players)
     return reject.call unless proposed
     room[:field_states] = proposed
     room[:field_revision] += 1
     arena_broadcast_field(room, request: env[:request], actor: conn.data[:account_id])
+  end
+
+  def arena_device_destination_clear?(room, x, y)
+    return false if ArenaDevices.sparks(room[:placements], room[:disabled_devices] || []).value?([x, y])
+    slot = -1
+    room[:placements].none? do |kind, item, px, py|
+      slot += 1 if kind == 0
+      point = kind == 0 ? room[:field_states].fetch(slot, [px, py]) : [px, py]
+      point == [x, y] && (kind == 1 || ArenaDevices.blocked?(item, slot, room[:disabled_devices] || []))
+    end
+  end
+
+  def arena_device_request(conn, env)
+    room = arena_room(conn)
+    return unless room && env[:room] == room[:token] && conn.data[:map_id] == 100
+    objects = ArenaDevices.furniture(room[:placements])
+    slot = env[:slot]
+    object = objects[slot] if slot.is_a?(Integer) && slot >= 0
+    return unless object && object[1] == ArenaDevices::BUTTON && conn.data[:last_pos] == [100, *object[2, 2]]
+    coil = ArenaDevices.partner(room[:placements], slot)
+    return unless coil
+    room[:disabled_devices] ||= []
+    return arena_field_state(conn, room) if room[:disabled_devices].include?(coil)
+    room[:disabled_devices] << coil
+    room[:field_revision] += 1
+    arena_broadcast_field(room)
   end
 
   def valid_arena_surface?(surface)
@@ -154,6 +184,7 @@ module ArenaVisitsServer
 
   def valid_arena_placements?(placements, surface)
     return false unless placements.is_a?(Array) && placements.length <= ARENA_MAX_PLACEMENTS
+    return false unless ArenaDevices.valid_pairs?(placements)
     occupied = {}
     placements.all? do |entry|
       next false unless entry.is_a?(Array) && entry.length == 4
@@ -396,7 +427,7 @@ module ArenaVisitsServer
                 x.between?(0, ARENA_MAP_WIDTH - 1) && y.between?(0, ARENA_MAP_HEIGHT - 1) &&
                   ArenaMaterials.traversable?(room[:surface], x, y, env[:mode]) &&
                   ![ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT].include?([x, y]) &&
-                  ArenaFieldState.effective(room[:placements], room[:field_states]).none? { |_kind, _item, px, py| [px, py] == [x, y] }
+                  arena_device_destination_clear?(room, x, y)
               else
                 (1..13).include?(x) && (1..11).include?(y) &&
                   ![[7, 2], [10, 3], [10, 4], [4, 5]].include?([x, y])
@@ -408,8 +439,9 @@ module ArenaVisitsServer
       if trapped
         valid &&= [x, y] == ARENA_START || [x, y] == previous[1, 2]
       else
-        valid &&= (previous[1] - x).abs + (previous[2] - y).abs <= 1
-        valid &&= ArenaRelief.step?(room[:relief], previous[1], previous[2], x, y) if map == 100
+        teleport = map == 100 && ArenaDevices.teleport_target(room[:placements], previous[1], previous[2]) == [x, y]
+        valid &&= teleport || (previous[1] - x).abs + (previous[2] - y).abs <= 1
+        valid &&= teleport || ArenaRelief.step?(room[:relief], previous[1], previous[2], x, y) if map == 100
       end
     elsif previous && MAPS.include?(previous[0])
       valid &&= (map == 100 && [x, y] == ARENA_START) || (map == 102 && [x, y] == [7, 3])

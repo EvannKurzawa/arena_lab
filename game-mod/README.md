@@ -1,5 +1,29 @@
 # Arena Demo
 
+## Objets interactifs et Pokédex limité à 650 (0.23.0, local)
+
+Les sidecars `096` à `098` ajoutent tapis roulants, antennes magnétiques,
+toiles, téléporteurs par paire, bobines Tesla/boutons par paire et runes cécité.
+Leurs règles primitives sont partagées avec le serveur dans
+`000_ArenaDeviceRules.rb`. Les stocks, la pose atomique, les annulations et le
+retrait des lots passent par le Custom mode existant. Protocole de visites 14.
+Les tapis et antennes font glisser sans marcher ; les tapis cachent le suiveur.
+La rune dure 60 secondes. La bobine reste solide et produit une étincelle
+voisine directionnelle, seule désactivée par le bouton à deux états.
+La préparation installe les nouveaux sprites et les ressources locales HGSS ;
+voir [leurs sources et licences](../docs/ARENA_DEVICE_ASSETS.md).
+Voir [les règles détaillées](../docs/ARENA_DEVICES.md).
+
+`095_DarkLugia.rb` enregistre désormais l'espèce `DARKLUGIA` au rang national
+650, après Genesect ; Lugia reste 249. La liste nationale et ses compteurs sont
+limités aux générations 1 à 5 plus Dark Lugia (650 espèces), et les évolutions
+vers les espèces suivantes sont bloquées. Les anciennes formes `LUGIA_1` de
+l'équipe/du PC migrent sans remplacement de l'instance. Les données restent
+chargeables sans les images locales optionnelles, avec repli sur l'art de
+Lugia. L'importeur crée les alias graphiques indépendants (layout 8).
+Le catalogue référence explicitement `ArenaDemo::DeviceArt`, corrigeant
+l'interruption à l'affichage des nouveaux meubles.
+
 ## Dark Lugia (XD001), option locale (0.21.4)
 
 `095_DarkLugia.rb` enregistre une forme de Lugia seulement si les

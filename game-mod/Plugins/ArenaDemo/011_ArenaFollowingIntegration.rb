@@ -11,6 +11,7 @@ module ArenaDemo
     module_function
 
     def local_pokemon
+      return nil if defined?(ArenaDemo::Devices) && ArenaDemo::Devices.hiding_follower?
       return nil if defined?($PokemonGlobal) && $PokemonGlobal && $PokemonGlobal.surfing
       return nil unless defined?(FollowingPkmn) && FollowingPkmn.can_check?
       pokemon = FollowingPkmn.get_pokemon

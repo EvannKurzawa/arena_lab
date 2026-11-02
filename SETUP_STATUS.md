@@ -1,5 +1,153 @@
 # Setup and implementation status
 
+## Device visuals, sliding and directional Tesla — 2026-11-02 (0.23.0, local)
+
+Supersedes device behavior below: conveyors and magnetic attraction freeze the
+walking pattern; conveyors hide the active follower throughout the chain,
+restore its prior visibility afterwards and relay an empty follower descriptor
+to peers while hidden. Blindness expires after 60 seconds using monotonic time;
+room exit/editor reset still clears it early.
+
+Tesla coils now always block. Each new coil records a chosen D/L/R/U adjacent
+spark tile, separately rendered and blocked until its linked button is pressed.
+The button changes to its pressed sprite. Spark tiles are reserved against
+furniture placement and ground editing. Server movement and Strength validation
+respect live sparks; shared disabled state, late entry and empty-room reset
+remain authoritative. Protocol is now **14**, requiring both clients/server.
+Legacy undirected coils choose the first free adjacent tile.
+
+Installed Gary Shaw's CC-BY-SA conveyor animation, CC0 rune, generated antenna,
+coil and two button states, plus outlined white web and animated spark. HGSS
+pad screenshot and sound are installed only into the ignored private runtime;
+no proprietary HGSS binary was added to source. Sources, credits, exact prompts
+and installation are in docs/ARENA_DEVICE_ASSETS.md. Added asset installation
+to normal Prepare and native device checks.
+
+Executed: arena_devices_rules_test.rb **4 runs/49 assertions**;
+arena_devices_server_test.rb **16/360**; arena_relief_test.rb **20/960**;
+arena_relief_server_test.rb **7/118**. All passed. Native --devices:
+**31 checks passed**, including actual catalog, slides with frozen walk pattern,
+continuous follower hiding/restoration, timers, teleport, pair inventory and
+solid coil after button. Screenshots inspected in tools/runtime; no save read
+or written. No manual two-GUI-client playtest or full battle executed.
+Restart Play-Arena.bat; no commit/push performed.
+
+Additional verification: remote_follower_test.rb **3 runs/9 assertions**, passed.
+The PowerShell installer could not be validated end-to-end in this tool session:
+PowerShell produced no output and the isolated invocation exceeded 30 seconds.
+The native runner independently copied all graphics/audio and successfully
+rendered/played the new resources. Normal Prepare is wired to the installer;
+its download branch remains unexecuted (sources were downloaded separately).
+
+## National roster capped at 650 and furniture picker crash — 2026-11-02 (0.23.0, local)
+
+User clarified the game stops at generations 1-5 plus Dark Lugia. The previous
+0.22.0 national ordering retained later generations after entry 650; this is
+superseded. `PokedexRoster.supported?` now filters `each_species` to the 649
+native Gen 1-5 base species plus DARKLUGIA last. National lists and seen/owned
+counts cap at 650, including when saved flags exist for Chespin/Calyrex. Native
+post-Gen-5 data remains internal for engine/save compatibility. Added a native
+evolution-check wrapper that excludes unsupported targets while preserving
+supported evolution checks. Existing expedition generation already limits
+wild species to generations 1-5.
+
+The reported picker crash was a lexical constant lookup: `DeviceCatalogArt`
+referenced unqualified `DeviceArt`. It now calls `ArenaDemo::DeviceArt`.
+Previous probes covered world rendering but not this preview path. Added
+coverage through material_catalog_preview for all six device entries and a
+real choose_material_catalog opening/selection/cancel cycle. Captured and
+visually inspected tools/runtime/devices-native-catalog.png.
+
+Executed `tools/test-native-dark-lugia.py`: **61 native checks passed**,
+including exactly 650 entries in the actual national menu, completion counters
+at 650 despite later-generation records, 249/649/650 numbering and supported/
+excluded evolutions. `--devices`: **26 native checks passed**, including actual
+picker UI and all existing movement/pair/button/darkness checks. No player save
+was read/written, no complete battle or manual two-client session was executed.
+Installed current 0.23.0 scripts/cache locally. README, game-mod README and
+device docs updated. Restart Play-Arena.bat to load; protocol remains 13.
+No commit/push. Existing unrelated user files remain untouched.
+
+## Interactive arena devices and Dark Lugia national 650 — 2026-11-02 (0.22.0, local)
+
+Read README/status and existing editor, placement wire, CS overlay, native
+movement/darkness and Pokedex sources. Added standalone shared rules plus
+096/097/098 sidecars for six devices, native pixel artwork and Bag previews.
+Conveyors push along the chosen direction; magnets pull along one selected
+half-line, stopping beside the antenna or at an intervening collision. Native
+movement/passability is retained, including void/relief limits. Webs multiply
+native step duration by four. Teleporter kits use two atomic endpoints, a
+rotation/shrink/arrival animation, an arrival latch and follower transfer.
+Tesla kits contain a blocking spark and a red floor button; deactivation is
+server-authoritative and shared with late entrants, resetting only when the
+main room is empty. The blindness rune uses the native no-Flash radius and
+fade profile, with a circle centered on the player; it clears on room exit or
+offline Custom mode. Pair removal returns one kit; cancelled drafts reconcile
+kit quantities instead of counting their two component records separately.
+
+Placement wire remains four primitives. Direction is encoded in registered
+item variants; pair links follow preserved placement order. Protocol raised
+from 12 to **13** for floor traversal, exact paired teleport exceptions and
+shared disabled-coil state. Client handshake, readiness probe and test fixtures
+updated. Both clients and server must restart with this code. No live server
+or user account was reset.
+
+Dark Lugia is now independent species `DARKLUGIA`, inserted after Genesect in
+each_species/Pokedex order: national **650**, with native Lugia still **249**.
+The installed base has 898 species, so the later generations remain in the
+database and move one position later in this custom national order. The legacy
+LUGIA_1 registry entry is removed; party/PC instances migrate in place, keeping
+nickname/item/HP/experience/owner/manual moves. Legacy remembered Lugia forms
+are cleared so entry 249 displays normal Lugia. Native Lugia metrics/cry are
+retained. Layout-8 importer makes independent-species graphic aliases, while
+094 reuses the recolored GIFs. Species data registers even without optional
+art, allowing saves/received Pokemon to load; missing art falls back to Lugia.
+
+Executed targeted tests, all passing:
+- arena_devices_rules_test.rb: 3 runs / 29 assertions.
+- arena_devices_server_test.rb: 15 runs / 348 assertions (includes existing
+  field-state checks through the shared harness/inherited tests).
+- arena_relief_server_test.rb: 7 / 118.
+- arena_relief_test.rb: 20 / 960.
+- dark_lugia_assets_test.rb: 4 / 63.
+- debug_party_test.rb: 6 / 29.
+- field_transfer_test.rb: 3 / 17.
+Total executed: **58 test runs / 1,564 assertions**, no failures/errors/skips.
+
+`tools/test-native-dark-lugia.py`: **55 native checks passed**, including actual
+Pokedex 650, independent species, cry, missing-art data registration, party/PC
+migration and GIF/follower/Pokedex rendering. `--devices`: **24 native checks
+passed**, covering real movement/collisions/void, quarter-speed traversal,
+teleport latch and active follower transfer, Tesla button/collision, atomic
+pair placement/removal/cancellation and native darkness cleanup. Screenshots
+of all device art and the centered darkness mask inspected. The native probes
+use disposable in-memory profiles and do not read/write player saves. Server
+tests use actual PEMK TCP/reactor behavior with injected authentication, not a
+manual two-window or two-computer session. No complete battle was played.
+
+Intermediate failures were resolved: Following EX aliases captured the new
+update_move wrapper and caused recursion, fixed by deferring hook installation
+until plugins finish loading; the native database initially assigned new
+species 899, fixed by the explicit custom national order; the first storage
+fixture inserted a legacy Pokemon after the one-time scan, corrected to
+simulate the initial loaded-storage state. The initial native darkness mask
+centered on the window rather than the player; the inspected final mask tracks
+the player at the actual runtime size.
+
+Teleport audio: user explicitly chose to keep the installed `Anim/Teleport`
+sound; this is the final behavior. No external audio is required or bundled.
+Earlier research consulted the Warp panel reference, ENLS HGSS album, The
+Sounds Resource and a public HGSS content-pack file index. The attempted asset
+lookup failed Python certificate verification and was stopped at the user's
+direction; no audio file was installed. Details in docs/ARENA_DEVICES.md.
+
+Installed updated scripts and layout-8 aliases in the private local runtime;
+no commit or push. Manual use: close/relaunch Play-Arena.bat; use Custom mode
+Meubles, choose direction, or select two endpoints for a lot. Save normally
+after Dark Lugia migration. Restart the host server and update both PCs before
+testing protocol-13 multiplayer. Original PNG and all generated assets remain
+ignored under local runtime; unrelated handoff document/PowerPoint preserved.
+
 ## v9.1 publication snapshot — 2026-11-01
 
 Release includes Strength contact pushing/interpolation, complete trainer
