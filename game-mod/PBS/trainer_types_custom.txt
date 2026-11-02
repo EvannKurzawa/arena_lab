@@ -1,0 +1,117 @@
+[CYNTHIA]
+Name = Championne
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle CYNTHIA
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[N]
+Name = Prince
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle N
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[GHETIS]
+Name = Roi
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle GHETIS
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[GOYAH]
+Name = Champion
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle GOYAH
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[GUAJAVA]
+Name = Dresseur
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle GOYAH
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[IRIS]
+Name = Championne
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle IRIS
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[SILVER]
+Name = Rival
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle SILVER
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[CELESTA]
+Name = Légende
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle GOLD
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[LOUKA]
+Name = Légende
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle LOUKA
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[AURORE]
+Name = Légende
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle LOUKA
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[MATIS]
+Name = Rival
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle MATIS
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[ARIANE]
+Name = Rocket Leader
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle ROCKET
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[APOLLON]
+Name = Rocket Leader
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle ROCKET
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[PETROS]
+Name = Rocket Leader
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle ROCKET
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[LAMBDA]
+Name = Rocket Leader
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle ROCKET
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[BIANCA]
+Name = Rival
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle BIANCA
+VictoryBGM = Battle Victory leader
+#-------------------------------
+
+
+
+
+

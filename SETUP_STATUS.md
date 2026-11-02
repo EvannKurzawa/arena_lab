@@ -1,5 +1,16 @@
 # Setup and implementation status
 
+## User trainer teams, types and artwork — 2026-11-03
+
+Preserved the user's Trainer stock changes (Red team and 16 new trainers).
+Exported their 16 PBS trainer-type sections from the local runtime into
+game-mod/PBS/trainer_types_custom.txt and 32 character/battle PNGs plus two
+available referenced BGM files into SharedAssets. The existing custom-trainer
+installer merges these definitions by ID into trainer_types.txt so the updater
+delivers them even when that file previously contained personal definitions.
+Other trainer types remain. Disposable install/reinstall merge check passed;
+no game launch or live multiplayer test was performed for this publication.
+
 ## Draft stand artwork, transparent gaps and moving Tesla rim — 2026-11-03
 
 Arena Demo 0.25.7. Stand relief rendering used saved custom_placements while

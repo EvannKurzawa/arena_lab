@@ -1,5 +1,19 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Nouveaux dresseurs personnels
+
+Les 16 nouveaux dresseurs, leurs types, sprites de terrain et de combat et les
+musiques disponibles sont inclus dans Arena Update. L'équipe de Red est mise
+à jour. Les définitions personnalisées sont fusionnées au lancement sans créer
+de doublons ni remplacer les autres types de dresseurs.
+
+## Nouveaux dresseurs personnels
+
+Les 16 nouveaux dresseurs, leurs types, sprites de terrain et de combat et les
+musiques disponibles sont inclus dans Arena Update. L'équipe de Red est mise
+à jour. Les définitions personnalisées sont fusionnées au lancement sans créer
+de doublons ni remplacer les autres types de dresseurs.
+
 ## Aperçu de pose et transparence — Arena Demo 0.25.7
 
 L'estrade RSE apparaît dès la pose dans le brouillon de l'éditeur, avec le

@@ -46,7 +46,7 @@ module ArenaDemo
     },
  :ARENA_TRAINER_POKEMONTRAINER_RED => {
       :name => "Red", :sprite => "trainer_POKEMONTRAINER_Red", :type => :POKEMONTRAINER_Red,
-      :team => [[:CHARIZARD, 100], [:PIKACHU, 100], [:MEW, 100]]
+      :team => [[:CHARIZARD, 100], [:PIKACHU, 100], [:LAPRAS, 100], [:SNORLAX, 100], [:ARTICUNO, 100], [:MEW, 100]]
     },
  :ARENA_TRAINER_POKEMONTRAINER_LEAF => {
       :name => "Leaf", :sprite => "trainer_POKEMONTRAINER_Leaf", :type => :POKEMONTRAINER_Leaf,
@@ -8611,6 +8611,70 @@ module ArenaDemo
 :ARENA_TRAINER_GOLD => {
       :name => "Gold", :sprite => "trainer_GOLD", :type => :GOLD,
       :team => [[:GYARADOS, 82, true], [:TYPHLOSION, 85], [:TOGEKISS, 83], [:RAIKOU, 87]]
+    },
+:ARENA_TRAINER_CYNTHIA => {
+      :name => "Cynthia", :sprite => "trainer_CYNTHIA", :type => :CYNTHIA,
+      :team => [[:SPIRITOMB, 100], [:MILOTIC, 100], [:LUCARIO, 100], [:EELEKTROSS, 100], [:GLACEON, 100], [:GARCHOMP, 100]]
+    },
+ :ARENA_TRAINER_N => {
+      :name => "N", :sprite => "trainer_N", :type => :N,
+      :team => [[:ZOROARK, 72], [:RESHIRAM, 75], [:ZEKROM, 75]]
+    },
+:ARENA_TRAINER_GHETIS => {
+      :name => "Ghetis", :sprite => "trainer_GHETIS", :type => :GHETIS,
+      :team => [[:COFAGRIGUS, 82], [:SEISMITOAD, 85], [:HYDREIGON, 87], [:KYUREM, 90]]
+    },
+:ARENA_TRAINER_GOYAH => {
+      :name => "Goyah", :sprite => "trainer_GOYAH", :type => :GOYAH,
+      :team => [[:ACCELGOR, 51], [:ESCAVALIER, 51], [:DRUDDIGON, 52], [:BOUFFALANT, 54], [:CONKELDURR, 53], [:VOLCARONA, 55]]
+    },
+:ARENA_TRAINER_GUAJAVA => {
+      :name => "Guajava", :sprite => "trainer_GUAJAVA", :type => :GUAJAVA,
+      :team => [[:VOLCARONA, 70], [:LATIAS, 72], [:LATIOS, 72]]
+    },
+:ARENA_TRAINER_IRIS => {
+      :name => "Iris", :sprite => "trainer_IRIS", :type => :IRIS,
+      :team => [[:AXEW, 60], [:DRUDDIGON, 62], [:HYDREIGON, 64], [:HAXORUS, 67]]
+    },
+:ARENA_TRAINER_SILVER => {
+      :name => "Silver", :sprite => "trainer_SILVER", :type => :SILVER,
+      :team => [[:FERALIGATR, 42], [:GENGAR, 40], [:WEAVILE, 44], [:ENTEI, 45]]
+    },
+:ARENA_TRAINER_CELESTA => {
+      :name => "Célesta", :sprite => "trainer_CELESTA", :type => :CELESTA,
+      :team => [[:BAYLEEF, 24], [:MARILL, 22], [:GIRAFARIG, 24], [:SUICUNE, 25]]
+    },
+:ARENA_TRAINER_LOUKA => {
+      :name => "Louka", :sprite => "trainer_LOUKA", :type => :LOUKA,
+      :team => [[:TURTWIG, 15], [:BIDOOF, 12], [:STARLY, 14], [:ROTOM, 15]]
+    },
+:ARENA_TRAINER_AURORE => {
+      :name => "Aurore", :sprite => "trainer_AURORE", :type => :AURORE,
+      :team => [[:PIPLUP, 36], [:LUXRAY, 34], [:STARAVIA, 32], [:BUNEARY, 35]]
+    },
+:ARENA_TRAINER_MATIS => {
+      :name => "Matis", :sprite => "trainer_MATIS", :type => :MATIS,
+      :team => [[:PIGNITE, 26], [:TRANQUILL, 22], [:BOUFFALANT, 24], [:SIMIPOUR, 25]]
+    },
+:ARENA_TRAINER_ARIANE => {
+      :name => "Ariane", :sprite => "trainer_ARIANE", :type => :ARIANE,
+      :team => [[:ARBOK, 26], [:MURKROW, 23], [:GLOOM, 24]]
+    },
+:ARENA_TRAINER_APOLLON => {
+      :name => "Apollon", :sprite => "trainer_APOLLON", :type => :APOLLON,
+      :team => [[:ARBOK, 36], [:KOFFING, 33], [:RATICATE, 34]]
+    },
+:ARENA_TRAINER_PETROS => {
+      :name => "Petros", :sprite => "trainer_PETROS", :type => :PETROS,
+      :team => [[:ARBOK, 46], [:MUK, 43], [:GOLBAT, 44]]
+    },
+:ARENA_TRAINER_LAMBDA => {
+      :name => "LAMBDA", :sprite => "trainer_LAMBDA", :type => :LAMBDA,
+      :team => [[:EKANS, 16], [:KOFFING, 13], [:RATTATA, 14]]
+    },
+:ARENA_TRAINER_BIANCA => {
+      :name => "BIANCA", :sprite => "trainer_BIANCA", :type => :BIANCA,
+      :team => [[:MINCCINO, 16], [:MUNNA, 15]]
     }
   }.freeze
 

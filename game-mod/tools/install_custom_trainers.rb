@@ -16,6 +16,18 @@ module CustomTrainerAssets
       File.delete(target)
     end
     FileUtils.cp(source, target) if gold_files.empty?
+    # Merge published custom definitions into the main PBS, avoiding duplicate
+    # IDs when the author's local file already contains the same trainers.
+    custom = File.expand_path('../PBS/trainer_types_custom.txt', __dir__)
+    if File.file?(custom)
+      main = File.join(pbs, 'trainer_types.txt')
+      contents = File.file?(main) ? File.read(main, encoding: 'bom|utf-8') : ''
+      additions = File.read(custom, encoding: 'bom|utf-8').split(/(?=^\[)/)
+      ids = additions.filter_map { |section| section[/\A\[([^\]]+)\]/,1] }
+      parts = contents.split(/(?=^\[)/).reject { |section| ids.include?(section[/\A\[([^\]]+)\]/,1]) }
+      merged = parts.join.rstrip + "\n" + additions.join
+      File.write(main, merged) unless merged == contents
+    end
     FILES.each do |relative|
       installed, cached = File.join(game, relative), File.join(cache, relative)
       if File.file?(installed) && !File.file?(cached)
