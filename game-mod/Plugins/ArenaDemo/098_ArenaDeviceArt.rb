@@ -26,32 +26,33 @@ module ArenaDemo::DeviceArt
     phase %= 9
     @sparks ||= {}
     @sparks[phase] ||= begin
-      image = Bitmap.new(32, 32)
-      # Fixed lightning silhouettes flicker in place instead of rotating.
-      # Open space between bolts preserves the HGSS electrical-barrier look.
-      blue, cyan, white = color(32,79,190),color(80,190,255),color(232,255,255)
-      paths = [
-        [[14,2],[10,9],[15,8],[11,16],[16,14],[13,23],[17,29]],
-        [[25,5],[22,12],[27,11],[21,19],[25,18],[20,27]],
-        [[5,7],[7,13],[3,12],[8,20],[5,22]],
-        [[7,26],[12,22],[11,19]],
-        [[17,5],[20,8],[18,11]]
-      ]
-      paths.each_with_index do |points, arm|
-        next if arm >= 3 && (phase + arm) % 3 == 0
-        # One-pixel jitter changes the discharge, never its orientation.
-        points = points.each_with_index.map do |(x,y),i|
-          [x + (i.odd? ? ((phase + arm) % 3 - 1) : 0),y]
-        end
-        points.each_cons(2) do |a,b|
-          [[-1,0],[1,0],[0,-1],[0,1]].each do |dx,dy|
-            line(image,a[0]+dx,a[1]+dy,b[0]+dx,b[1]+dy,blue)
-          end
-        end
-        points.each_cons(2) { |a,b| line(image,*a,*b,cyan) }
-        points.each_cons(2).with_index do |(a,b),i|
-          line(image,*a,*b,white) if (phase + arm + i) % 3 != 0
-        end
+      image = Bitmap.new(32,32)
+      # A solid asymmetric discharge. Its silhouette stays fixed while the
+      # rim and branching white-hot channels flicker, without rotating.
+      rows = [[17,18],[16,18],[14,19],[13,20],[13,23],[10,22],
+              [9,22],[10,24],[7,25],[6,24],[7,23],[5,24],
+              [4,25],[5,27],[6,26],[4,24],[6,25],[7,25],
+              [6,24],[8,22],[9,23],[8,21],[10,21],[11,20],
+              [11,18],[13,19],[14,18],[15,16]]
+      mask = {}
+      rows.each_with_index { |(left,right),i| (left..right).each { |x| mask[[x,i+2]]=true } }
+      dark,blue,cyan,pale,white = color(39,73,170),color(58,136,229),color(98,198,255),color(178,235,255),color(242,255,255)
+      mask.each_key do |x,y|
+        depth = (1..5).find do |d|
+          [[d,0],[-d,0],[0,d],[0,-d]].any? { |dx,dy| !mask[[x+dx,y+dy]] }
+        end || 6
+        ink = case depth
+              when 1 then (x+y+phase)%5==0 ? blue : dark
+              when 2 then blue
+              when 3 then cyan
+              when 4 then pale
+              else white end
+        image.set_pixel(x,y,ink)
+      end
+      channels = [[[17,5],[14,11],[18,10],[13,18],[17,17],[14,25]],
+                  [[9,12],[13,15],[8,20]],[[23,12],[19,16],[22,20]]]
+      channels.each_with_index do |points,i|
+        points.each_cons(2) { |a,b| line(image,*a,*b,(phase+i)%3==0 ? pale : white) }
       end
       image
     end

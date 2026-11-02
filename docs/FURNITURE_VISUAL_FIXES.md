@@ -1,4 +1,13 @@
-# Mobilier : corrections visuelles 0.25.5
+# Mobilier : corrections visuelles 0.25.6
+
+L'estrade utilise désormais le sprite RSE entier, marches comprises, agrandi
+uniformément à 128 × 64. Emprise : 4 cases de large, 3 vers le haut depuis
+le coin bas gauche choisi. Les deux escaliers latéraux sont accessibles;
+la façade centrale est bloquante. Les anciennes poses sont retirées et rendues
+au Sac; leur sol enregistré est restauré. Les vestiges isolés de l'ancien
+modèle sans meuble associé sont nettoyés à la migration.
+La Tesla utilise une décharge pleine, irrégulière, à reflets blancs et bleus,
+avec scintillement des filaments et sans rotation.
 
 Révision du 3 novembre : cime complète de l'arbre individuel (recadrage
 96 × 112, canevas transparent 96 × 128). L'estrade utilise maintenant quatre

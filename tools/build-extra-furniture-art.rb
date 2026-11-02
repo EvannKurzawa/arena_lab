@@ -30,7 +30,7 @@ sizes = {
   'dppt-labmachine'=>[64,76], 'dppt-bigoildrum'=>[64,76],
   'dppt-oildrum'=>[16,28], 'dppt-trashcan'=>[20,24], 'lampe'=>[18,36],
   'chandelier'=>[24,40], 'snowball'=>[30,30], 'hgss-red-carpet'=>[32,24],
-  'rse-stand'=>[64,96], 'rse-solid-board'=>[64,64]
+  'rse-stand'=>[128,96], 'rse-solid-board'=>[64,64]
 }
 entries.each do |entry|
   name = entry.fetch('name')
@@ -46,19 +46,14 @@ entries.each do |entry|
   crop.blt(0,0,source,Rect.new(*rect))
   if %w[rse-stand rse-solid-board].include?(name)
     if name == 'rse-stand'
-      # Estrade_RSE.png is the upper platform itself. Keep it intact, then
-      # draw its built-in two-cell stair run directly beneath it.
-      crop = Bitmap.new(64,96)
-      crop.blt(0,0,source,Rect.new(*rect))
-      step_edge, step_mid, step_light = Color.new(52,58,72),Color.new(130,139,151),Color.new(205,211,216)
-      paint_rect.call(crop,4,32,56,31,step_edge)
-      paint_rect.call(crop,6,33,52,28,step_mid)
-      [36,43,50,57].each do |y|
-        paint_rect.call(crop,6,y,52,2,step_light)
-        paint_rect.call(crop,6,y+2,52,2,step_edge)
-        paint_rect.call(crop,8,y+1,48,1,step_mid)
+      # The source already contains the platform AND the stairs. Scale both
+      # axes equally; never append a second invented staircase.
+      crop = Bitmap.new(128,96)
+      64.times do |y|
+        128.times do |x|
+          crop.set_pixel(x,y,source.get_pixel(x/2,y/2))
+        end
       end
-      paint_rect.call(crop,4,32,56,1,Color.new(235,239,242))
     else
       # Two-cell wooden board top, with its vertical face from native relief.
       crop = Bitmap.new(64,32)

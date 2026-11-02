@@ -416,14 +416,14 @@
       32
     ],
     "size": [
-      64,
+      128,
       96
     ],
     "visible_size": [
-      64,
+      128,
       96
     ],
-    "packed_sha256": "ab5d9a7affea4a77626442e4f59d6bf1fe5a119bb5b9643e22df9b3ca2e5da7d"
+    "packed_sha256": "418fadb12dc3c3d434949a8c7eea564581354edbe036f858e49592c1b512e3db"
   },
   {
     "name": "rse-tire",

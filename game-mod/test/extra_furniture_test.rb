@@ -7,6 +7,18 @@ require_relative '../Plugins/ArenaDemo/028_ArenaMaterialsArt'
 require_relative '../Plugins/ArenaDemo/031_ArenaLiquidAnimation'
 
 class ExtraFurnitureTest < FurnitureCatalogTest
+  def setup
+    super
+    current = File.expand_path('../SharedAssets',__dir__)
+    runtime = @game
+    Object.send(:define_method,:pbResolveBitmap) do |path|
+      [File.join(current,path+'.png'),File.join(runtime,path+'.png')].find { |candidate| File.file?(candidate) }
+    end
+    sources = ArenaDemo::ExpeditionTerrain.instance_variable_get(:@sources) if defined?(ArenaDemo::ExpeditionTerrain)
+    sources&.delete_if { |key,_| key[0].start_with?('ArenaFurniture/') }
+    ArenaDemo.remove_instance_variable(:@stand_floor_tiles) if ArenaDemo.instance_variable_defined?(:@stand_floor_tiles)
+  end
+
   def test_extra_stock_is_idempotent_on_existing_profiles
     $PokemonGlobal.arena_custom_stock_added = true
     stock
@@ -33,11 +45,15 @@ class ExtraFurnitureTest < FurnitureCatalogTest
         assert_equal 8, ArenaDemo.relief_code(records, 44, 43)
         assert_equal 0, ArenaDemo.relief_code(records, 44, 44)
         grid = ArenaDemo.relief_grid(records)
-        [44,45].each do |column|
+        [44,47].each do |column|
           assert ArenaRelief.step?(grid,column,44,column,43)
           assert ArenaRelief.step?(grid,column,43,column,42)
           assert ArenaRelief.step?(grid,column,42,column,43)
           assert ArenaRelief.step?(grid,column,43,column,44)
+        end
+        [45,46].each do |column|
+          assert ArenaRelief.wall?(grid,column,43)
+          refute ArenaRelief.step?(grid,column,44,column,43)
         end
         art = ArenaDemo.furniture_bitmap(item)
         [[44,42,0,0],[45,42,32,0],[44,43,0,32],[45,43,32,32]].each do |tx,ty,sx,sy|
@@ -52,12 +68,47 @@ class ExtraFurnitureTest < FurnitureCatalogTest
         assert_equal 1, decoded[:tile_edits]['44,42']['height']
         assert_equal item.to_s, decoded[:placements][0]['item']
         assert_equal placements, Marshal.load(Marshal.dump(placements))
-        assert ArenaDemo.editor_apply_placement(placements, records, 'furniture', { action: :remove }, 44, 44)
+        assert ArenaDemo.editor_apply_placement(placements, records, 'furniture', { action: :remove }, 46, 43)
         assert_equal original, records
         assert_empty placements
         assert_equal 2, $bag.quantity(item)
       end
     end
+  end
+
+  def test_legacy_stand_and_isolated_orphan_are_removed_once
+    stock
+    records = ArenaDemo.tile_edit_records
+    saved = [[44,42],[45,42],[44,43],[45,43]].map { |x,y| {'x'=>x,'y'=>y,'surface'=>nil} }
+    old = {'kind'=>'furniture','item'=>ArenaFurnitureRules::STAND,'x'=>44,'y'=>44,'arena_under_surfaces'=>saved}
+    placements = $PokemonGlobal.arena_demo_placements = [old]
+    [[44,42],[45,42],[44,43],[45,43],[50,42],[51,42],[50,43],[51,43]].each do |x,y|
+      records["#{x},#{y}"]={'floor'=>'field','ground'=>'wood','platform_style'=>'wood','height'=>1,'stair'=> y==43 ? 8 : nil}
+    end
+    records['55,42']={'floor'=>'field','ground'=>'wood','platform_style'=>'wood','height'=>1}
+    before = $bag.quantity(:ARENA_FURNITURE_RSE_STAND)
+    ArenaDemo.stub(:apply_tile_surface,nil) { ArenaDemo.custom_placements }
+    assert_empty placements
+    assert_equal before+1,$bag.quantity(:ARENA_FURNITURE_RSE_STAND)
+    assert_nil records['44,42']
+    assert_equal 0,ArenaDemo.relief_code(records,50,42)
+    assert_equal 0,ArenaDemo.relief_code(records,50,43)
+    assert_equal 1,ArenaDemo.relief_code(records,55,42)
+    ArenaDemo.custom_placements
+    assert_equal before+1,$bag.quantity(:ARENA_FURNITURE_RSE_STAND)
+  end
+
+  def test_stand_refuses_out_of_bounds_and_overlap_without_partial_changes
+    stock
+    placements = $PokemonGlobal.arena_demo_placements = []
+    records = ArenaDemo.tile_edit_records
+    before=Marshal.dump([placements,records,$bag])
+    refute ArenaDemo.editor_apply_placement(placements,records,'furniture',{item: :ARENA_FURNITURE_RSE_STAND},98,44)
+    assert_equal before,Marshal.dump([placements,records,$bag])
+    placements << {'kind'=>'furniture','item'=>'ARENA_FURNITURE_SNOWBALL','x'=>47,'y'=>42}
+    before=Marshal.dump([placements,records,$bag])
+    refute ArenaDemo.editor_apply_placement(placements,records,'furniture',{item: :ARENA_FURNITURE_RSE_STAND},44,44)
+    assert_equal before,Marshal.dump([placements,records,$bag])
   end
 
   def test_failed_raised_placement_and_dependent_stair_removal_are_atomic

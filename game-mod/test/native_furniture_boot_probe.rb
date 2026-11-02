@@ -117,7 +117,7 @@ module ArenaDemo::NativeFurnitureProbe
       records.clear
       ArenaDemo::EXTRA_FURNITURE.each_key.with_index do |item, i|
         x, y = 38 + i % 8 * 3, 38 + i / 8 * 4
-        y += 2 if item.to_s == ArenaFurnitureRules::STAND
+        x,y = 54,56 if item.to_s == ArenaFurnitureRules::STAND
         ArenaDemo.editor_apply_placement(placements, records, 'furniture', { item: item }, x, y)
         event = $game_map.events[ArenaDemo::FURNITURE_SLOT_BASE + i]
         check.call(placements.length == i + 1 && event.instance_variable_get(:@arena_furniture_item) == item, "extra native placement: #{item}")
@@ -137,6 +137,9 @@ module ArenaDemo::NativeFurnitureProbe
         if item.to_s == ArenaFurnitureRules::STAND
           check.call(ArenaDemo.relief_code(records,x,y-2) == 1 && ArenaDemo.relief_code(records,x,y-1) == 8 && ArenaDemo.relief_code(records,x,y) == 0,
             'stand native floor, integrated stairs, and platform')
+          grid = ArenaDemo.relief_grid(records)
+          check.call(ArenaRelief.step?(grid,x,y,x,y-1) && ArenaRelief.step?(grid,x+3,y,x+3,y-1), 'stand original side stairs are traversable')
+          check.call(ArenaRelief.wall?(grid,x+1,y-1) && ArenaRelief.wall?(grid,x+2,y-1), 'stand original central facade blocks passage')
         elsif ArenaFurnitureRules.raised?(item)
           check.call(ArenaDemo.relief_code(records,x,y) == 1, "raised native floor: #{item}")
         end

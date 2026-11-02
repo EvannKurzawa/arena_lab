@@ -1,5 +1,29 @@
 # Setup and implementation status
 
+## Complete RSE stand and solid irregular Tesla discharge — 2026-11-03
+
+Arena Demo 0.25.6. The RSE reference already includes its stairs; the previous
+builder incorrectly treated the whole source as a summit and added stairs.
+The complete 64x32 reference now scales uniformly to 128x64 with a transparent
+32-pixel low approach. Footprint: four cells wide, summit two rows north of
+the bottom-left anchor, stairs at both ends of the middle row, blocked central
+facade. Native ground rendering keeps players above the walkable surfaces.
+Placement validates the full 4x3 footprint and bounds before mutating records
+or inventory, with catalogue/removal prompts matching the new dimensions.
+Layout migration version 4 removes old stands (restoring saved underlying
+surfaces and returning their item to the Bag). It also clears isolated,
+unoccupied 2x2 wood/north-stair remnants of the retired model; other wood relief
+is preserved. This also refreshes the affected map cells.
+Tesla now has a fixed, filled asymmetric silhouette, shaded electric rim and
+white branching channels; animation flickers without rotating.
+
+Validation: 43 tests / 1891 assertions passed in extra_furniture_test.rb.
+The test resolver now prefers current SharedAssets to the older runtime cache.
+Native fixture: 261 checks passed using the current plugins and SharedAssets
+in a disposable mkxp game, including side-stair traversal, central facade,
+save/load and visit snapshots. Map composition and nine Tesla frames were
+inspected. No live two-PC session was executed.
+
 ## Stand ground rendering, full tree crown and flickering Tesla — 2026-11-03
 
 Arena Demo 0.25.5. The stand now paints its two platform and two stair cells
