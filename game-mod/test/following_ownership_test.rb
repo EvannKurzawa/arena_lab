@@ -1,9 +1,16 @@
 require 'minitest/autorun'
+module System
+  def self.uptime; Process.clock_gettime(Process::CLOCK_MONOTONIC); end
+end
+class Game_Map
+  REAL_RES_X = REAL_RES_Y = 128
+end
 class Game_Character
   attr_accessor :x, :y, :direction, :move_speed, :character_name
   def initialize(*); @x = @y = 0; end
   def moveto(x, y); @x, @y = x, y; end
   def moving?; false; end
+  def move_speed=(value); @move_speed = value; @move_time = 2.0 / (2**value); end
   def update; end
   def screen_x; x * 32; end
   def screen_y; y * 32; end
@@ -106,9 +113,26 @@ class FollowingOwnershipTest < Minitest::Test
     follower.moveto(10,9)
     assert_equal [0,-16], @integration.visual_spacing(follower,leader,:LUGIA)
     follower.moveto(7,10)
-    assert_equal [48,0], @integration.visual_spacing(follower,leader,:LUGIA)
+    assert_equal [-16,0], @integration.visual_spacing(follower,leader,:LUGIA)
     follower.moveto(10,10)
-    assert_equal [-48,0], @integration.visual_spacing(follower,leader,:LUGIA)
+    assert_equal [-16,0], @integration.visual_spacing(follower,leader,:LUGIA)
+  end
+
+  def test_visual_margin_eases_across_turns_without_projecting_native_positions
+    leader = Leader.new(2,10,10,6,4)
+    follower = Game_Character.new
+    follower.moveto(9,10)
+    @integration.update_visual_spacing(follower,leader,:MEW,0.0)
+    assert_equal [-8,0], @integration.visual_spacing(follower,leader,:MEW)
+    follower.moveto(10,9)
+    @integration.update_visual_spacing(follower,leader,:MEW,1.0/60)
+    margin = @integration.visual_spacing(follower,leader,:MEW)
+    assert_operator margin[0], :<, 0
+    assert_operator margin[1], :>, -8
+    assert_equal [10,9], [follower.x,follower.y]
+    10.times { assert_equal margin, @integration.visual_spacing(follower,leader,:MEW) }
+    @integration.update_visual_spacing(follower,leader,:MEW,1.0/60)
+    assert_equal margin, @integration.visual_spacing(follower,leader,:MEW)
   end
 
   def test_connected_neighbor_spriteset_cannot_steal_the_follower_context

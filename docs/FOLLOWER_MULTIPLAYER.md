@@ -1,6 +1,6 @@
 # Suiveurs locaux et multijoueurs
 
-Version Arena Demo 0.24.1, 2026-11-02.
+Version Arena Demo 0.24.2, 2026-11-02.
 
 Le suiveur disparaît pendant le sable mouvant et les deux phases de la
 téléportation. Une espèce vide est alors relayée au visiteur, qui retire le
@@ -21,13 +21,18 @@ chemin de fichier graphique. Les anciens messages sans position explicite
 utilisent la dernière case parcourue par le joueur ; tourner sur place ne
 déplace plus le Pokémon autour de lui.
 
-Les deux affichages utilisent le même écartement entre les points au sol :
-une case de 32 pixels avec une marge de 8 pixels par défaut, jusqu'à 16 pixels
-pour les grandes espèces configurées. Dark Lugia utilise la règle de Lugia.
-Le calcul suit le vecteur entre les personnages après interpolation, sans se
-baser sur leur direction de regard : l'écartement reste stable dans les virages
-et pendant les mises à jour réseau. Les collisions restent celles du moteur ;
-les personnages distants sont uniquement visuels.
+Les deux affichages conservent la trajectoire du suiveur, avec une marge de
+8 pixels par défaut, jusqu'à 16 pixels pour les grandes espèces configurées.
+Dark Lugia utilise la règle de Lugia. La marge s'adapte progressivement sur
+environ 90 ms et ne change pas lorsqu'on lit plusieurs fois les coordonnées
+du sprite pendant une image. La projection sur un cercle fixe de la version
+0.24.1 est supprimée : elle amplifiait les petits changements de direction
+près du joueur et pouvait donner l'impression d'un sprite bloqué dans un coin.
+Les virages et demi-tours suivent désormais la trajectoire naturelle du moteur,
+avec un écartement temporairement variable. Les nouvelles positions distantes
+prolongent le glissement depuis la position affichée, sans saut au point
+d'arrivée précédent. Les collisions restent celles du moteur ; les personnages
+distants sont uniquement visuels.
 
 Fermer les jeux et mettre à jour les deux PC avec Arena Update, puis relancer
 Play-Arena.bat, puis choisir d'héberger. Le contrôle du service vérifie aussi
@@ -36,10 +41,13 @@ relancé par le lanceur après ses contrôles habituels.
 Le protocole reste 14 : ces champs sont facultatifs, mais les deux clients et
 l'hôte à jour donnent le rendu complet.
 
-Validation exécutée : 68 contrôles dans le moteur natif sur un personnage en
-mémoire, sans lecture ni écriture de sauvegarde ; 39 tests Ruby / 576 assertions.
+Validation 0.24.2 : 71 contrôles dans le moteur natif sur un personnage en
+mémoire, sans lecture ni écriture de sauvegarde joueur ; 35 tests Ruby / 181
+assertions sur les dialogues, suiveurs, connexion, entrée et cache des plugins.
 Le test natif affiche un suiveur local et un suiveur distant, injecte les messages
 de déplacement dans le vrai registre PEMK, et vérifie repos, quatre directions,
-marche et virages (39 à 40,5 pixels mesurés pour Mew). Les tests TCP vérifient
-le relais réel et les données invalides avec authentification injectée.
+marche, virages et demi-tours (écart maximal 43 pixels et déplacement relatif
+maximal de 9 pixels par image dans le parcours testé avec Mew). Les tests TCP
+de la version précédente ont vérifié le relais et les données invalides avec
+authentification injectée ; le protocole et son relais restent inchangés ici.
 Cela ne constitue pas un essai de deux clients graphiques sur deux PC.

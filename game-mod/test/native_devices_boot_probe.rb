@@ -13,6 +13,13 @@ module ArenaFollowerQuicksandProbe
   end
 end
 ArenaDemo.singleton_class.prepend(ArenaFollowerQuicksandProbe)
+module ArenaDialogSaveProbe
+  def save_to_file(path)
+    return super unless $capture_attendant_save
+    $captured_attendant_save = Marshal.load(Marshal.dump(compile_save_hash))
+  end
+end
+SaveData.singleton_class.prepend(ArenaDialogSaveProbe)
 module ArenaDeviceProbeMessages
   def pbMessage(*args)
     ($device_probe_messages ||= []) << args[0]
@@ -65,6 +72,11 @@ module ArenaDemo::NativeDevicesProbe
         leader = PEMK::Remotes.players.fetch(@follower_mirror_id)
         dx,dy = follower.screen_x-leader.screen_x, follower.screen_y-leader.screen_y
         (@follower_motion_gaps ||= []) << Math.sqrt(dx*dx+dy*dy)
+        if @last_follower_vector
+          change = Math.sqrt((dx-@last_follower_vector[0])**2 + (dy-@last_follower_vector[1])**2)
+          @follower_motion_jump = [@follower_motion_jump || 0, change].max
+        end
+        @last_follower_vector = [dx,dy]
       end
       if ArenaDemo::Devices.sliding?
         raise 'Walking during forced slide' if $game_player.walk_anime || $game_player.pattern != ($game_player.instance_variable_get(:@original_pattern) || 0)
@@ -178,6 +190,16 @@ module ArenaDemo::NativeDevicesProbe
       $PokemonEncounters.setup(100)
       $scene = Scene_Map.new
       $scene.createSpritesets
+      live_interpreter = $game_system.map_interpreter
+      live_interpreter.setup([RPG::EventCommand.new(355,0,['ArenaDemo.multiplayer_attendant']),RPG::EventCommand.new(0,0,[])],4,102)
+      $capture_attendant_save = true
+      Game.save('arena-probe-in-memory-only')
+      # The checkpoint's final rename intentionally fails: no file is written.
+      # Inspect the actual serialized snapshot, rather than claiming a disk save.
+      check.call($captured_attendant_save && !$captured_attendant_save[:game_system].map_interpreter.running?, 'native save serialization excludes a running entrance dialogue from its in-memory snapshot')
+      $capture_attendant_save = false
+      check.call($game_system.map_interpreter.equal?(live_interpreter) && live_interpreter.running?, 'native connection save leaves the live guide interaction intact')
+      live_interpreter.setup(nil,0,100)
       ArenaDemo.ensure_custom_inventory
       check.call(ArenaDemo::DEVICE_STOCK.all? { |item, (_name, qty)| $bag.quantity(item) == qty }, 'all six device kits granted in native Bag')
       catalog = ArenaDemo.bag_catalog('furniture').select { |entry| ArenaDemo::DEVICE_STOCK.key?(entry[:item]) }
@@ -291,7 +313,8 @@ module ArenaDemo::NativeDevicesProbe
         follower.direction = direction
         remote.accept_position(leader, descriptor.merge(follower_x: follower.x, follower_y: follower.y, follower_dir: direction))
         remote.follow_remote(leader,true)
-        check.call([follower.screen_x,follower.screen_y] == [remote.screen_x,remote.screen_y], "#{direction} local and remote followers use identical visual spacing")
+        device_frames(20)
+        check.call((follower.screen_x-remote.screen_x).abs <= 1 && (follower.screen_y-remote.screen_y).abs <= 1, "#{direction} local and remote follower margins settle to the same spacing")
       end
       local_patterns, remote_patterns = [], []
       45.times do
@@ -307,10 +330,11 @@ module ArenaDemo::NativeDevicesProbe
       remote.accept_position(leader, descriptor.merge(follower_x: 49, follower_y: 50, follower_dir: 6))
       remote.follow_remote(leader,true)
       @follower_mirror_id = 777
-      [6,6,2,2,4,4,8,8].each { |direction| device_step(direction) }
+      [6,6,2,2,4,4,8,8,6,4,6,4].each { |direction| device_step(direction) }
       @follower_mirror_id = nil
-      check.call(@follower_motion_gaps.min >= 24 && @follower_motion_gaps.max <= 64,
-        "remote follower spacing stays bounded through walking/corners (#{@follower_motion_gaps.min.round(1)}..#{@follower_motion_gaps.max.round(1)}px)")
+      check.call(@follower_motion_gaps.max <= 64,
+        "remote follower follows its native path without drifting away through turns/reversals (max #{@follower_motion_gaps.max.round(1)}px)")
+      check.call(@follower_motion_jump <= 16, "walking, corners and reversals avoid abrupt remote follower jumps (max #{@follower_motion_jump.round(1)}px/frame)")
       ArenaDemo::FollowingIntegration.dispose_remote(777)
       PEMK::Remotes.players.delete(777)
       device_layout([[ArenaDevices::COIL, 51, 50], [ArenaDevices::BUTTON, 50, 50]])

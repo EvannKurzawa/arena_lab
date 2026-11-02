@@ -94,7 +94,7 @@ module ArenaDemo
       [[values.fetch(species.to_sym, 8).to_i, 0].max, 16].min
     end
 
-    def visual_spacing(character, leader, species)
+    def spacing_target(character, leader, species)
       return [0, 0] unless leader
       dx, dy = character.real_x - leader.real_x, character.real_y - leader.real_y
       if character.respond_to?(:map) && leader.respond_to?(:map) && character.map && leader.map
@@ -102,9 +102,8 @@ module ArenaDemo
         dy -= character.map.display_y - leader.map.display_y
       end
       length = Math.sqrt(dx * dx + dy * dy)
-      if length >= 1
+      if length >= 32
         bearing = [dx / length, dy / length]
-        character.instance_variable_set(:@arena_follower_bearing, bearing)
       else
         bearing = character.instance_variable_get(:@arena_follower_bearing)
         bearing ||= case leader.direction
@@ -113,11 +112,27 @@ module ArenaDemo
                     when 8 then [0,1]
                     else [0,-1] end
       end
-      scale = defined?(Game_Map::X_SUBPIXELS) ? Game_Map::X_SUBPIXELS.to_f : 4.0
-      # Keep the rendered foot points one tile + the margin apart even during
-      # a corner, reversed step, or the receiver's delayed tile interpolation.
-      correction = 32 + spacing_offset(species) - length / scale
-      [(bearing[0] * correction).round, (bearing[1] * correction).round]
+      margin = spacing_offset(species)
+      [bearing[0] * margin, bearing[1] * margin]
+    end
+
+    def visual_spacing(character, leader, species)
+      pixels = character.instance_variable_get(:@arena_spacing_pixels) || spacing_target(character, leader, species)
+      pixels.map(&:round)
+    end
+
+    def update_visual_spacing(character, leader, species, now = nil)
+      now ||= System.uptime
+      desired = spacing_target(character, leader, species)
+      previous = character.instance_variable_get(:@arena_spacing_at)
+      current = character.instance_variable_get(:@arena_spacing_pixels) || desired
+      elapsed = previous ? [[now - previous, 0.0].max, 0.1].min : 0.0
+      blend = 1.0 - Math.exp(-elapsed / 0.09)
+      pixels = current.zip(desired).map { |value, target| value + (target - value) * blend }
+      character.instance_variable_set(:@arena_spacing_at, now)
+      character.instance_variable_set(:@arena_spacing_pixels, pixels)
+      length = Math.sqrt(desired[0]**2 + desired[1]**2)
+      character.instance_variable_set(:@arena_follower_bearing, desired.map { |v| v / length }) if length > 0
     end
 
     def settle_local_follower
@@ -279,6 +294,11 @@ module ArenaDemo::RemoteVisualCallbacks
 end
 
 module ArenaDemo::LocalFollowerSpacing
+  def update
+    super
+    pokemon = FollowingPkmn.get_pokemon
+    ArenaDemo::FollowingIntegration.update_visual_spacing(self, $game_player, pokemon ? pokemon.species : :NONE)
+  end
   def screen_x(*args)
     Game_Character.instance_method(:screen_x).bind(self).call(*args) + arena_spacing[0]
   end
@@ -361,12 +381,6 @@ class ArenaRemotePokemon < Game_Character
     if x.is_a?(Integer) && y.is_a?(Integer) && [2,4,6,8].include?(direction) &&
        (x - leader.x).abs + (y - leader.y).abs <= 3
       first = !@network_target
-      if @network_target && @network_target[0,2] != [x,y] && moving?
-        # Like PEMK's remote leader, collapse a previous glide before chaining
-        # a newer tile. Never accumulate an extra tile of lag on each packet.
-        @real_x, @real_y = @x * Game_Map::REAL_RES_X, @y * Game_Map::REAL_RES_Y
-        @move_timer = @jump_timer = nil
-      end
       @network_target = [x, y, direction]
       follow_remote(leader, first)
     else
@@ -384,6 +398,42 @@ class ArenaRemotePokemon < Game_Character
     PEMK::Remotes.players[@owner_id] if @owner_id && defined?(PEMK::Remotes)
   end
 
+  def update
+    super
+    ArenaDemo::FollowingIntegration.update_visual_spacing(self, arena_leader, @species || :NONE)
+  end
+
+  def glide_to(x, y, snap = false)
+    distance = [(@real_x.to_f / Game_Map::REAL_RES_X - x).abs,
+                (@real_y.to_f / Game_Map::REAL_RES_Y - y).abs].max
+    if snap || distance > 3
+      @arena_glide_from = nil
+      @move_timer = @jump_timer = nil
+      moveto(x, y)
+    elsif [@x, @y] != [x, y]
+      # A newer pose continues from the drawn position, never the previous
+      # destination tile. Repeated copies of a pose do not restart the glide.
+      @arena_glide_from = [@real_x.to_f, @real_y.to_f]
+      @arena_glide_duration = [[@move_time * distance, 0.06].max, 0.16].min
+      @x, @y = x, y
+      @move_timer = 0.0
+      @jump_timer = nil
+    end
+  end
+
+  def update_move
+    return super unless @arena_glide_from && @move_timer
+    @move_timer += @delta_t
+    fraction = [@move_timer / @arena_glide_duration, 1.0].min
+    @real_x = @arena_glide_from[0] + (@x * Game_Map::REAL_RES_X - @arena_glide_from[0]) * fraction
+    @real_y = @arena_glide_from[1] + (@y * Game_Map::REAL_RES_Y - @arena_glide_from[1]) * fraction
+    @moved_this_frame = true
+    @anime_count += @delta_t if @walk_anime || @step_anime
+    if fraction >= 1.0
+      @move_timer = @arena_glide_from = nil
+    end
+  end
+
   def follow_remote(leader, snap = false)
     return unless leader
     return if @owner_id && leader.respond_to?(:player_id) && leader.player_id != @owner_id
@@ -396,6 +446,8 @@ class ArenaRemotePokemon < Game_Character
     if @network_target
       target_x, target_y, facing = @network_target
       self.direction = facing
+      glide_to(target_x, target_y, snap)
+      return
     else
       @trail_target = [leader.x + dx, leader.y + dy] if snap || !previous || (previous[0]-leader.x).abs + (previous[1]-leader.y).abs > 1
       @trail_target = previous if previous && previous != tile && (previous[0]-leader.x).abs + (previous[1]-leader.y).abs == 1

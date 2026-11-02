@@ -1,5 +1,49 @@
 # Setup and implementation status
 
+## Saved entrance dialogue and smoother followers — 2026-11-02
+
+Arena Demo 0.24.2. The entrance connection flow saves from inside event 4's
+script command. Essentials serializes Game_System's running map interpreter;
+loading that snapshot can replay ArenaDemo.multiplayer_attendant immediately.
+New 010_EntranceDialogRecovery.rb temporarily substitutes an idle interpreter
+during Game.save ONLY for map 102/event 4 with that exact command, restoring
+the live interpreter even on failure. Game.load_map clears that exact stale
+dialogue and queued guide start before the map updates. Other events/commands
+are preserved. Old saves recover in memory; no manual save editing/deletion.
+
+011 removes the fixed-radius projection introduced in 0.24.1. Local and remote
+characters retain their native/interpolated trajectory with an 8..16px visual
+margin eased over 90ms. Pixel getters are pure: querying x/y repeatedly cannot
+advance the smoothing. Remote poses retarget from the current real position,
+do not restart for duplicate packets, and use bounded 60..160ms interpolation.
+Hard relocation clears outstanding movement timers. Idle animation, owner
+binding and trap hiding remain active; sprites, auth and protocol 14 unchanged.
+
+Executed C:/msys64/mingw64/bin/python.exe tools/test-native-dark-lugia.py --devices:
+**71 native checks passed**. Added native save-serialization checks using the
+real Game.save call chain but intercepting SaveData.save_to_file into a Marshal
+snapshot in memory; the checkpoint's final rename intentionally has no temp
+file and cannot claim a successful disk commit. No player save read/written.
+Verified the saved snapshot has no pending guide dialogue and the live one
+remains running. Extended follower route to corners and four immediate
+reversals: max 43.0px ground separation, max 9.0px relative movement/frame in
+the tested Mew path. Idle animation, four-direction settled margins and the
+other device/trap/catalogue checks pass.
+
+Ruby tests: entrance_dialog_save_test.rb **4/16**, remote_follower_test.rb
+**5/25**, following_ownership_test.rb **9/44**, live_connection_test.rb
+**10/66**, entrance_refresh_test.rb **2/5**, plugin_cache_test.rb **5/25**:
+**35 runs / 181 assertions**, all passed. Unit tests cover recovery of legacy
+dialogue state, preserved live/unrelated events and failure cleanup, smoothly
+changing margins, getter idempotence, continuous pose retargeting, duplicate
+pose stability and a teleport interrupting movement. Iterations exposed the
+interrupted-glide timer cleanup and partial-map test fixture omissions; fixed
+and reran. Native distance assertions now check drift and frame continuity
+rather than forcing a fixed radius during reversals. No two-PC GUI test is
+claimed. Receiving steps: close games, Arena Update on both PCs, Play-Arena.bat.
+The released-updater helper test also passed with all 55 current plugin scripts,
+including the new recovery plugin, deployed into an initially stale fixture.
+
 ## Follower synchronization, spacing and DS device art — 2026-11-02
 
 Arena Demo 0.24.1. 011 now relays the actual follower tile/direction as optional

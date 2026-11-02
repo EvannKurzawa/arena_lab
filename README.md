@@ -1,5 +1,17 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Dialogue de l'entrée et suivi fluide — Arena Demo 0.24.2
+
+Le dialogue héberger/visiter ne se rouvre plus à la reprise d'une sauvegarde
+faite pendant la connexion. Les anciennes sauvegardes concernées sont réparées
+en mémoire au chargement ; le guide reste accessible par interaction normale.
+Les suiveurs conservent leur trajectoire avec une petite marge lissée : la
+projection rigide sur un cercle est retirée, et les positions distantes sont
+interpolées depuis leur position affichée, sans saut à chaque nouveau message.
+
+Fermer les jeux, **Arena Update.exe** sur les deux PC, puis **Play-Arena.bat**.
+Validation : **71 contrôles natifs et 35 tests / 181 assertions réussis**.
+
 ## Suiveurs multijoueurs et sprites DS — Arena Demo 0.24.1
 
 Les suiveurs sont masqués pendant le sable mouvant et les téléportations,
