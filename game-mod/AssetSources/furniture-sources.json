@@ -270,21 +270,6 @@
     "packed_sha256": "2bea31978bd2f42fcf94ef10304f2dcba7157ee4ca8db3629a6d7a93261a9cf4"
   },
   {
-    "name": "rse-breakable-door",
-    "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/breakable-door.png",
-    "sha256": "f0fd1424416850601f36892ee6f51dc745b47074f16258f93de934a6f63acb3e",
-    "mask": "alpha",
-    "size": [
-      32,
-      64
-    ],
-    "visible_size": [
-      32,
-      64
-    ],
-    "packed_sha256": "55bcb26b7bc00996f103c2dbc35edfe6a71dd4a6b98d8254853ec5c5a140f665"
-  },
-  {
     "name": "rse-colorful-plant",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/colorful-plant.png",
     "sha256": "cc88b5e2de32c828338b9e24a153168e379c19aca509fa0349908d5716549c1d",
@@ -421,18 +406,24 @@
   },
   {
     "name": "rse-stand",
-    "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/stand.png",
-    "sha256": "b917d17ebb11eb269b675626ca6b9a924961d0fc888004229a050d13871415ea",
+    "url": "https://www.pokepedia.fr/images/5/56/Estrade_RSE.png",
+    "sha256": "f1838bcf771b28cf4f560e4df4e54a22e7b93e0d640e3e2b64e50f6a4d278eb1",
     "mask": "alpha",
-    "size": [
-      64,
-      64
-    ],
-    "visible_size": [
+    "rect": [
+      0,
+      0,
       64,
       32
     ],
-    "packed_sha256": "2e275b3a3d7aa850eece18b6cce283da103f68bcc66569f4a0230989a226cf2b"
+    "size": [
+      64,
+      96
+    ],
+    "visible_size": [
+      64,
+      96
+    ],
+    "packed_sha256": "ab5d9a7affea4a77626442e4f59d6bf1fe5a119bb5b9643e22df9b3ca2e5da7d"
   },
   {
     "name": "rse-tire",
@@ -467,23 +458,23 @@
   {
     "name": "tree-leafy",
     "rect": [
-      0,
-      0,
-      64,
-      64
+      96,
+      1952,
+      96,
+      96
     ],
     "mask": "alpha",
-    "url": "single rounded tree isolated from Essentials v21.1 Outside.png crop [96,1952,96,96]",
-    "sha256": "ec53f81b6e0a133f9c496fa6ca26071c3ffcd0b2a01bcd619878e2363ada6c5b",
+    "url": "single rounded tree from Essentials v21.1 Outside.png, isolated individual at [96,1952,96,96]",
+    "sha256": "3362ca6e7f87c4cfddd85b666170d998f2582434fd9b4a01353c268af06bd9de",
     "size": [
-      64,
-      64
+      96,
+      96
     ],
     "visible_size": [
-      64,
-      64
+      96,
+      96
     ],
-    "packed_sha256": "ec53f81b6e0a133f9c496fa6ca26071c3ffcd0b2a01bcd619878e2363ada6c5b"
+    "packed_sha256": "39f1141cb3b102f4386941c7566d864cfba8cc567b9c4913f272af776f752e96"
   },
   {
     "name": "tree-pine",
@@ -526,27 +517,6 @@
       21
     ],
     "packed_sha256": "0e4c3895906c36c66f3fc5056d423fbaf97c745020990f9b2ffef506d86d5760"
-  },
-  {
-    "name": "hgss-spikes",
-    "rect": [
-      96,
-      1016,
-      16,
-      32
-    ],
-    "mask": "pixel-spikes",
-    "url": "https://www.pokepedia.fr/images/1/16/Int%C3%A9rieur_Ar%C3%A8ne_%C3%89b%C3%A8nelle_HGSS.png",
-    "sha256": "81f33d0b80f596738d075f771e1d0178096417416bd9775c6c90aed188a8cdd4",
-    "size": [
-      32,
-      64
-    ],
-    "visible_size": [
-      32,
-      64
-    ],
-    "packed_sha256": "4b5c83ff4cea09ce5ad97689e0c845da6afd277ef9415dfd95ba1f4f5582a455"
   },
   {
     "name": "snowball",

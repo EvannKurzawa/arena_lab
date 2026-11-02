@@ -1,8 +1,8 @@
 # Original game decorations, delivered through SharedAssets by Arena Update.
 module ArenaDemo
+  RETIRED_FURNITURE = %w[ARENA_FURNITURE_HGSS_SPIKES ARENA_FURNITURE_RSE_BREAKABLE_DOOR].freeze
   EXTRA_FURNITURE_ART = {
     'rse-mud-ball' => 'Boule de Boue',
-    'rse-breakable-door' => 'Porte Cassable',
     'rse-sand-ornament' => 'Déco de Sable',
     'rse-solid-board' => 'Planche solide',
     'rse-stand' => 'Estrade',
@@ -35,7 +35,6 @@ module ArenaDemo
     'tree-leafy' => 'Arbre feuillu',
     'tree-pine' => 'Sapin',
     'hgss-red-carpet' => 'Tapis rouge',
-    'hgss-spikes' => 'Pics',
     'snowball' => 'Boule de neige'
   }.freeze
   EXTRA_FURNITURE = EXTRA_FURNITURE_ART.to_h { |stem, name|
@@ -48,62 +47,93 @@ module ArenaDemo
   }).freeze)
 
   module ExtraFurnitureIntegration
-    def custom_placements
-      placements = super
-      return placements if !$PokemonGlobal || (defined?(Visits) && Visits.snapshot)
-      return placements if $PokemonGlobal.arena_wide_furniture_layout_version.to_i >= 2
-      records = tile_edit_records
+    def purge_retired_furniture!(placements = nil)
+      return unless $PokemonGlobal
+      unless $PokemonGlobal.arena_retired_furniture_removed
+        if $bag && $bag.respond_to?(:pockets)
+          retired = RETIRED_FURNITURE
+          $bag.pockets.each do |pocket|
+            pocket.delete_if { |entry| entry.is_a?(Array) && retired.include?(entry[0].to_s) }
+          end
+        end
+        $PokemonGlobal.arena_retired_furniture_removed = true
+      end
+      placements.delete_if do |entry|
+        entry.is_a?(Hash) && entry['kind'] == 'furniture' && RETIRED_FURNITURE.include?(entry['item'].to_s)
+      end if placements
+    end
+
+    def migrate_raised_furniture!(placements, records)
       placements.dup.each do |placed|
         next unless placed['kind'] == 'furniture' && ArenaFurnitureRules.raised?(placed['item'])
-        next if placed['arena_under_surfaces']
-        anchor = [placed['x'],placed['y']]
-        old_key = tile_edit_key(*anchor)
-        saved_surface = placed['arena_under_surface']
-        records[old_key] = saved_surface.dup if saved_surface
-        records.delete(old_key) unless saved_surface
-        occupied = placements.reject { |p| p.equal?(placed) }.flat_map do |p|
-          ArenaFurnitureRules.cells(p['kind'] == 'furniture' ? p['item'] : nil,p['x'],p['y'])
+        item = placed['item'].to_s
+        saved = placed['arena_under_surfaces']
+        next if item == ArenaFurnitureRules::STAND && saved && saved.length >= 4
+        next if item != ArenaFurnitureRules::STAND && saved && saved.length >= 2
+        x, y = placed.values_at('x','y')
+        original = saved || [{ 'x'=>x,'y'=>y,'surface'=>placed['arena_under_surface'] }]
+        original.each do |entry|
+          key = tile_edit_key(entry['x'],entry['y'])
+          entry['surface'] ? records[key] = entry['surface'].dup : records.delete(key)
         end
-        candidates = [[anchor[0],anchor[1]]] +
-          (0...MAP_HEIGHT).flat_map { |cy| (0...MAP_WIDTH).map { |cx| [cx,cy] } }
-            .sort_by { |cx,cy| [(cx-anchor[0]).abs+(cy-anchor[1]).abs,cy,cx] }
-        destination = candidates.uniq.find do |cx,cy|
-          footprint = ArenaFurnitureRules.cells(placed['item'],cx,cy)
-          footprint.all? do |px,py|
-            state = tile_surface_state(records,px,py)
-            px.between?(0,MAP_WIDTH-1) && py.between?(0,MAP_HEIGHT-1) &&
-              !occupied.include?([px,py]) && !relief_reserved.include?([px,py]) &&
-              !tile_is_void?(px,py,records) && !relief_wall?(records,px,py) &&
-              state['height'].to_i == 0 && !state['stair'] &&
+        occupied = placements.reject { |other| other.equal?(placed) }.flat_map do |other|
+          ArenaFurnitureRules.cells(other['kind'] == 'furniture' ? other['item'] : nil,other['x'],other['y'])
+        end
+        preferred = item == ArenaFurnitureRules::STAND ? [x,y+2] : [x,y]
+        anchors = [preferred] + (0...MAP_HEIGHT).flat_map { |py| (0...MAP_WIDTH).map { |px| [px,py] } }
+          .sort_by { |px,py| [(px-preferred[0]).abs+(py-preferred[1]).abs,py,px] }
+        destination = anchors.uniq.find do |px,py|
+          cells = ArenaFurnitureRules.relief_cells(item,px,py)
+          floor = item == ArenaFurnitureRules::STAND ? [[px,py],[px+1,py]] : cells
+          all = (cells+floor).uniq
+          all.all? do |tx,ty|
+            next false unless tx.between?(0,MAP_WIDTH-1) && ty.between?(0,MAP_HEIGHT-1)
+            state = tile_surface_state(records,tx,ty)
+            !occupied.include?([tx,ty]) && !relief_reserved.include?([tx,ty]) &&
+              !tile_is_void?(tx,ty,records) && !relief_wall?(records,tx,ty) &&
+              relief_code(records,tx,ty).to_i == 0 && !state['stair'] &&
               !%w[quicksand water deep_water lava].include?(state['ground'])
           end
         end
         if destination
-          cx,cy = destination
-          under = ArenaFurnitureRules.cells(placed['item'],cx,cy).map do |px,py|
-            key = tile_edit_key(px,py)
-            original = records[key]&.dup
-            state = tile_surface_state(records,px,py)
-            records[key] = state.merge('height'=>1,'stair'=>nil,'platform_style'=>'wood','ground'=>'wood')
-            { 'x'=>px,'y'=>py,'surface'=>original }
+          px,py = destination
+          cells = ArenaFurnitureRules.relief_cells(item,px,py)
+          high = item == ArenaFurnitureRules::STAND ? [[px,py-2],[px+1,py-2]] : cells
+          stairs = item == ArenaFurnitureRules::STAND ? [[px,py-1],[px+1,py-1]] : []
+          under = cells.map do |tx,ty|
+            key = tile_edit_key(tx,ty)
+            original_surface = records[key]&.dup
+            state = tile_surface_state(records,tx,ty)
+            code = stairs.include?([tx,ty]) ? 8 : 1
+            records[key] = state.merge('height'=>1,'stair'=>code == 1 ? nil : code,
+              'platform_style'=>'wood','ground'=>'wood')
+            { 'x'=>tx,'y'=>ty,'surface'=>original_surface }
           end
-          placed['x'],placed['y'] = cx,cy
+          placed['x'],placed['y'] = px,py
           placed['arena_under_surfaces'] = under
           placed.delete('arena_under_surface')
-          ArenaFurnitureRules.cells(placed['item'],cx,cy).each do |px,py|
-            apply_tile_surface($game_map,px,py,tile_surface_state(records,px,py)) if $game_map
-          end
+          cells.each { |tx,ty| apply_tile_surface($game_map,tx,ty,tile_surface_state(records,tx,ty)) if $game_map }
         elsif $bag.add(placement_item(placed),1)
           placements.delete(placed)
         else
-          # Keep the legacy one-tile relief intact if there is no safe
-          # two-cell location and the item cannot be returned to the Bag.
-          placed['arena_under_surface'] = saved_surface
-          saved_surface ? records[old_key] = saved_surface.dup : records.delete(old_key)
+          original.each do |entry|
+            key = tile_edit_key(entry['x'],entry['y'])
+            entry['surface'] ? records[key] = entry['surface'].dup : records.delete(key)
+          end
         end
       end
+    end
+
+    def custom_placements
+      placements = super
+      purge_retired_furniture!(placements) unless defined?(Visits) && Visits.snapshot
+      return placements if !$PokemonGlobal || (defined?(Visits) && Visits.snapshot)
+      return placements if $PokemonGlobal.arena_wide_furniture_layout_version.to_i >= 3
+      records = tile_edit_records
+      migrate_raised_furniture!(placements,records)
       placements.dup.each do |placed|
         next unless placed['kind'] == 'furniture' && ArenaFurnitureRules.width(placed['item']) > 1
+        next if placed['item'].to_s == ArenaFurnitureRules::STAND
         others = placements.reject { |p| p.equal?(placed) }.flat_map do |p|
           ArenaFurnitureRules.cells(p['kind'] == 'furniture' ? p['item'] : nil,p['x'],p['y'])
         end
@@ -126,7 +156,7 @@ module ArenaDemo
           placements.delete(placed)
         end
       end
-      $PokemonGlobal.arena_wide_furniture_layout_version = 2
+      $PokemonGlobal.arena_wide_furniture_layout_version = 3
       placements
     end
 
@@ -154,6 +184,7 @@ module ArenaDemo
 
     def ensure_custom_inventory
       super
+      purge_retired_furniture!($PokemonGlobal&.arena_demo_placements)
       return unless $PokemonGlobal && $bag
       return if $PokemonGlobal.arena_extra_furniture_stock_added
       placed = $PokemonGlobal.arena_demo_placements || []
@@ -199,10 +230,24 @@ module ArenaDemo
     def valid_relief_records?(records, placements)
       return false unless super
       grid = relief_grid(records)
-      positions = placements.flat_map { |p| ArenaFurnitureRules.cells(p['kind'] == 'furniture' ? p['item'] : nil,p['x'],p['y']) }
-      positions.all? { |x,y| !ArenaRelief.wall?(grid,x,y) && ArenaRelief.at(grid,x,y).to_i <= 1 } &&
-        positions.length == positions.uniq.length && placements.all? do |p|
-          ArenaFurnitureRules.cells(p['kind'] == 'furniture' ? p['item'] : nil,p['x'],p['y']).map { |x,y| ArenaRelief.at(grid,x,y) }.uniq.length == 1
+      cells = placements.flat_map { |p| ArenaFurnitureRules.cells(p['kind'] == 'furniture' ? p['item'] : nil,p['x'],p['y']) }
+      surfaces = placements.flat_map do |p|
+        if p['kind'] == 'furniture' && p['item'].to_s == ArenaFurnitureRules::STAND
+          [[p['x'],p['y']-2],[p['x']+1,p['y']-2],[p['x'],p['y']],[p['x']+1,p['y']]]
+        else
+          ArenaFurnitureRules.cells(p['kind'] == 'furniture' ? p['item'] : nil,p['x'],p['y'])
+        end
+      end
+      surfaces.all? { |x,y| !ArenaRelief.wall?(grid,x,y) && ArenaRelief.at(grid,x,y).to_i <= 1 } &&
+        cells.length == cells.uniq.length && placements.all? do |p|
+          x,y = p.values_at('x','y')
+          if p['kind'] == 'furniture' && p['item'].to_s == ArenaFurnitureRules::STAND
+            [[x,y-2],[x+1,y-2]].all? { |px,py| ArenaRelief.at(grid,px,py) == 1 } &&
+              [[x,y-1],[x+1,y-1]].all? { |px,py| ArenaRelief.at(grid,px,py) == 8 } &&
+              [[x,y],[x+1,y]].all? { |px,py| ArenaRelief.at(grid,px,py) == 0 }
+          else
+            ArenaFurnitureRules.cells(p['kind'] == 'furniture' ? p['item'] : nil,x,y).map { |px,py| ArenaRelief.at(grid,px,py) }.uniq.length == 1
+          end
         end
     end
 
@@ -215,7 +260,8 @@ module ArenaDemo
     def editor_apply_placement(placements, records, kind, selected, x, y)
       current = editor_occupied(placements, x, y)
       removing = selected[:action] == :remove
-      if !removing && kind == 'furniture' && ArenaFurnitureRules.width(selected[:item]) > 1
+      if !removing && kind == 'furniture' && ArenaFurnitureRules.width(selected[:item]) > 1 &&
+         selected[:item].to_s != ArenaFurnitureRules::STAND
         cells = ArenaFurnitureRules.cells(selected[:item],x,y)
         level = relief_code(records,x,y)
         valid = cells.all? do |px,py|
@@ -239,7 +285,7 @@ module ArenaDemo
       end
       anchor_x, anchor_y = removing ? current.values_at('x','y') : [x,y]
       item = removing ? placement_item(current) : selected[:item]
-      footprint = ArenaFurnitureRules.cells(item,anchor_x,anchor_y)
+      footprint = ArenaFurnitureRules.relief_cells(item,anchor_x,anchor_y)
       candidate = records.dup
       if removing
         saved = current['arena_under_surfaces'] || [{ 'x'=>anchor_x, 'y'=>anchor_y,
@@ -250,18 +296,25 @@ module ArenaDemo
         end
         proposed = placements - [current]
       else
-        states = footprint.map { |px,py| [px,py,tile_surface_state(records,px,py)] }
+        is_stand = item.to_s == ArenaFurnitureRules::STAND
+        top = is_stand ? [[anchor_x,anchor_y-2],[anchor_x+1,anchor_y-2]] : footprint
+        stairs = is_stand ? [[anchor_x,anchor_y-1],[anchor_x+1,anchor_y-1]] : []
+        low = is_stand ? [[anchor_x,anchor_y],[anchor_x+1,anchor_y]] : []
+        all = (top+stairs+low).uniq
+        states = all.map { |px,py| [px,py,tile_surface_state(records,px,py)] }
         valid = states.all? do |px,py,state|
           state['height'].to_i == 0 && !state['stair'] && !relief_wall?(records,px,py) &&
             !tile_is_void?(px,py,records) && !%w[quicksand water deep_water lava].include?(state['ground']) &&
-            !relief_reserved.include?([px,py])
+            !relief_reserved.include?([px,py]) && !editor_occupied(placements,px,py)
         end
         unless valid && furniture_placements(placements).length < MAX_ARENA_FURNITURE
           pbMessage("Choisissez un sol bas libre et sec pour ce meuble surélevé.")
           return false
         end
-        under_surfaces = states.map do |px,py,state|
-          candidate[tile_edit_key(px,py)] = state.merge('height' => 1, 'stair' => nil,
+        under_surfaces = footprint.map do |px,py|
+          state = tile_surface_state(records,px,py)
+          stair = stairs.include?([px,py])
+          candidate[tile_edit_key(px,py)] = state.merge('height' => 1, 'stair' => stair ? 8 : nil,
             'platform_style' => 'wood', 'ground' => 'wood')
           { 'x'=>px, 'y'=>py, 'surface'=>records[tile_edit_key(px,py)]&.dup }
         end
@@ -324,6 +377,7 @@ end
 class PokemonGlobalMetadata
   attr_accessor :arena_extra_furniture_stock_added
   attr_accessor :arena_wide_furniture_layout_version
+  attr_accessor :arena_retired_furniture_removed
 end
 ArenaDemo.singleton_class.prepend(ArenaDemo::ExtraFurnitureIntegration)
 Sprite_Character.prepend(ArenaDemo::ExtraFurnitureFloorGraphic) if defined?(Sprite_Character)

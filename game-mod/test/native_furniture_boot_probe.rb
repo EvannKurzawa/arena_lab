@@ -111,7 +111,7 @@ module ArenaDemo::NativeFurnitureProbe
         shots << [$furniture_picker_shot, path.sub(/\.log$/, suffix)]
       end
       check.call(before == Marshal.dump([$bag, $PokemonGlobal]), 'browsing and cancelling never changes stock or layout')
-      check.call(ArenaDemo::EXTRA_FURNITURE.length == 36, '36 extra furniture types')
+      check.call(ArenaDemo::EXTRA_FURNITURE.length == 34, '34 extra furniture types')
       check.call(ArenaDemo::EXTRA_FURNITURE.keys.all? { |item| $bag.quantity(item) == 2 }, 'extra stock granted once')
       placements.clear
       records.clear
@@ -127,7 +127,12 @@ module ArenaDemo::NativeFurnitureProbe
         check.call(event.width == ArenaFurnitureRules.width(item), "extra native footprint: #{item}")
         check.call(sprite.visible && sprite.y == event.screen_y, "raised furniture remains visible and aligned: #{item}") if ArenaFurnitureRules.raised?(item)
         check.call(event.through == ArenaFurnitureRules.walkable?(item), "extra native collision: #{item}")
-        check.call(ArenaDemo.relief_code(records, x, y) == 1, "raised native floor: #{item}") if ArenaFurnitureRules.raised?(item)
+        if item.to_s == ArenaFurnitureRules::STAND
+          check.call(ArenaDemo.relief_code(records,x,y-2) == 1 && ArenaDemo.relief_code(records,x,y-1) == 8 && ArenaDemo.relief_code(records,x,y) == 0,
+            'stand native floor, integrated stairs, and platform')
+        elsif ArenaFurnitureRules.raised?(item)
+          check.call(ArenaDemo.relief_code(records,x,y) == 1, "raised native floor: #{item}")
+        end
         sprites << sprite
       end
       payload = ArenaDemo.visit_snapshot_payload

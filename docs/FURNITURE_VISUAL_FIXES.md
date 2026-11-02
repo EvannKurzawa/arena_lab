@@ -1,13 +1,11 @@
-# Mobilier : corrections visuelles 0.25.3
+# Mobilier : corrections visuelles 0.25.4
 
-La révision 0.25.3 redessine les pics comme une paire de pointes de pierre,
-sans la base noire ni les pixels rouges du fragment HGSS d'origine. L'arbre
-reprend le feuillage arrondi précédent, isolé en un seul arbre. L'étincelle
-Tesla a un noyau plus large et plus lumineux, avec un contour électrique
-irrégulier. L'estrade et la planche occupent maintenant deux cases côte à côte :
-plateau en bois à l'échelle du jeu, tapis rouge central pour l'estrade, paroi
-bois générée par le relief natif. Les anciennes poses sont migrées avec leur
-sol sous-jacent enregistré pour chaque case. Les PNG finaux sont générés par
+La révision 0.25.4 retire Pics et Porte Cassable du catalogue, du Sac et des
+graphismes; les anciennes sauvegardes perdent leurs poses et leur stock.
+L'arbre feuillu utilise la silhouette individuelle du tileset. L'étincelle
+Tesla est un éclat électrique plus organique en pixel art. L'estrade reprend
+`Estrade_RSE.png` sur deux niveaux : sol bas, escalier intégré et plateforme.
+Les anciennes poses sont migrées sans perdre le sol sous-jacent. Les PNG finaux sont générés par
 `tools/build-extra-furniture-art.rb` et installés par Arena Update/Play-Arena.
 
 La révision 0.25.2 précédente retirait déjà les pixels rouges, abaissait le
@@ -24,14 +22,14 @@ Les descriptions du masquage des sprites ci-dessous concernent la 0.25.1.
 
 Les identifiants des objets sont conservés : pas de nouvel achat ni de nouvelle
 dotation. Les noms du Sac sont rafraîchis même lorsqu'ils proviennent de données
-compilées plus anciennes : Tapis rouge, Pics, Plante en pot, Jolies fleurs,
+compilées plus anciennes : Tapis rouge, Plante en pot, Jolies fleurs,
 Bouquet de fleurs. Les mentions HGSS/Hoenn/Sinnoh sont retirées des noms.
 
 | Objets | Correction |
 |---|---|
 | Boule de neige | Recadrage sur la boule seule, alpha autour du contour ; aucun escalier/support |
 | Tapis rouge | Suppression de la bordure opaque extérieure, contour rouge conservé |
-| Arbre feuillu | Arbre entier, dessin 64 × 64, collision 2 × 1 cases |
+| Arbre feuillu | Arbre individuel du tileset, dessin 96 × 96, collision 2 × 1 cases |
 | Sapin | Dessin 64 × 96, collision 2 × 1 cases |
 | Machine de laboratoire | Dessin 64 × 76, collision 2 × 1 cases |
 | Set de barils | Dessin 64 × 76, collision 2 × 1 cases |
@@ -40,7 +38,7 @@ Bouquet de fleurs. Les mentions HGSS/Hoenn/Sinnoh sont retirées des noms.
 | Lampe | Dessin 18 × 36, collision 1 case |
 | Plantes / fleurs | Limites respectives 24 × 32 et 20 × 30, proportions conservées |
 | Chandelier | Nouveau pixel art lisible, limité à 24 × 40, alpha réel |
-| Estrade / planche | Une seule représentation : sommet et paroi du relief natif |
+| Estrade / planche | Estrade à deux niveaux; planche et relief natifs |
 
 Les sprites peuvent dépasser vers le haut sans bloquer la case sous leur cime.
 Les six meubles larges réservent deux cases côte à côte au même niveau,
@@ -57,7 +55,7 @@ fois. Le catalogue utilise le même dessin que le relief. L'accès reste régi p
 les plateformes et escaliers existants.
 
 Fermer les jeux, Arena Update.exe sur les deux PC, puis Play-Arena.bat.
-Les 36 PNG finaux sont dans `game-mod/SharedAssets/Graphics/ArenaFurniture/`.
+Les 34 PNG finaux sont dans `game-mod/SharedAssets/Graphics/ArenaFurniture/`.
 Les anciennes images restent récupérables dans l'historique Git ; l'installateur
 conserve aussi les versions locales remplacées dans `arena-asset-backups/`.
 Les rectangles, dimensions visibles et SHA-256 figurent dans
@@ -69,6 +67,17 @@ inspectée visuellement. Les tests natifs utilisent une copie jetable, sans
 sauvegarde personnelle ; aucune nouvelle session manuelle entre deux PC n'est
 revendiquée. Les tests TCP vérifient notamment le rejet d'un chevauchement sur
 la deuxième case et l'annonce de la nouvelle capacité du serveur.
+
+## Estrade RSE : sprite exact et escalier intégré
+
+Source originale consultée : [Estrade RSE sur Poképédia](https://www.pokepedia.fr/Fichier%3AEstrade_RSE.png).
+Le plateau source est conservé sans redessin. La forme de deux cases de large
+est suivie d'un rang d'escalier intégré; le rang bas reste au sol. Le relief
+stocke hauteur 1 sur le plateau et code 8 sur les deux cases de l'escalier,
+qui monte vers le nord. Le placement réserve plateau et marches; le sol bas
+reste praticable. Retirer l'estrade restaure les surfaces des quatre cases
+modifiées. Les anciennes estrades sont migrées vers cette disposition, ou
+retournent au Sac si aucune place sûre n'existe.
 
 ## Chandelier : génération et consigne exacte
 

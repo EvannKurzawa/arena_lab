@@ -11,7 +11,7 @@ class ExtraFurnitureTest < FurnitureCatalogTest
     $PokemonGlobal.arena_custom_stock_added = true
     stock
     assert $PokemonGlobal.arena_extra_furniture_stock_added
-    assert_equal 36, ArenaDemo::EXTRA_FURNITURE.length
+    assert_equal 34, ArenaDemo::EXTRA_FURNITURE.length
     ArenaDemo::EXTRA_FURNITURE.each_key { |item| assert_equal 2, $bag.quantity(item) }
     item = ArenaDemo::EXTRA_FURNITURE.keys.first
     $bag.remove(item, 2)
@@ -29,12 +29,14 @@ class ExtraFurnitureTest < FurnitureCatalogTest
     ArenaDemo.stub(:refresh_custom_placements, nil) do
       ArenaDemo.stub(:apply_tile_surface, nil) do
         assert ArenaDemo.editor_apply_placement(placements, records, 'furniture', { item: item }, 44, 44)
-        assert_equal 1, ArenaDemo.relief_code(records, 44, 44)
+        assert_equal 1, ArenaDemo.relief_code(records, 44, 42)
+        assert_equal 8, ArenaDemo.relief_code(records, 44, 43)
+        assert_equal 0, ArenaDemo.relief_code(records, 44, 44)
         assert_equal 1, $bag.quantity(item)
         payload = ArenaDemo.visit_snapshot_payload
         decoded = ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], payload[:relief], payload[:styles])
         assert decoded
-        assert_equal 1, decoded[:tile_edits]['44,44']['height']
+        assert_equal 1, decoded[:tile_edits]['44,42']['height']
         assert_equal item.to_s, decoded[:placements][0]['item']
         assert_equal placements, Marshal.load(Marshal.dump(placements))
         assert ArenaDemo.editor_apply_placement(placements, records, 'furniture', { action: :remove }, 44, 44)
@@ -68,7 +70,6 @@ class ExtraFurnitureTest < FurnitureCatalogTest
       assert_equal !ArenaFurnitureRules.walkable?(item), ArenaDevices.blocked?(item, 0, []), item.to_s
     end
     assert ArenaDevices.blocked?('ARENA_FURNITURE_SNOWBALL', 0, [])
-    assert ArenaDevices.blocked?('ARENA_FURNITURE_RSE_BREAKABLE_DOOR', 0, [])
   end
 
   def test_each_extra_asset_is_visible_and_available_to_the_catalogue
@@ -77,7 +78,8 @@ class ExtraFurnitureTest < FurnitureCatalogTest
       assert ArenaDemo.catalog_furniture?(item)
       assert File.file?(File.expand_path("../SharedAssets/Graphics/ArenaFurniture/#{stem}.png", __dir__))
       art = ArenaDemo.furniture_bitmap(item)
-      assert_equal ArenaFurnitureRules.width(item) * 32, art.width
+      expected_width = item.to_s == 'ARENA_FURNITURE_TREE_LEAFY' ? 96 : ArenaFurnitureRules.width(item) * 32
+      assert_equal expected_width, art.width
       assert_includes [64,96], art.height
       assert (0...art.height).any? { |y| (0...art.width).any? { |x| art.get_pixel(x, y).alpha > 0 } }, stem
       assert_equal [96, 96], [ArenaDemo.furniture_catalog_preview(item: item).width, ArenaDemo.furniture_catalog_preview(item: item).height]

@@ -1,12 +1,12 @@
 # Pokémon Arena Manager — Codex Project Brief
 
-## Mobilier et étincelle — Arena Demo 0.25.3
+## Mobilier et étincelle — Arena Demo 0.25.4
 
-Pics redessinés sans la plateforme noire/rouge, arbre feuillu arrondi isolé,
-étincelle Tesla plus pleine en pixel art. Estrade et planche couvrent deux
-cases, avec dessus en bois assorti à la paroi du relief. Les anciennes estrades
-sont migrées sans perdre le sol dessous. Fermer les jeux, **Arena Update.exe**,
-puis **Play-Arena.bat** sur les deux PC.
+Pics et Porte Cassable retirés du catalogue, du Sac et des ressources. Arbre
+feuillu recadré sur l'arbre individuel du tileset. Étincelle Tesla redessinée
+en éclat électrique pixel art. Estrade RSE restaurée : sa plateforme sur deux
+niveaux intègre un escalier jusqu'au plateau. Fermer les jeux,
+**Arena Update.exe**, puis **Play-Arena.bat** sur les deux PC.
 
 ## Mobilier : découpes et proportions corrigées — Arena Demo 0.25.1
 
@@ -26,14 +26,14 @@ Voir [les corrections et la consigne du chandelier](docs/FURNITURE_VISUAL_FIXES.
 
 Validation : **266 contrôles natifs et 78 tests / 2 607 assertions réussis**.
 
-## Mobilier original et compilation du Pokédex — Arena Demo 0.25.0
+## Mobilier original et compilation du Pokédex — Arena Demo 0.25.4
 
-**36 nouveaux meubles** dans Personnalisation → Meubles : végétation, arbres,
-boule de neige, décorations de Hoenn/Sinnoh, machines, stockage, éclairage,
-statue, tapis rouge et pics HGSS. Deux exemplaires par nouveauté, une seule
-fois par profil. Décorations solides, sauf tapis traversable et estrade/planche
-solide qui créent un niveau de plateforme, accessible avec les escaliers de
-l'éditeur. Les images sont incluses dans la mise à jour.
+**34 meubles** dans Personnalisation → Meubles : végétation, arbres, boule de
+neige, décorations Hoenn/Sinnoh, machines, stockage, éclairage, statue et tapis
+rouge. Pics et Porte Cassable ont été retirés, ainsi que les exemplaires des
+anciennes sauvegardes. Deux exemplaires de chaque nouveauté sont ajoutés une
+seule fois par profil. L'estrade RSE comprend son escalier vers la plateforme.
+Les images sont incluses dans la mise à jour.
 
 Corrige la compilation « PERRSERKER non définie » : le filtre du Pokédex ne
 tronque plus les exports du compilateur. La préparation répare les dépendances

@@ -1,5 +1,27 @@
 # Setup and implementation status
 
+## Furniture removal and integrated RSE stand — 2026-11-02
+
+Arena Demo 0.25.4. Removed HGSS spikes and the breakable door from the stock
+catalog, generated asset manifest, and SharedAssets sprites. On first use of an
+existing save, migration removes their Bag entries and saved arena placements
+before rendering; other inventory and surfaces remain intact.
+
+Restored the exact `Estrade_RSE.png` source from the Poképédia page provided by
+the user. It spans the two-cell raised platform and has a built-in two-cell
+north-facing stair run plus a low approach. Relief encodes the platform as
+height 1 and the stairs as code 8. Placement, removal, save migration,
+footprints, multiplayer visit validation, and server occupancy use this shape.
+Older one-level stands migrate to the nearest clear footprint while retaining
+under-surface records; if no safe placement exists, the stand returns to the
+Bag. The leafy tree crop uses the individual tree at `[96,1952,96,96]` in
+Essentials `Outside.png`, rather than the chop-tree character graphic. Tesla's
+spark uses a filled irregular blue core and branching pixel highlights.
+
+The 34-asset manifest and PNGs use the existing Arena Update/Play-Arena path.
+No client launch or automated tests were run for this revision; the sprite
+source files were inspected separately.
+
 ## Furniture art and raised platforms — 2026-11-02
 
 Arena Demo 0.25.3. Replaced the fragile HGSS spike crop with a manually

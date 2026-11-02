@@ -1,27 +1,33 @@
 # Mobilier de base pour la personnalisation — 2026-11-01
 
-## Révision visuelle 0.25.3 — 2026-11-02
+## Révision visuelle 0.25.4 — 2026-11-02
 
 Les nouveaux meubles ont maintenant des proportions propres à chaque objet,
 des découpes corrigées et des noms courts. Arbre feuillu, sapin, machine de
-laboratoire et set de barils occupent deux cases de large ; les collisions,
+laboratoire, set de barils, estrade et planche occupent deux cases de large ; les collisions,
 le retrait depuis l'une ou l'autre case et les visites utilisent cette même
 empreinte. Les meubles qui occupent désormais deux cases sont décalés au
 minimum seulement si la deuxième case est occupée ; si aucune place sûre ne
 convient au même niveau, l'objet retourne au Sac. Les autres placements sont
 conservés.
-Les pics sont des pointes de pierre sans fragments rouges/noirs, l'arbre feuillu
-est isolé avec sa silhouette arrondie, et l'étincelle Tesla a un cœur plus plein.
-Estrade et planche ont un plateau en bois de deux cases, assorti à la paroi
-du relief. Les anciennes poses sont migrées en conservant le sol sous les deux
-cases. Le tapis n'a plus de fond opaque et la neige n'inclut plus d'escalier.
+Pics et Porte Cassable sont retirés du catalogue, du Sac, des poses sauvegardées
+et des ressources livrées. Les 34 autres meubles restent disponibles.
+L'arbre feuillu vient du seul arbre individuel à droite du groupe de feuillus
+dans le tileset `Outside.png`.
+L'étincelle Tesla a un noyau irrégulier plus plein. L'estrade reprend son sprite
+RSE original : sol bas, escalier intégré, puis plateforme surélevée. Son
+empreinte réserve le plateau et les marches, et garde le sol d'approche libre.
+Le relief et le sprite partagent ces deux niveaux; les anciennes poses sont migrées en
+conservant le sol dessous. Le tapis n'a pas de fond opaque et la boule de neige
+n'inclut aucun escalier.
 Voir [les tailles, l'aperçu et le chandelier](FURNITURE_VISUAL_FIXES.md).
 Les sections 0.25.0 et précédentes ci-dessous sont historiques.
 
 ## Extension 0.25.0 — 2026-11-02
 
-Ajoute **36 références** aux 20 meubles précédents et aux trois obstacles,
-soit 59 types de mobilier classique, en plus des appareils interactifs.
+À son lancement, la révision 0.25.0 ajoutait **36 références** aux 20 meubles
+précédents et aux trois obstacles, soit 59 types classiques. Pics et Porte
+Cassable ont été retirés en 0.25.4; le catalogue actuel compte 34 nouveautés.
 
 | Famille | Nouveautés |
 |---|---|
@@ -31,9 +37,9 @@ soit 59 types de mobilier classique, en plus des appareils interactifs.
 | Machines et stockage | Machine de laboratoire, machine de soin, baril, set de barils, caisse, carton, conteneur, poubelle, poutres métalliques |
 | Ornements | Cogne-Cogne, chandelier, lampe, statue d'arène, boule de neige, tapis rouge d'entrée HGSS, pics d'Ébènelle HGSS |
 
-Choix utilisateur : Boule de Boue, Porte Cassable, Déco de Sable et Cogne-Cogne
-sont des **décorations avec collisions**. Les machines sont aussi décoratives.
-La boule de neige et les pics sont solides, sans dégâts ou mini-jeu.
+Choix utilisateur : Boule de Boue, Déco de Sable et Cogne-Cogne sont des
+**décorations avec collisions**. Les machines sont aussi décoratives. La boule
+de neige est solide, sans dégâts ou mini-jeu.
 Le tapis est traversable. Estrade et planche solide créent un sommet de hauteur
 1 sur deux cases avec le relief natif ; l'accès se construit avec les escaliers de l'éditeur.
 Le retrait restaure le sol précédent et refuse de supprimer l'appui d'un
@@ -45,7 +51,7 @@ y compris sur les profils existants. Placement, annulation, sauvegarde et
 visite utilisent l'éditeur et le format réseau existants. Le serveur connaît
 les trois meubles traversables ; le lanceur détecte les anciens services.
 Mettre à jour les deux PC avec **Arena Update.exe**, puis **Play-Arena.bat**.
-Les 36 PNG de `game-mod/SharedAssets/Graphics/ArenaFurniture/` sont copiés
+Les 34 PNG de `game-mod/SharedAssets/Graphics/ArenaFurniture/` sont copiés
 automatiquement : aucun téléchargement ou transfert d'image séparé à faire.
 
 Cette extension utilise des images originales des jeux, redimensionnées avec
