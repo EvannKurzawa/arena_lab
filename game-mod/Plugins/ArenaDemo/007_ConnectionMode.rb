@@ -6,6 +6,14 @@ module ArenaDemo
     def offline?; @mode != :online; end
     def authenticating?; !!@authenticating; end
     def host_mode?; !!@host_mode; end
+    def multiplayer_available?
+      !!(defined?(::PEMK::Auth) && defined?(::PEMK::Sync) && defined?(::PEMK::Remotes))
+    end
+    def require_multiplayer
+      return true if multiplayer_available?
+      pbMessage("Le module multijoueur PEMK n'a pas ete charge. Fermez le jeu, lancez Arena Update puis Play-Arena.bat pour reparer l'installation.")
+      false
+    end
     def base_save; @base_save ||= SaveData::FILE_PATH; end
     def offline_save
       path = base_save
@@ -28,6 +36,13 @@ module ArenaDemo
       @mode = value
     end
     def stop_connection
+      unless multiplayer_available?
+        Visits.reset
+        @host = nil
+        @host_mode = @authenticating = false
+        @mode = :offline
+        return
+      end
       PEMK::Auth.abort_login!
       PEMK::Auth.instance_variable_set(:@account_id, nil)
       PEMK.set_self_id(nil)
@@ -99,6 +114,7 @@ module ArenaDemo
       false
     end
     def connect(host, host_mode = false)
+      return false unless require_multiplayer
       unless $game_map && $game_map.map_id == ENTRANCE_MAP_ID && !Visits.locked? && !$game_temp.in_battle
         pbMessage("Connect from the arena entrance after closing any active visit.")
         return false
@@ -160,13 +176,14 @@ module ArenaDemo
       true
     end
     def status
-      return "Offline" if offline? || !PEMK::Auth.logged_in? || !ArenaDemo.connected?
+      return "Offline" if !multiplayer_available? || offline? || !PEMK::Auth.logged_in? || !ArenaDemo.connected?
       return "Visiting" if Visits.guest?
       return "Hosting" if Visits.hosting?
       "Connected"
     end
 
     def find_arena_to_visit
+      return false unless require_multiplayer
       pbMessage("Searching for arenas on your local network...")
       hosts = ArenaDemo::LanDiscovery.discover
       if hosts.empty?
@@ -191,6 +208,7 @@ module ArenaDemo
       false
     end
     def attendant
+      return false unless require_multiplayer
       unless $game_map && $game_map.map_id == ENTRANCE_MAP_ID
         pbMessage("Talk to the attendant in the arena entrance to host, join or go offline.")
         return false

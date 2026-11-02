@@ -1,5 +1,29 @@
 # Setup and implementation status
 
+## Missing PEMK at entrance attendant — 2026-11-02
+
+User reported NameError in 007 stop_connection from the LAN visit flow on
+map 102. Inspection found sync-plugin-cache.rb refreshed Arena Demo and
+Following Pokemon EX but never added PEMK to an existing cache lacking it.
+Such a cache runs Arena Demo without PEMK or its conditional connection hooks.
+The synchronizer now compiles installed PEMK sources and ensures PEMK precedes
+Arena Demo, including a cache with reversed entries. Prepare also restores a
+PEMK folder missing metadata from the pinned local kit source. No upstream
+patches, save changes or protocol changes.
+
+007 now refuses host/visit/connect with repair instructions when PEMK is
+missing, before saving or LAN discovery, and supports offline cleanup/status.
+Tests: plugin_cache_test.rb 5 runs / 25 assertions; live_connection_test.rb
+10 runs / 66 assertions; missing_multiplayer_test.rb 1 run / 1 assertion
+(isolated process checks offline cleanup/status and all three guarded entry
+points without defining PEMK, Game.save or LAN discovery). All passed.
+Updated outdated live-connection fixtures for LAN selection and request_pending?.
+The first run exposed those two fixture errors; fixed and reran successfully.
+The isolated probe initially stalled with multiline Windows -e arguments;
+using a temporary script file resolved it. No GUI or two-client connection
+claimed. Receiving PC steps: close game, Arena Update.exe, Play-Arena.bat,
+then retry the entrance attendant. No manual cache deletion required.
+
 ## Shared assets through Arena Update — 2026-11-02
 
 User explicitly requested that Arena Update.exe carry Gold and future game

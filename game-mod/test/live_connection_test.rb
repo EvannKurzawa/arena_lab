@@ -18,6 +18,8 @@ module ArenaDemo
       def locked?; !!@locked; end
       def ready?; !!@ready; end
       def guest?; !!@guest; end
+      def request_pending?; false; end
+      def request_visit; @requested = true; end
       def reset; @locked = @ready = @guest = @opened = false; end
       def now; @clock = (@clock || 0) + 0.1; end
       def pump; @ready = $service_ready && ArenaDemo.connected?; end
@@ -26,6 +28,9 @@ module ArenaDemo
       def attendant; $visit_menu_shown = true; end
     end
   end
+end
+module ArenaDemo::LanDiscovery
+  def self.discover; []; end
 end
 module PEMK
   class << self
@@ -213,9 +218,11 @@ class LiveConnectionTest < Minitest::Test
   end
 
   def test_joining_a_remote_host_never_starts_a_local_server
-    $choices = [1]
+    $choices = [1, 0]
     $host_input = '192.168.1.10'
-    @mode.stub(:request_host, -> { raise 'Join must not start a server' }) { @mode.attendant }
+    ArenaDemo::LanDiscovery.stub(:discover, [{ name: 'Host', address: $host_input }]) do
+      @mode.stub(:request_host, -> { raise 'Join must not start a server' }) { @mode.attendant }
+    end
     assert_equal '192.168.1.10', PEMK.settings[:host]
     assert_equal 9998, PEMK.settings[:port]
     assert_equal 'session.dat.192_168_1_10', PEMK::Auth.token_file

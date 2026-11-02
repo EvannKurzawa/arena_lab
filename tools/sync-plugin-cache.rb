@@ -2,7 +2,7 @@
 require 'zlib'
 require 'digest'
 
-# Update only our entry in an already compiled, trusted local Essentials cache.
+# Refresh installed arena plugins and PEMK in a trusted local Essentials cache.
 # This avoids a stale plugin when cache/source mtimes came from different clocks.
 project = File.expand_path(ARGV.fetch(0))
 plugin = File.join(project, 'Plugins', 'ArenaDemo')
@@ -18,12 +18,15 @@ abort 'Unexpected plugin cache format' unless entries.is_a?(Array)
 
 changed = false
 targets = [
+  ['PEMK', File.join(project, 'Plugins', 'PEMK')],
   ['Arena Demo', File.join(project, 'Plugins', 'ArenaDemo')],
   ['Following Pokemon EX', File.join(project, 'Plugins', 'Following Pokemon EX')]
 ]
 targets.each do |name, plugin_dir|
   metadata = File.join(plugin_dir, 'meta.txt')
   unless File.file?(metadata)
+    # Older installations can keep PEMK only in the compiled cache.
+    next if name == 'PEMK'
     stale_count = entries.count { |entry| entry.is_a?(Array) && entry[0] == name }
     if stale_count > 0
       entries.delete_if { |entry| entry.is_a?(Array) && entry[0] == name }
@@ -54,6 +57,14 @@ targets.each do |name, plugin_dir|
   entry[2] = scripts
   changed = true
   puts "Updated #{name} in the compiled plugin cache (#{files.length} scripts)."
+end
+
+peer_index = entries.index { |entry| entry.is_a?(Array) && entry[0] == 'PEMK' }
+arena_index = entries.index { |entry| entry.is_a?(Array) && entry[0] == 'Arena Demo' }
+if peer_index && arena_index && peer_index > arena_index
+  entries.insert(arena_index, entries.delete_at(peer_index))
+  changed = true
+  puts 'Moved PEMK before Arena Demo so connection hooks load correctly.'
 end
 
 if changed

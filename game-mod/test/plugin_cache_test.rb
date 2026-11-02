@@ -37,11 +37,11 @@ class PluginCacheTest < Minitest::Test
     assert_equal '0.7.0', entries[1][1][:version]
     assert_equal ['21.1'], entries[1][1][:essentials]
     assert_equal @new_code, Zlib::Inflate.inflate(entries[1][2][0][1])
-    assert_equal @old, File.binread(@cache + '.before-arena-0.7.0.bak')
-    assert_includes output, 'cache verified'
+    assert_equal @old, File.binread(@cache + '.before-arena-plugin-sync.bak')
+    assert_includes output, 'Updated Arena Demo'
     _output, error, status = run_update
     assert status.success?, error
-    assert_equal @old, File.binread(@cache + '.before-arena-0.7.0.bak')
+    assert_equal @old, File.binread(@cache + '.before-arena-plugin-sync.bak')
   end
   def test_unexpected_format_is_refused_without_overwriting_the_cache
     File.binwrite(@cache, Marshal.dump(:unexpected))
@@ -50,6 +50,28 @@ class PluginCacheTest < Minitest::Test
     refute status.success?
     assert_includes error, 'Unexpected plugin cache format'
     assert_equal before, File.binread(@cache)
+  end
+  def test_missing_pemk_is_compiled_and_loaded_before_arena
+    peer = File.join(@project, 'Plugins', 'PEMK')
+    FileUtils.mkdir_p(File.join(peer, '001_Net'))
+    File.write(File.join(peer, 'meta.txt'), "Name = PEMK\nVersion = 0.1.0\n")
+    File.write(File.join(peer, '001_Net', '001_Core.rb'), 'module PEMK; end')
+    File.binwrite(@cache, Marshal.dump(Marshal.load(@old).drop(1)))
+    output, error, status = run_update
+    assert status.success?, output + error
+    entries = Marshal.load(File.binread(@cache))
+    assert_equal ['PEMK', 'Arena Demo'], entries.map(&:first)
+    assert_equal 'module PEMK; end', Zlib::Inflate.inflate(entries[0][2][0][1])
+    before = File.binread(@cache)
+    _output, error, status = run_update
+    assert status.success?, error
+    assert_equal before, File.binread(@cache)
+  end
+  def test_pemk_already_after_arena_is_moved_before_it
+    File.binwrite(@cache, Marshal.dump(Marshal.load(@old).reverse))
+    output, error, status = run_update
+    assert status.success?, output + error
+    assert_equal ['PEMK', 'Arena Demo'], Marshal.load(File.binread(@cache)).map(&:first)
   end
   def test_missing_cache_is_left_for_the_native_first_compile
     File.delete(@cache)

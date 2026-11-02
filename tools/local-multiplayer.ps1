@@ -45,9 +45,10 @@ function Prepare-Clients {
     # the Essentials base (whose plugins are intentionally excluded upstream).
     $pemkSource = Join-Path $runtimeRoot 'pemk-workspace/Plugins/PEMK'
     $pemkTarget = Join-Path $gameRoot 'Plugins/PEMK'
-    if (!(Test-Path -LiteralPath $pemkTarget)) {
+    if (!(Test-Path -LiteralPath (Join-Path $pemkTarget 'meta.txt'))) {
         if (!(Test-Path -LiteralPath $pemkSource)) { throw 'The pinned PEMK client plugin is missing from tools/runtime/pemk-workspace. Run the full installer again.' }
-        Copy-Item -LiteralPath $pemkSource -Destination $pemkTarget -Recurse
+        New-Item -ItemType Directory -Path $pemkTarget -Force | Out-Null
+        Get-ChildItem -LiteralPath $pemkSource -Force | Copy-Item -Destination $pemkTarget -Recurse -Force
     }
     $legacyFix = Join-Path $pluginTarget '000_RuntimeInputFix.rb'
     if (Test-Path -LiteralPath $legacyFix) {

@@ -1,5 +1,10 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+Correctif connexion : si le PNJ de l'entrée affichait
+`uninitialized constant ArenaDemo::ConnectionMode::PEMK`, fermer le jeu,
+lancer **Arena Update.exe**, puis **Play-Arena.bat**. La préparation ajoute
+PEMK au cache compilé et le charge avant Arena Demo. Les sauvegardes sont conservées.
+
 ## v9.3 — Arena Demo 0.24.0
 
 Ajoute Gold et de nouvelles équipes de dresseurs, dont le Léviator chromatique
