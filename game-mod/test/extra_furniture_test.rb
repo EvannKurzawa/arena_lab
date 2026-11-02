@@ -32,6 +32,19 @@ class ExtraFurnitureTest < FurnitureCatalogTest
         assert_equal 1, ArenaDemo.relief_code(records, 44, 42)
         assert_equal 8, ArenaDemo.relief_code(records, 44, 43)
         assert_equal 0, ArenaDemo.relief_code(records, 44, 44)
+        grid = ArenaDemo.relief_grid(records)
+        [44,45].each do |column|
+          assert ArenaRelief.step?(grid,column,44,column,43)
+          assert ArenaRelief.step?(grid,column,43,column,42)
+          assert ArenaRelief.step?(grid,column,42,column,43)
+          assert ArenaRelief.step?(grid,column,43,column,44)
+        end
+        art = ArenaDemo.furniture_bitmap(item)
+        [[44,42,0,0],[45,42,32,0],[44,43,0,32],[45,43,32,32]].each do |tx,ty,sx,sy|
+          tile = ArenaDemo.relief_bitmap(records,tx,ty)
+          assert_equal [32,32], [tile.width,tile.height]
+          assert_equal art.get_pixel(sx+16,sy+16).bytes, tile.get_pixel(16,16).bytes
+        end
         assert_equal 1, $bag.quantity(item)
         payload = ArenaDemo.visit_snapshot_payload
         decoded = ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], payload[:relief], payload[:styles])
@@ -80,7 +93,7 @@ class ExtraFurnitureTest < FurnitureCatalogTest
       art = ArenaDemo.furniture_bitmap(item)
       expected_width = item.to_s == 'ARENA_FURNITURE_TREE_LEAFY' ? 96 : ArenaFurnitureRules.width(item) * 32
       assert_equal expected_width, art.width
-      assert_includes [64,96], art.height
+      assert_includes [64,96,128], art.height
       assert (0...art.height).any? { |y| (0...art.width).any? { |x| art.get_pixel(x, y).alpha > 0 } }, stem
       assert_equal [96, 96], [ArenaDemo.furniture_catalog_preview(item: item).width, ArenaDemo.furniture_catalog_preview(item: item).height]
     end

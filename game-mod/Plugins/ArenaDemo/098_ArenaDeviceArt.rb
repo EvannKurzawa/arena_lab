@@ -27,36 +27,32 @@ module ArenaDemo::DeviceArt
     @sparks ||= {}
     @sparks[phase] ||= begin
       image = Bitmap.new(32, 32)
-      # Filled, irregular electric glow with a few sharp, branching tips.
-      # Pixel-cluster shading keeps the orb organic instead of a geometric star.
-      blue, cyan, pale, white = color(27,65,190),color(59,154,242),color(142,219,255),color(245,255,255)
-      32.times do |y|
-        32.times do |x|
-          dx,dy = x-15.5,y-15.5
-          angle = Math.atan2(dy,dx)
-          edge = 9.0 + 0.9*Math.sin(angle*5 + phase*0.43) + 0.55*Math.sin(angle*9 - phase*0.31)
-          distance = Math.sqrt(dx*dx + dy*dy)
-          ink = if distance > edge then nil
-                elsif distance > edge-2.1 then blue
-                elsif distance > edge-4.7 then cyan
-                else pale end
-          image.set_pixel(x,y,ink) if ink
+      # Fixed lightning silhouettes flicker in place instead of rotating.
+      # Open space between bolts preserves the HGSS electrical-barrier look.
+      blue, cyan, white = color(32,79,190),color(80,190,255),color(232,255,255)
+      paths = [
+        [[14,2],[10,9],[15,8],[11,16],[16,14],[13,23],[17,29]],
+        [[25,5],[22,12],[27,11],[21,19],[25,18],[20,27]],
+        [[5,7],[7,13],[3,12],[8,20],[5,22]],
+        [[7,26],[12,22],[11,19]],
+        [[17,5],[20,8],[18,11]]
+      ]
+      paths.each_with_index do |points, arm|
+        next if arm >= 3 && (phase + arm) % 3 == 0
+        # One-pixel jitter changes the discharge, never its orientation.
+        points = points.each_with_index.map do |(x,y),i|
+          [x + (i.odd? ? ((phase + arm) % 3 - 1) : 0),y]
+        end
+        points.each_cons(2) do |a,b|
+          [[-1,0],[1,0],[0,-1],[0,1]].each do |dx,dy|
+            line(image,a[0]+dx,a[1]+dy,b[0]+dx,b[1]+dy,blue)
+          end
+        end
+        points.each_cons(2) { |a,b| line(image,*a,*b,cyan) }
+        points.each_cons(2).with_index do |(a,b),i|
+          line(image,*a,*b,white) if (phase + arm + i) % 3 != 0
         end
       end
-      4.times do |arm|
-        angle = arm*Math::PI/2 + Math::PI/4 + phase*0.07
-        bend = ((phase+arm)%3-1)*0.28
-        p0 = [(16+Math.cos(angle)*7).round,(16+Math.sin(angle)*7).round]
-        p1 = [(16+Math.cos(angle+bend)*11).round,(16+Math.sin(angle+bend)*11).round]
-        p2 = [(16+Math.cos(angle+bend-0.24)*15).round.clamp(1,30),(16+Math.sin(angle+bend-0.24)*15).round.clamp(1,30)]
-        [p0,p1,p2].each_cons(2) do |a,b|
-          [-1,0,1].each { |offset| line(image,a[0]+offset,a[1],b[0]+offset,b[1],blue) }
-          line(image,*a,*b,pale)
-        end
-      end
-      image.fill_rect(13,13,6,6,white)
-      image.fill_rect(10,11,2,2,pale)
-      image.fill_rect(20,18,2,2,pale)
       image
     end
   end

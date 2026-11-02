@@ -33,6 +33,20 @@ try:
         target = source / name
         if not target.is_dir():
             continue
+        if name == 'Graphics':
+            graphics = game / name
+            graphics.mkdir()
+            for child in target.iterdir():
+                if child.name == 'ArenaFurniture':
+                    continue
+                destination = graphics / child.name
+                if child.is_dir():
+                    subprocess.run(['cmd.exe', '/c', 'mklink', '/J', str(destination), str(child)], check=True, capture_output=True)
+                    links.append(destination)
+                else:
+                    shutil.copy2(child, destination)
+            shutil.copytree(root / 'game-mod/SharedAssets/Graphics/ArenaFurniture', graphics / 'ArenaFurniture')
+            continue
         link = game / name
         subprocess.run(['cmd.exe', '/c', 'mklink', '/J', str(link), str(target)], check=True, capture_output=True)
         links.append(link)

@@ -18,7 +18,7 @@ stand_entry['url'] = 'https://www.pokepedia.fr/images/5/56/Estrade_RSE.png'
 stand_entry['sha256'] = Digest::SHA256.file(stand_entry['source']).hexdigest
 outside = File.join(ROOT,'tools/runtime/essentials-v21.1-base/Graphics/Tilesets/Outside.png')
 [
-  ['tree-leafy', outside, [96,1952,96,96], 'alpha', 'single rounded tree from Essentials v21.1 Outside.png, isolated individual at [96,1952,96,96]'],
+  ['tree-leafy', outside, [96,1936,96,112], 'foliage', 'complete individual rounded tree from Essentials v21.1 Outside.png; editor markers excluded'],
   ['tree-pine', outside, [128,1664,64,96], 'alpha', 'local Essentials v21.1: Outside.png'],
   ['hgss-red-carpet', File.join(source_root,'hgss-blackthorn.png'), [186,1118,28,18], 'red', 'https://www.pokepedia.fr/images/1/16/Int%C3%A9rieur_Ar%C3%A8ne_%C3%89b%C3%A8nelle_HGSS.png'],
   ['snowball', File.join(source_root,'dppt-snowpoint.png'), [164,158,17,17], 'snow', 'https://www.pokepedia.fr/images/1/1a/Ar%C3%A8ne_Frimapic_DP.png']
@@ -26,7 +26,7 @@ outside = File.join(ROOT,'tools/runtime/essentials-v21.1-base/Graphics/Tilesets/
   entries << { 'name'=>name, 'source'=>source, 'rect'=>rect, 'mask'=>mask, 'url'=>url, 'sha256'=>Digest::SHA256.file(source).hexdigest }
 end
 sizes = {
-  'tree-leafy'=>[96,96], 'tree-pine'=>[64,96],
+  'tree-leafy'=>[96,112], 'tree-pine'=>[64,96],
   'dppt-labmachine'=>[64,76], 'dppt-bigoildrum'=>[64,76],
   'dppt-oildrum'=>[16,28], 'dppt-trashcan'=>[20,24], 'lampe'=>[18,36],
   'chandelier'=>[24,40], 'snowball'=>[30,30], 'hgss-red-carpet'=>[32,24],
@@ -91,7 +91,7 @@ entries.each do |entry|
       keep = case entry['mask']
              when 'red' then pixel.red > pixel.green * 1.6 && pixel.red > pixel.blue * 1.5
              when 'snow' then ((x-8)/8.5)**2 + ((y-8)/8.5)**2 <= 1 && pixel.red > 160 && pixel.green > 180
-             when 'pixel-spikes' then true
+             when 'foliage' then !(pixel.red > 220 && pixel.blue > 180) && !(pixel.red > 200 && pixel.green < 100)
              else true
              end
       crop.set_pixel(x,y,Color.new(0,0,0,0)) unless keep

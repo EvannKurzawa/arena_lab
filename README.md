@@ -1,5 +1,12 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Estrade, arbre et Tesla — Arena Demo 0.25.5
+
+L'estrade se dessine directement dans le sol et les marches, sous les joueurs,
+avec le chemin sol bas → escalier → plateforme. L'arbre feuillu conserve sa
+cime entière. La Tesla scintille avec des éclairs fixes, sans noyau plein ni
+rotation. Fermer le jeu, lancer **Arena Update.exe**, puis **Play-Arena.bat**.
+
 ## Mobilier et étincelle — Arena Demo 0.25.4
 
 Pics et Porte Cassable retirés du catalogue, du Sac et des ressources. Arbre

@@ -47,6 +47,22 @@ module ArenaDemo
   }).freeze)
 
   module ExtraFurnitureIntegration
+    # Floor tiles sort below players; a tall event sorts at its low anchor.
+    def relief_bitmap(records, x, y)
+      placed = custom_placements.find do |p|
+        p['kind'] == 'furniture' && p['item'].to_s == ArenaFurnitureRules::STAND &&
+          ArenaFurnitureRules.relief_cells(p['item'],p['x'],p['y']).include?([x,y])
+      end
+      return super unless placed
+      @stand_floor_tiles ||= {}
+      dx,dy = x-placed['x'], y-placed['y']+2
+      @stand_floor_tiles[[dx,dy]] ||= begin
+        tile = Bitmap.new(32,32)
+        tile.blt(0,0,furniture_bitmap(ArenaFurnitureRules::STAND.to_sym),Rect.new(dx*32,dy*32,32,32))
+        tile
+      end
+    end
+
     def purge_retired_furniture!(placements = nil)
       return unless $PokemonGlobal
       unless $PokemonGlobal.arena_retired_furniture_removed
@@ -368,6 +384,7 @@ module ArenaDemo
     def update
       super
       item = @character.instance_variable_get(:@arena_furniture_item)
+      self.visible = false if item.to_s == ArenaFurnitureRules::STAND
       # Raised furniture paints the summit; the native relief supplies its front.
       self.y += 6 * self.zoom_y if item.to_s == 'ARENA_FURNITURE_HGSS_RED_CARPET'
       self.z -= 32 if ArenaFurnitureRules.walkable?(item)

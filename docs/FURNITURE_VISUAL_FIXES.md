@@ -1,4 +1,12 @@
-# Mobilier : corrections visuelles 0.25.4
+# Mobilier : corrections visuelles 0.25.5
+
+Révision du 3 novembre : cime complète de l'arbre individuel (recadrage
+96 × 112, canevas transparent 96 × 128). L'estrade utilise maintenant quatre
+cases dessinées dans le relief : deux pour la plateforme, deux pour les marches.
+Son événement reste invisible afin que le joueur soit dessiné au-dessus du sol.
+Le sol bas reste accessible depuis les marches, en solo et en visite.
+L'étincelle Tesla utilise des éclairs bleus et blancs qui scintillent sur place,
+avec des espaces transparents entre les arcs, sans noyau plein ni rotation.
 
 La révision 0.25.4 retire Pics et Porte Cassable du catalogue, du Sac et des
 graphismes; les anciennes sauvegardes perdent leurs poses et leur stock.

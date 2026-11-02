@@ -459,22 +459,22 @@
     "name": "tree-leafy",
     "rect": [
       96,
-      1952,
+      1936,
       96,
-      96
+      112
     ],
-    "mask": "alpha",
-    "url": "single rounded tree from Essentials v21.1 Outside.png, isolated individual at [96,1952,96,96]",
+    "mask": "foliage",
+    "url": "complete individual rounded tree from Essentials v21.1 Outside.png; editor markers excluded",
     "sha256": "3362ca6e7f87c4cfddd85b666170d998f2582434fd9b4a01353c268af06bd9de",
     "size": [
       96,
-      96
+      128
     ],
     "visible_size": [
       96,
-      96
+      112
     ],
-    "packed_sha256": "39f1141cb3b102f4386941c7566d864cfba8cc567b9c4913f272af776f752e96"
+    "packed_sha256": "8ef0bb3baf7b72e2c3ca61ebeeab7cdd816df1384b843ef0fb5fac1ab3755464"
   },
   {
     "name": "tree-pine",

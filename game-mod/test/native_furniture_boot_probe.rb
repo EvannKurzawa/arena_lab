@@ -117,6 +117,7 @@ module ArenaDemo::NativeFurnitureProbe
       records.clear
       ArenaDemo::EXTRA_FURNITURE.each_key.with_index do |item, i|
         x, y = 38 + i % 8 * 3, 38 + i / 8 * 4
+        y += 2 if item.to_s == ArenaFurnitureRules::STAND
         ArenaDemo.editor_apply_placement(placements, records, 'furniture', { item: item }, x, y)
         event = $game_map.events[ArenaDemo::FURNITURE_SLOT_BASE + i]
         check.call(placements.length == i + 1 && event.instance_variable_get(:@arena_furniture_item) == item, "extra native placement: #{item}")
@@ -125,7 +126,13 @@ module ArenaDemo::NativeFurnitureProbe
         expected = ArenaDemo.furniture_bitmap(item)
         check.call(sprite.bitmap && [sprite.bitmap.width, sprite.bitmap.height] == [expected.width,expected.height], "extra native graphic: #{item}")
         check.call(event.width == ArenaFurnitureRules.width(item), "extra native footprint: #{item}")
-        check.call(sprite.visible && sprite.y == event.screen_y, "raised furniture remains visible and aligned: #{item}") if ArenaFurnitureRules.raised?(item)
+        if item.to_s == ArenaFurnitureRules::STAND
+          check.call(!sprite.visible, 'stand uses floor tiles instead of a tall overlapping event')
+          check.call(ArenaDemo.relief_bitmap(records,x,y-2).width == 32 && ArenaDemo.relief_bitmap(records,x,y-1).height == 32,
+            'stand top and stairs render in the native ground layer')
+        elsif ArenaFurnitureRules.raised?(item)
+          check.call(sprite.visible && sprite.y == event.screen_y, "raised furniture remains visible and aligned: #{item}")
+        end
         check.call(event.through == ArenaFurnitureRules.walkable?(item), "extra native collision: #{item}")
         if item.to_s == ArenaFurnitureRules::STAND
           check.call(ArenaDemo.relief_code(records,x,y-2) == 1 && ArenaDemo.relief_code(records,x,y-1) == 8 && ArenaDemo.relief_code(records,x,y) == 0,
