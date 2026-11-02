@@ -58,7 +58,7 @@ module ArenaDevices
     object = furniture(placements)[slot]
     return nil unless object && coil?(object[1])
     directions = object[1] == COIL ? %w[R D L U] : [object[1].split('_').last]
-    occupied = placements.map { |p| p[2, 2] }
+    occupied = defined?(ArenaFurnitureRules) ? ArenaFurnitureRules.positions(placements) : placements.map { |p| p[2,2] }
     directions.each do |key|
       _direction, dx, dy = DIRECTIONS.fetch(key)
       point = [object[2] + dx, object[3] + dy]
@@ -78,7 +78,7 @@ module ArenaDevices
   end
 
   def valid_sparks?(placements, surface, relief, reserved = [])
-    occupied = placements.map { |p| p[2, 2] }
+    occupied = defined?(ArenaFurnitureRules) ? ArenaFurnitureRules.positions(placements) : placements.map { |p| p[2,2] }
     furniture(placements).each_with_index.all? do |p, slot|
       next true unless coil?(p[1]) && p[1] != COIL
       point = spark_target(placements, slot)

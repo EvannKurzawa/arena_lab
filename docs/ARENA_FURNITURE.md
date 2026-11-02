@@ -1,5 +1,20 @@
 # Mobilier de base pour la personnalisation — 2026-11-01
 
+## Révision visuelle 0.25.1 — 2026-11-02
+
+Les nouveaux meubles ont maintenant des proportions propres à chaque objet,
+des découpes corrigées et des noms courts. Arbre feuillu, sapin, machine de
+laboratoire et set de barils occupent deux cases de large ; les collisions,
+le retrait depuis l'une ou l'autre case et les visites utilisent cette même
+empreinte. Les quatre meubles existants sont décalés au minimum seulement si
+leur nouvelle deuxième case est occupée ; si aucune place ne convient au même
+niveau, l'objet retourne au Sac. Les autres placements sont conservés.
+Estrade et planche sont dessinées par le relief natif, sans deuxième sprite
+par-dessus. Le tapis n'a plus de fond opaque, la neige n'inclut plus d'escalier
+et l'arbre feuillu ne contient plus deux morceaux d'arbres.
+Voir [les tailles, l'aperçu et le chandelier](FURNITURE_VISUAL_FIXES.md).
+Les sections 0.25.0 et précédentes ci-dessous sont historiques.
+
 ## Extension 0.25.0 — 2026-11-02
 
 Ajoute **36 références** aux 20 meubles précédents et aux trois obstacles,

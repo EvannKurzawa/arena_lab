@@ -1,7 +1,10 @@
 require_relative 'furniture_catalog_test'
 require_relative '../Plugins/ArenaDemo/000_ArenaFurnitureRules'
 require_relative '../Plugins/ArenaDemo/000_ArenaDeviceRules'
+require_relative '../Plugins/ArenaDemo/000_FieldStateRules'
 require_relative '../Plugins/ArenaDemo/092_ExtraFurniture'
+require_relative '../Plugins/ArenaDemo/028_ArenaMaterialsArt'
+require_relative '../Plugins/ArenaDemo/031_ArenaLiquidAnimation'
 
 class ExtraFurnitureTest < FurnitureCatalogTest
   def test_extra_stock_is_idempotent_on_existing_profiles
@@ -74,9 +77,68 @@ class ExtraFurnitureTest < FurnitureCatalogTest
       assert ArenaDemo.catalog_furniture?(item)
       assert File.file?(File.expand_path("../SharedAssets/Graphics/ArenaFurniture/#{stem}.png", __dir__))
       art = ArenaDemo.furniture_bitmap(item)
-      assert_equal [32, 64], [art.width, art.height]
-      assert (0...64).any? { |y| (0...32).any? { |x| art.get_pixel(x, y).alpha > 0 } }, stem
+      assert_equal ArenaFurnitureRules.width(item) * 32, art.width
+      assert_includes [64,96], art.height
+      assert (0...art.height).any? { |y| (0...art.width).any? { |x| art.get_pixel(x, y).alpha > 0 } }, stem
       assert_equal [96, 96], [ArenaDemo.furniture_catalog_preview(item: item).width, ArenaDemo.furniture_catalog_preview(item: item).height]
     end
+  end
+
+  def test_wide_furniture_reserves_both_cells_and_rejects_partial_placement
+    stock
+    placements = $PokemonGlobal.arena_demo_placements = []
+    records = ArenaDemo.tile_edit_records
+    item = :ARENA_FURNITURE_DPPT_LABMACHINE
+    ArenaDemo.stub(:refresh_custom_placements, nil) do
+      ArenaDemo.editor_apply_placement(placements,records,'furniture',{item:item},44,44)
+      assert_equal 1, placements.length
+      assert_same placements[0], ArenaDemo.editor_occupied(placements,45,44)
+      before = Marshal.dump([placements,records,$bag])
+      refute ArenaDemo.editor_apply_placement(placements,records,'furniture',{item: :ARENA_FURNITURE_TREE_PINE},45,44)
+      assert_equal before, Marshal.dump([placements,records,$bag])
+      refute ArenaDemo.editor_apply_placement(placements,records,'furniture',{item:item},99,44)
+      assert_equal before, Marshal.dump([placements,records,$bag])
+      ArenaDemo.editor_apply_placement(placements,records,'furniture',{action: :remove},45,44)
+      assert_empty placements
+      assert_equal 2, $bag.quantity(item)
+    end
+  end
+
+  def test_footprints_cannot_overlap_or_straddle_height_and_void
+    surface, relief = '1' * 10000, '0' * 10000
+    wide = [0,'ARENA_FURNITURE_DPPT_LABMACHINE',44,44]
+    assert ArenaFurnitureRules.valid_footprints?([wide],surface,relief)
+    refute ArenaFurnitureRules.valid_footprints?([wide,[0,'ARENA_FURNITURE_SNOWBALL',45,44]],surface,relief)
+    relief.setbyte(44*100+45,49)
+    refute ArenaFurnitureRules.valid_footprints?([wide],surface,relief)
+    relief.setbyte(44*100+45,48)
+    surface.setbyte(44*100+45,48)
+    refute ArenaFurnitureRules.valid_footprints?([wide],surface,relief)
+  end
+
+  def test_existing_crowded_layout_moves_only_enlarged_furniture_without_losing_stock
+    stock
+    wide = {'kind'=>'furniture','item'=>'ARENA_FURNITURE_TREE_LEAFY','x'=>44,'y'=>44}
+    snow = {'kind'=>'furniture','item'=>'ARENA_FURNITURE_SNOWBALL','x'=>45,'y'=>44}
+    $PokemonGlobal.arena_demo_placements = [wide,snow]
+    before_bag = Marshal.dump($bag)
+    placements = ArenaDemo.custom_placements
+    assert_equal 2, placements.length
+    assert_equal [45,44], snow.values_at('x','y')
+    refute ArenaFurnitureRules.cells(wide['item'],wide['x'],wide['y']).include?([45,44])
+    assert_equal 1, (wide['x']-44).abs+(wide['y']-44).abs
+    assert_equal before_bag, Marshal.dump($bag)
+    previous = Marshal.dump(placements)
+    ArenaDemo.custom_placements
+    assert_equal previous, Marshal.dump(placements)
+  end
+
+  def test_tesla_sparks_and_strength_respect_the_second_cell
+    wide = [0,'ARENA_FURNITURE_DPPT_LABMACHINE',44,44]
+    surface,relief = '1'*10000,'0'*10000
+    placements = [wide,[0,'ARENA_FURNITURE_BOULDER',45,45]]
+    assert_nil ArenaFieldState.proposal(placements,{},1,:STRENGTH,8,surface,relief)
+    coil = [0,'ARENA_TESLA_L',46,44]
+    refute ArenaDevices.valid_sparks?([wide,coil],surface,relief)
   end
 end

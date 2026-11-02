@@ -1,269 +1,492 @@
 [
   {
     "name": "chandelier",
-    "url": "https://www.pokepedia.fr/images/9/9a/Chandelier_Etoil%C3%A9_ROSA.png",
-    "sha256": "cfb2ad9b73efe055cc9c0d8442e6b4a91659bcc53094406ee07591a414e911d6",
-    "rect": null,
+    "url": "OpenAI imagegen: red-brass three-candle pixel candelabra, 2026-11-02",
+    "sha256": "a20b5fe745ed2e2902d0bec29a7c0c38a79a74a09ba3e23383c6e5d46d598f09",
     "mask": "alpha",
-    "packed_sha256": "dfdeb4f50748a316d7b6b14c3720873f044f3aaaf5ff601bc77d728203910b42"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      24,
+      33
+    ],
+    "packed_sha256": "a162f30bfd148c330534044880b98201f0bcc4a399477f4d82df4af617c7c668"
   },
   {
     "name": "cogne-cogne",
     "url": "https://www.pokepedia.fr/images/1/10/Cogne-Cogne_ROSA.png",
     "sha256": "443873b61e1b78d17379563373655886e59792c67157d3f8f874495e5690acf3",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "bf0ef220bfd0798fff252185cbebc15fa9aa4b94cf8ec7287a45340e9b308bab"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      23,
+      64
+    ],
+    "packed_sha256": "fcac0181d8bd6aa6469612d541f52f5205f0a9a0457b3702b1914db82b2babd4"
   },
   {
     "name": "dppt-bigoildrum",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/bigoildrum.png",
     "sha256": "9a294432c1bb1077efbfd7917506dd2d3b5e5830ff3d8ea5cb91f83557defe20",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "4fa3bd76aaf6b6f97ad6b6927c802db1e6bb3649a0f51a507b04860a72735e6c"
+    "size": [
+      64,
+      96
+    ],
+    "visible_size": [
+      64,
+      76
+    ],
+    "packed_sha256": "477a5c560f85535aada3032395894d72758ae14acefa31ddf5201e4a6dc70c7e"
   },
   {
     "name": "dppt-cardboardbox",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/cardboardbox.png",
     "sha256": "389c67bf53d785c1e5250a0a74f0b90b0cedc9006cd95d23104b2ab3dfa0abaf",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "4024c4ec7453252a4a36528f2798200125035914c4429faabec8a28793b57d67"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      32
+    ],
+    "packed_sha256": "294b3cc50f0ada94dc6eefc7e806bd0409d3a186d04f139cb57e2888dac1cdb7"
   },
   {
     "name": "dppt-container",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/container.png",
     "sha256": "3a43229b98ea96b1036edfab1a22920631d6ef4f6670ab01ff0559731b40b38a",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "794443dc51f63cacbd27814c7913483377bfeb3c5729ae93790ffa498a4dea62"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      43
+    ],
+    "packed_sha256": "80c08932e4af0097d7b6bef8d85feb9fa74eb7b40719b238467a0d1185b99d72"
   },
   {
     "name": "dppt-crate",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/crate.png",
     "sha256": "8f9363cda548297b2c40b6f98a7f9d464451a51be68d46a7dd2a0ef6e5b68429",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "e9b542566a310100eae8f1e21c8c99417e8dc3d30e0f5775ac9fb425e5c2219d"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      42
+    ],
+    "packed_sha256": "3a388863e653524dd0491882e1c3be3ac5fba0b2342a0c080aa418941e705329"
   },
   {
     "name": "dppt-daintyflowers",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/daintyflowers.png",
     "sha256": "4340c6f5e8acc8e106b1a86afb47ea2822919e178c82911d88038d4b0843a625",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "1ced930cdfd64932150ba6fcb82fabaee8b84ff76de0ae2cd36ac26949afad7b"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      20,
+      30
+    ],
+    "packed_sha256": "7ceb81761a91f2d29d4012d41112b3b6f9f9a518fedea21ded8b776ee753561f"
   },
   {
     "name": "dppt-gymstatue",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/gymstatue.png",
     "sha256": "205e3d52e1bc44e63c3aa800bd10a8e2917c518a9b86d6e6441597e45fe5f1ba",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "03b81db669e88fee89a928202aa699db1eab2414f87602c18c76eaaa18c1f1b8"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      29,
+      64
+    ],
+    "packed_sha256": "957b161ece6766be4b502920e62ce7b9ff8296a7791e886e3d42908900929df7"
   },
   {
     "name": "dppt-healingmachine",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/healingmachine.png",
     "sha256": "6ee0d0ba452e6be8ba69f422c960dbba8ae8cf1f912a8e6c6bc52ba506752b6b",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "18efce51b5df7d4c00f21cdc3078522f9e15d57cf1a2cc06bb5c329e2a68217c"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      45
+    ],
+    "packed_sha256": "abf0c111e012be7fd808567855e730ba1b59cc0613b2c02ba48e0542a7c86c6f"
   },
   {
     "name": "dppt-ironbeam",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/ironbeam.png",
     "sha256": "eaec5cc582ab5b0ea49f00ec28d43c167472a99f3e95bb2eb1abc3ba5db85c60",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "df908b089a49f4d24efb7b84e756301e6621d665140958c6c041b6a55bf071a2"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      47
+    ],
+    "packed_sha256": "7074f4380d463773c729b254528dd72c56e73ec966656811078acb7e5219abbf"
   },
   {
     "name": "dppt-labmachine",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/labmachine.png",
     "sha256": "5cbdee667bc61682152f021c145b35947c9910c1790422b1ac5b303e375ccab4",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "1732c018d53323842715ecdcb02342ebc7f72d7752318949e0e6501008dbd7a2"
+    "size": [
+      64,
+      96
+    ],
+    "visible_size": [
+      64,
+      76
+    ],
+    "packed_sha256": "5d4cc15dac6740dc129f21fdf2881e9d425f672c867a88b04bde2b497a914853"
   },
   {
     "name": "dppt-oildrum",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/oildrum.png",
     "sha256": "12af48e856cdadd399ef11fabe48ec1e958c1a3c08db2e9673b01f06600b3292",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "0b768b93acc9777cbcbf4d05187f43858dca9d317475e1e8a811b01b0e7426ef"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      16,
+      28
+    ],
+    "packed_sha256": "f06022472cf83b41a45042dfe7971a979b20c5de7dfe942757fdaa6bec3a94fa"
   },
   {
     "name": "dppt-pokeflower",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/pokeflower.png",
     "sha256": "fa03d1a7d63bfd6b88f7d26b3ad33e77ee5ee5cccbd8530ec85b34c8fcd1e4e1",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "a2ba7aa5412b0ccf933226fe626e39c7a8d221d52da20ce157ad87aaf3d7dc4b"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      20,
+      26
+    ],
+    "packed_sha256": "98fbc9e6e0b4e8e9fb671911793916e9cb7c5102560cb23392fb29d020453aab"
   },
   {
     "name": "dppt-pottedplant",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/pottedplant.png",
     "sha256": "f23b8346e2cd1e8b2b63ade5dfe1e49231693d161bedb876c509c57f5b18eb4c",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "02cc2bfcaa8de03ae33114a0451ebcd38fbad321246f500e086e5b3fef8f064e"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      17,
+      32
+    ],
+    "packed_sha256": "0878868bc6d13fa2ef3526bbd2826f8f7b046d6d63ee22296039fdd154afd21c"
   },
   {
     "name": "dppt-prettyflowers",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/prettyflowers.png",
     "sha256": "22091863668a6959e9f288f492d46ba9bf88e3d555ec7c45c662e360b6bbbceb",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "cc6d0961e00ab2b26681f10762b5b8c7a8140fd3d8a3b6cd9e1f5295b364d869"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      18,
+      30
+    ],
+    "packed_sha256": "23bc92257235499937703373971edcc2cda2470b7a43ffab0b1bb44671e0dad9"
   },
   {
     "name": "dppt-trashcan",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/dppt/trashcan.png",
     "sha256": "39a53447610353c0c397caa482f908d1140e2aa900b6ac023b392a09130e8d7e",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "edefee501d2cd9d10537fcb88367ea759b3f07880eb5b156970d34f10ea8f964"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      20,
+      23
+    ],
+    "packed_sha256": "415a98f898f51e9dbad577a8252325bfd1911a1a2fb350b50aefe2a4f7d2f677"
   },
   {
     "name": "lampe",
     "url": "https://www.pokepedia.fr/images/e/e7/Lampe_Iris%C3%A9e_ROSA.png",
     "sha256": "a609c3ef180f1aef554bace3743abab4d4cd1f66ca0a96bff90886d1f33c0ca1",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "1b5a6999a1cda93cb98ffc1718a6edf34fc94b25219da3a47a6dffbafc7a2a86"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      18,
+      36
+    ],
+    "packed_sha256": "992f0279967ae35ff2c8be462122dc9d94128b038fc962911c47856431650f9a"
   },
   {
     "name": "rse-big-plant",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/big-plant.png",
     "sha256": "165c1b462525432a28aec9e54eb8f7b5677577a887b17fb3ca143abbed065fd4",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "0ca84669a25e28df22737120d212d290ed1e0579bad9d2e51b8dce4ead0d3894"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      24,
+      24
+    ],
+    "packed_sha256": "2bea31978bd2f42fcf94ef10304f2dcba7157ee4ca8db3629a6d7a93261a9cf4"
   },
   {
     "name": "rse-breakable-door",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/breakable-door.png",
     "sha256": "f0fd1424416850601f36892ee6f51dc745b47074f16258f93de934a6f63acb3e",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "fc6a1d9335f19f971924d56416b96799ba61515c2e16723f019e4b72b8ba1913"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      64
+    ],
+    "packed_sha256": "55bcb26b7bc00996f103c2dbc35edfe6a71dd4a6b98d8254853ec5c5a140f665"
   },
   {
     "name": "rse-colorful-plant",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/colorful-plant.png",
     "sha256": "cc88b5e2de32c828338b9e24a153168e379c19aca509fa0349908d5716549c1d",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "d9aead2e780bb3d1c973f421aeb3cc5b08c0f7d7dff3597be45766d1478558a7"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      24,
+      24
+    ],
+    "packed_sha256": "f6d0eaad8c9ede5b67ca0849201e1526fea70e66114a928567c504a6ab6da151"
   },
   {
     "name": "rse-fence-length",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/fence-length.png",
     "sha256": "d191256afd1d964fca94fda428bc8945dd73bba7cb5a8f4ee736be9f43e335d2",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "da1f6a1f933568ef45ce53ec39ea5d2189bed9610e6ee3b46246ef013dcc2c38"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      32
+    ],
+    "packed_sha256": "aa2e265e6e73f1b0afc893b2b878299907ec3a96fff8bf46dddf248eb89661b3"
   },
   {
     "name": "rse-fence-width",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/fence-width.png",
     "sha256": "28ee378b88cdd1f9d71ecd354713d198353a9f56ccb0f8d8ba26a7d7a46663df",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "0b73190870367f81ea1856d7f00fd52e3be3fc7372922e80b9889f8067ea2451"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      32
+    ],
+    "packed_sha256": "4af20f3544e7efaab749be862c9aefd47856bb110453edc20920a70e22a32898"
   },
   {
     "name": "rse-gorgeous-plant",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/gorgeous-plant.png",
     "sha256": "70b1360e18b7ffe58c11f697c72cd4959a0ed872e0f8af9f4941f9070c889c9f",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "0bfc2150cd0b70ed2b689d73acf38a7ed44c637a1f2029fecb68d39cfc8cb7b0"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      24,
+      24
+    ],
+    "packed_sha256": "2ecb771e13402f3fffb91278607ef8de83a77e7b52ebde38f46148c8ff0a7560"
   },
   {
     "name": "rse-mud-ball",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/mud-ball.png",
     "sha256": "c8c45b0bcee9793642fe358e5477dc0aadc83d6d5039a45f9273373c286c57a8",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "bc53b4eb621dc197e608d8c3f86a3ac09d0ac09630d251e0b24736303409d061"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      32
+    ],
+    "packed_sha256": "92cc825cfc952b9c977942dd9b5cf055fd494e88d3a20ae2b0bfb1adb8f1d774"
   },
   {
     "name": "rse-pretty-flowers",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/pretty-flowers.png",
     "sha256": "214dba6f4e596c48b2aa4842f42183a587ac279ea99bbb961427e3c63c372128",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "fcff358afbb979af662bdbdffca81241b69d27a1c13e7610e7287fcbb29ba563"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      15,
+      30
+    ],
+    "packed_sha256": "959967093758c16418f88676b2d67d32382448037128fb079856959e3d501ee5"
   },
   {
     "name": "rse-red-flower",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/red-flower.png",
     "sha256": "cc078a4fb0333be1278d24819d221f752f52b95064db66518c12fe7e37549bcd",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "b4621e40dd0e60bbd8decece3598b1cc629a76478cf64359e499285f71490c57"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      15,
+      30
+    ],
+    "packed_sha256": "35a11e97e8649eb7a37ea9c0cd853b1f7fd94470e862e20dc279571ecdbe64b8"
   },
   {
     "name": "rse-sand-ornament",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/sand-ornament.png",
     "sha256": "00e64158a7817bfc63e1119974484fa1a3dd191f9efb0b7fb07585d69cbbb75b",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "1d10e7a68c41c596c3178924345fa3237141ed034f4750a8959fbed5c9bca16d"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      64
+    ],
+    "packed_sha256": "d73bb085cc412caa7dc3cbbc7cdd4c59938298de7f0c65d77d98d6ee9e6e2b29"
   },
   {
     "name": "rse-solid-board",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/solid-board.png",
     "sha256": "aa1e6a12334393c78f69aa9ebdd9fe8df4c261eb17bc66a7a95b7dd137c3db17",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "74e82eb597c916778c857690b53cd03850ec78026401b74f4fd0bdc1823290bb"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      16,
+      32
+    ],
+    "packed_sha256": "8d9c1743042854a3552d0e356e7411e160fd9c684ff08e44204c4c35713c7a61"
   },
   {
     "name": "rse-stand",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/stand.png",
     "sha256": "b917d17ebb11eb269b675626ca6b9a924961d0fc888004229a050d13871415ea",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "93c52a2531f831537b215a22b3c7142e94b68a2872a57af5823444a9f85a579e"
+    "size": [
+      64,
+      64
+    ],
+    "visible_size": [
+      64,
+      32
+    ],
+    "packed_sha256": "242c4f7a5f47f0782743d3b008f7333138f27354ec2d538815fec3b4ac006349"
   },
   {
     "name": "rse-tire",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/tire.png",
     "sha256": "31e6c98bfcca2c35f2f9e0eb3474a09c92c880224e6818da41141007bb1e05b3",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "9930dc6ab83782e4729996b29337ff83a81ba849bb23a634115b8e0f9af20f17"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      32
+    ],
+    "packed_sha256": "1ec56280da53066148c471e436c5b72088ddbbd3f8d40627c752abab689418f9"
   },
   {
     "name": "rse-tropical-plant",
     "url": "https://pamtre-berry.neocities.org/images/secret-base/rse/tropical-plant.png",
     "sha256": "abbe54c90c722b8f2765740c2b436e718bfe2fea249dda0b085e29cf7665483e",
-    "rect": null,
     "mask": "alpha",
-    "packed_sha256": "10038aa09ba37931b7bbd9cdaf9ecc63488e45e75fbab90632c7d264e4efdb3e"
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      16,
+      32
+    ],
+    "packed_sha256": "7f1d27d7de51cd864abfbdbfd7e3f96c24f161d3aabd004c50e3cddf982799d5"
   },
   {
     "name": "tree-leafy",
-    "url": "local Essentials v21.1: Graphics/Tilesets/Outside.png",
-    "sha256": "3362ca6e7f87c4cfddd85b666170d998f2582434fd9b4a01353c268af06bd9de",
     "rect": [
-      0,
-      1888,
+      96,
+      1952,
       96,
       96
     ],
     "mask": "alpha",
-    "packed_sha256": "93cd57017e76aaeb3a701d0df103664bb90e99ba7057b8357bee124f5b4a7a2b"
+    "url": "local Essentials v21.1: Outside.png",
+    "sha256": "3362ca6e7f87c4cfddd85b666170d998f2582434fd9b4a01353c268af06bd9de",
+    "size": [
+      64,
+      64
+    ],
+    "visible_size": [
+      64,
+      64
+    ],
+    "packed_sha256": "ec53f81b6e0a133f9c496fa6ca26071c3ffcd0b2a01bcd619878e2363ada6c5b"
   },
   {
     "name": "tree-pine",
-    "url": "local Essentials v21.1: Graphics/Tilesets/Outside.png",
-    "sha256": "3362ca6e7f87c4cfddd85b666170d998f2582434fd9b4a01353c268af06bd9de",
     "rect": [
       128,
       1664,
@@ -271,25 +494,41 @@
       96
     ],
     "mask": "alpha",
-    "packed_sha256": "6d3b825c7bf961c1b41a3f7a12902301a13fbd08389008d43c17ee901e00f0db"
+    "url": "local Essentials v21.1: Outside.png",
+    "sha256": "3362ca6e7f87c4cfddd85b666170d998f2582434fd9b4a01353c268af06bd9de",
+    "size": [
+      64,
+      96
+    ],
+    "visible_size": [
+      64,
+      96
+    ],
+    "packed_sha256": "be3774e256ad0ec0bd886048ecbc8bce95483c821669a50b809b3f07d6dab6b9"
   },
   {
     "name": "hgss-red-carpet",
-    "url": "https://www.pokepedia.fr/images/1/16/Int%C3%A9rieur_Ar%C3%A8ne_%C3%89b%C3%A8nelle_HGSS.png",
-    "sha256": "81f33d0b80f596738d075f771e1d0178096417416bd9775c6c90aed188a8cdd4",
     "rect": [
       186,
       1118,
       28,
       18
     ],
-    "mask": "alpha",
-    "packed_sha256": "5b46ead74f4429d0f96fc54cfb7662437b58a44e0a11da76937c58e4f23cbfc5"
+    "mask": "red",
+    "url": "https://www.pokepedia.fr/images/1/16/Int%C3%A9rieur_Ar%C3%A8ne_%C3%89b%C3%A8nelle_HGSS.png",
+    "sha256": "81f33d0b80f596738d075f771e1d0178096417416bd9775c6c90aed188a8cdd4",
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      21
+    ],
+    "packed_sha256": "0e4c3895906c36c66f3fc5056d423fbaf97c745020990f9b2ffef506d86d5760"
   },
   {
     "name": "hgss-spikes",
-    "url": "https://www.pokepedia.fr/images/1/16/Int%C3%A9rieur_Ar%C3%A8ne_%C3%89b%C3%A8nelle_HGSS.png",
-    "sha256": "81f33d0b80f596738d075f771e1d0178096417416bd9775c6c90aed188a8cdd4",
     "rect": [
       96,
       1016,
@@ -297,19 +536,37 @@
       32
     ],
     "mask": "cone",
-    "packed_sha256": "551c1c0caab9d6cead481946fe7cb5710d749e885cf30bbe646d401dec0c30e2"
+    "url": "https://www.pokepedia.fr/images/1/16/Int%C3%A9rieur_Ar%C3%A8ne_%C3%89b%C3%A8nelle_HGSS.png",
+    "sha256": "81f33d0b80f596738d075f771e1d0178096417416bd9775c6c90aed188a8cdd4",
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      32,
+      64
+    ],
+    "packed_sha256": "82474dfc157a7b1d2668138bda2160b186ad2b2d5d204af93a38c3bf758a5315"
   },
   {
     "name": "snowball",
-    "url": "https://www.pokepedia.fr/images/1/1a/Ar%C3%A8ne_Frimapic_DP.png",
-    "sha256": "bea07c9c112313aa8c2bcf31f55d8ead03045225ba1ca21bd04418ec186dd64e",
     "rect": [
       164,
-      150,
+      158,
       17,
-      21
+      17
     ],
     "mask": "snow",
-    "packed_sha256": "dd5c3a2924f4706e29d9beeabd6f517cba48f7d3051995db8cc44e7fd7af905c"
+    "url": "https://www.pokepedia.fr/images/1/1a/Ar%C3%A8ne_Frimapic_DP.png",
+    "sha256": "bea07c9c112313aa8c2bcf31f55d8ead03045225ba1ca21bd04418ec186dd64e",
+    "size": [
+      32,
+      64
+    ],
+    "visible_size": [
+      30,
+      30
+    ],
+    "packed_sha256": "562afc736f2c671c354dccc975604549a6fe5597cdb41f4b10f342b9260a8000"
   }
 ]

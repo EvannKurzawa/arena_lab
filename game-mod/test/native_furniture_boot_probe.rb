@@ -122,7 +122,10 @@ module ArenaDemo::NativeFurnitureProbe
         check.call(placements.length == i + 1 && event.instance_variable_get(:@arena_furniture_item) == item, "extra native placement: #{item}")
         sprite = Sprite_Character.new(nil, event)
         sprite.update
-        check.call(sprite.bitmap && [sprite.bitmap.width, sprite.bitmap.height] == [32,64], "extra native graphic: #{item}")
+        expected = ArenaDemo.furniture_bitmap(item)
+        check.call(sprite.bitmap && [sprite.bitmap.width, sprite.bitmap.height] == [expected.width,expected.height], "extra native graphic: #{item}")
+        check.call(event.width == ArenaFurnitureRules.width(item), "extra native footprint: #{item}")
+        check.call(!sprite.visible, "raised furniture uses relief only: #{item}") if ArenaFurnitureRules.raised?(item)
         check.call(event.through == ArenaFurnitureRules.walkable?(item), "extra native collision: #{item}")
         check.call(ArenaDemo.relief_code(records, x, y) == 1, "raised native floor: #{item}") if ArenaFurnitureRules.raised?(item)
         sprites << sprite
@@ -135,6 +138,36 @@ module ArenaDemo::NativeFurnitureProbe
       Game.load(SaveData.read_from_file('Data/furniture-probe-save.rxdata'))
       check.call(ArenaDemo.custom_placements == placements, 'extra furniture and underlying ground survive save and load')
       sprites.each(&:dispose)
+      # Render a real map composition, not only isolated sprite bitmaps.
+      placements, records = ArenaDemo.custom_placements, ArenaDemo.tile_edit_records
+      placements.clear
+      records.clear
+      [[:ARENA_FURNITURE_RSE_STAND,45,46],[:ARENA_FURNITURE_RSE_SOLID_BOARD,49,46],
+       [:ARENA_FURNITURE_DPPT_LABMACHINE,52,48],[:ARENA_FURNITURE_TREE_LEAFY,43,51],
+       [:ARENA_FURNITURE_TREE_PINE,47,51],[:ARENA_FURNITURE_DPPT_BIGOILDRUM,51,52],
+       [:ARENA_FURNITURE_SNOWBALL,45,48],[:ARENA_FURNITURE_HGSS_RED_CARPET,49,48],
+       [:ARENA_FURNITURE_CHANDELIER,43,48],[:ARENA_FURNITURE_LAMPE,43,46],
+       [:ARENA_FURNITURE_DPPT_OILDRUM,54,51],[:ARENA_FURNITURE_DPPT_TRASHCAN,54,49],
+       [:ARENA_FURNITURE_RSE_RED_FLOWER,45,52],[:ARENA_FURNITURE_RSE_BIG_PLANT,49,52]].each do |item,x,y|
+        ArenaDemo.editor_apply_placement(placements,records,'furniture',{item:item},x,y)
+      end
+      check.call(placements.length == 14, 'native visual scene retains all scaled furniture')
+      check.call(GameData::Item.get(:ARENA_FURNITURE_HGSS_RED_CARPET).real_name == 'Tapis rouge', 'saved bag item names refreshed')
+      $game_player.moveto(49,50)
+      $game_player.center(49,49)
+      $scene = Scene_Map.new
+      $scene.createSpritesets
+      4.times { $scene.updateSpritesets; Graphics.update }
+      shots << [Graphics.snap_to_bitmap,path.sub(/\.log$/, '-revised-map.png')]
+      $PokemonGlobal.arena_wide_furniture_layout_version = 0
+      legacy_tree = {'kind'=>'furniture','item'=>'ARENA_FURNITURE_TREE_LEAFY','x'=>44,'y'=>44}
+      legacy_snow = {'kind'=>'furniture','item'=>'ARENA_FURNITURE_SNOWBALL','x'=>45,'y'=>44}
+      $PokemonGlobal.arena_demo_placements = [legacy_tree,legacy_snow]
+      before_bag = Marshal.dump($bag)
+      ArenaDemo.custom_placements
+      distance = (legacy_tree['x']-44).abs + (legacy_tree['y']-44).abs
+      check.call(distance == 1 && !ArenaFurnitureRules.cells(legacy_tree['item'],legacy_tree['x'],legacy_tree['y']).include?([45,44]) && legacy_snow.values_at('x','y') == [45,44], 'legacy crowded layout expands with minimal furniture relocation')
+      check.call(Marshal.dump($bag) == before_bag, 'legacy expansion preserves inventory')
       shots.each do |bitmap, filename|
         raw = ''.b
         bitmap.height.times do |y|

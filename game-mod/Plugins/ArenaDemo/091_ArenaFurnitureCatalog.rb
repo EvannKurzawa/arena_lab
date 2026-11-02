@@ -87,7 +87,7 @@ module ArenaDemo
     else
       if catalog_furniture?(item)
         source = furniture_bitmap(item)
-        rect = Rect.new(0, 0, 32, 64)
+        rect = Rect.new(0, 0, source.width, source.height)
       else
         # Existing boulder/rock/tree use their original native idle pose.
         source = ExpeditionTerrain.source("Characters/#{FURNITURE_STOCK.fetch(item)[1]}")
@@ -176,10 +176,10 @@ module ArenaDemo
       @charbitmap = ArenaDemo.furniture_bitmap(item).clone
       @charbitmapAnimated = false
       @arena_furniture_graphic = item
-      @tile_id, @cw, @ch = 384, 32, 64
-      self.src_rect.set(0, 0, 32, 64)
-      self.ox, self.oy = 16, 64
-      @character.sprite_size = [32, 64]
+      @tile_id, @cw, @ch = 384, @charbitmap.width, @charbitmap.height
+      self.src_rect.set(0, 0, @cw, @ch)
+      self.ox, self.oy = @cw / 2, @ch
+      @character.sprite_size = [@cw, @ch]
     end
   end
 end

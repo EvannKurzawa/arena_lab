@@ -14,7 +14,7 @@ module ArenaDemo
     'rse-big-plant' => 'Grande plante',
     'rse-colorful-plant' => 'Plante multicolore',
     'rse-gorgeous-plant' => 'Plante somptueuse',
-    'rse-pretty-flowers' => 'Jolies fleurs de Hoenn',
+    'rse-pretty-flowers' => 'Jolies fleurs',
     'dppt-container' => 'Conteneur',
     'dppt-crate' => 'Caisse en bois',
     'dppt-healingmachine' => 'Machine de soin',
@@ -25,17 +25,17 @@ module ArenaDemo
     'dppt-gymstatue' => "Statue d'arène",
     'dppt-cardboardbox' => 'Carton',
     'dppt-trashcan' => 'Poubelle',
-    'dppt-pottedplant' => 'Plante en pot de Sinnoh',
+    'dppt-pottedplant' => 'Plante en pot',
     'dppt-pokeflower' => 'Fleur Pokémon',
-    'dppt-prettyflowers' => 'Jolies fleurs de Sinnoh',
+    'dppt-prettyflowers' => 'Bouquet de fleurs',
     'dppt-daintyflowers' => 'Fleurs délicates',
     'cogne-cogne' => 'Cogne-Cogne',
     'chandelier' => 'Chandelier',
     'lampe' => 'Lampe',
     'tree-leafy' => 'Arbre feuillu',
     'tree-pine' => 'Sapin',
-    'hgss-red-carpet' => "Tapis rouge d'entrée HGSS",
-    'hgss-spikes' => "Pics d'Ébènelle HGSS",
+    'hgss-red-carpet' => 'Tapis rouge',
+    'hgss-spikes' => 'Pics',
     'snowball' => 'Boule de neige'
   }.freeze
   EXTRA_FURNITURE = EXTRA_FURNITURE_ART.to_h { |stem, name|
@@ -48,12 +48,66 @@ module ArenaDemo
   }).freeze)
 
   module ExtraFurnitureIntegration
+    def custom_placements
+      placements = super
+      return placements if !$PokemonGlobal || (defined?(Visits) && Visits.snapshot)
+      return placements if $PokemonGlobal.arena_wide_furniture_layout_version.to_i >= 1
+      records = tile_edit_records
+      placements.dup.each do |placed|
+        next unless placed['kind'] == 'furniture' && ArenaFurnitureRules.width(placed['item']) > 1
+        others = placements.reject { |p| p.equal?(placed) }.flat_map do |p|
+          ArenaFurnitureRules.cells(p['kind'] == 'furniture' ? p['item'] : nil,p['x'],p['y'])
+        end
+        level = relief_code(records,placed['x'],placed['y']).to_i
+        clear = proc do |x,y|
+          ArenaFurnitureRules.cells(placed['item'],x,y).all? do |px,py|
+            px.between?(0,MAP_WIDTH-1) && py.between?(0,MAP_HEIGHT-1) &&
+              !others.include?([px,py]) && !relief_reserved.include?([px,py]) &&
+              !tile_is_void?(px,py,records) && !relief_wall?(records,px,py) &&
+              relief_code(records,px,py) == level && level <= 1 &&
+              !ArenaMaterials::UNSAFE_GROUNDS.include?(tile_surface_state(records,px,py)['ground'])
+          end
+        end
+        next if clear.call(placed['x'],placed['y'])
+        points = (0...MAP_HEIGHT).flat_map { |y| (0...MAP_WIDTH).map { |x| [x,y] } }
+        destination = points.sort_by { |x,y| [(x-placed['x']).abs+(y-placed['y']).abs,y,x] }.find { |x,y| clear.call(x,y) }
+        if destination
+          placed['x'], placed['y'] = destination
+        elsif $bag.add(placement_item(placed),1)
+          placements.delete(placed)
+        end
+      end
+      $PokemonGlobal.arena_wide_furniture_layout_version = 1
+      placements
+    end
+
+    def register_bag_items
+      super
+      EXTRA_FURNITURE.each do |item, (name, _stem)|
+        data = GameData::Item.try_get(item)
+        next unless data
+        %i[@real_name @real_name_plural @real_portion_name @real_portion_name_plural].each do |key|
+          data.instance_variable_set(key,name)
+        end
+      end
+    end
+
     def catalog_furniture?(item)
       EXTRA_FURNITURE.key?(item) || super
     end
 
     def furniture_bitmap(item)
       return super unless EXTRA_FURNITURE.key?(item)
+      if ArenaFurnitureRules.raised?(item)
+        @raised_furniture_previews ||= {}
+        return @raised_furniture_previews[item] ||= begin
+          records = { '40,40' => { 'floor'=>'field', 'height'=>1, 'stair'=>nil, 'ground'=>'wood', 'platform_style'=>'wood' } }
+          preview = Bitmap.new(32,64)
+          preview.blt(0,0,relief_bitmap(records,40,40),Rect.new(0,0,32,32))
+          preview.blt(0,32,relief_bitmap(records,40,41),Rect.new(0,0,32,32))
+          preview
+        end
+      end
       image = ExpeditionTerrain.source("ArenaFurniture/#{EXTRA_FURNITURE.fetch(item)[1]}")
       raise "Missing shared furniture graphic: #{item}" unless image
       image
@@ -75,17 +129,67 @@ module ArenaDemo
     def refresh_custom_placements(placements = custom_placements)
       super
       return unless $game_map && $game_map.map_id == MAP_ID
+      MAX_ARENA_FURNITURE.times do |slot|
+        event = $game_map.events[FURNITURE_SLOT_BASE + slot]
+        event.width, event.height = 1,1 if event
+      end
       furniture_placements(placements).each_with_index do |placed, slot|
         item = placement_item(placed)
         next unless EXTRA_FURNITURE.key?(item)
         event = $game_map.events[FURNITURE_SLOT_BASE + slot]
-        event.through = ArenaFurnitureRules.walkable?(item) if event
+        if event
+          event.through = ArenaFurnitureRules.walkable?(item)
+          event.width = ArenaFurnitureRules.width(item)
+        end
       end
+    end
+
+    def editor_occupied(placements, x, y)
+      placements.find do |placed|
+        item = placed['kind'] == 'furniture' ? placed['item'] : nil
+        ArenaFurnitureRules.cells(item,placed['x'],placed['y']).include?([x,y])
+      end
+    end
+
+    def material_catalog_description(entry)
+      return super unless entry[:furniture_catalog] && EXTRA_FURNITURE.key?(entry[:item])
+      width = ArenaFurnitureRules.width(entry[:item])
+      "En réserve : #{entry[:qty]}\nOccupe #{width} #{width == 1 ? 'case' : 'cases'}"
+    end
+
+    def valid_relief_records?(records, placements)
+      return false unless super
+      grid = relief_grid(records)
+      positions = placements.flat_map { |p| ArenaFurnitureRules.cells(p['kind'] == 'furniture' ? p['item'] : nil,p['x'],p['y']) }
+      positions.all? { |x,y| !ArenaRelief.wall?(grid,x,y) && ArenaRelief.at(grid,x,y).to_i <= 1 } &&
+        positions.length == positions.uniq.length && placements.all? do |p|
+          ArenaFurnitureRules.cells(p['kind'] == 'furniture' ? p['item'] : nil,p['x'],p['y']).map { |x,y| ArenaRelief.at(grid,x,y) }.uniq.length == 1
+        end
+    end
+
+    def decode_visit_snapshot(surface, placements, relief = '0' * (MAP_WIDTH * MAP_HEIGHT), styles = '0' * (MAP_WIDTH * MAP_HEIGHT))
+      decoded = super
+      return nil unless decoded && ArenaFurnitureRules.valid_footprints?(placements,surface,relief,relief_reserved)
+      decoded
     end
 
     def editor_apply_placement(placements, records, kind, selected, x, y)
       current = editor_occupied(placements, x, y)
       removing = selected[:action] == :remove
+      if !removing && kind == 'furniture' && ArenaFurnitureRules.width(selected[:item]) > 1
+        cells = ArenaFurnitureRules.cells(selected[:item],x,y)
+        level = relief_code(records,x,y)
+        valid = cells.all? do |px,py|
+          valid_editor_tile?(px,py) && !editor_occupied(placements,px,py) &&
+            !relief_reserved.include?([px,py]) && !relief_wall?(records,px,py) &&
+            relief_code(records,px,py) == level && level && level <= 1 &&
+            !tile_is_void?(px,py,records) && !%w[quicksand water deep_water lava].include?(tile_surface_state(records,px,py)['ground'])
+        end
+        unless valid
+          pbMessage('Ce meuble nécessite deux cases libres côte à côte, au même niveau.')
+          return false
+        end
+      end
       current_raised = current && ArenaFurnitureRules.raised?(placement_item(current))
       adding_raised = !removing && ArenaFurnitureRules.raised?(selected[:item])
       return super unless current_raised || adding_raised
@@ -140,7 +244,7 @@ module ArenaDemo
 
     def choose_catalog(entries, title)
       chosen = super
-      if @device_legacy_replace && chosen && ArenaFurnitureRules.raised?(chosen[:item])
+      if @device_legacy_replace && chosen && (ArenaFurnitureRules.raised?(chosen[:item]) || ArenaFurnitureRules.width(chosen[:item]) > 1)
         pbMessage("Retirez d'abord le meuble, puis posez le meuble surélevé sur une case libre.")
         return nil
       end
@@ -159,12 +263,16 @@ module ArenaDemo
     def update
       super
       item = @character.instance_variable_get(:@arena_furniture_item)
+      # Raised objects ARE the native relief. A second event picture previously
+      # put the original stand/board graphic over the platform and its wall.
+      self.visible = false if ArenaFurnitureRules.raised?(item)
       self.z -= 32 if ArenaFurnitureRules.walkable?(item)
     end
   end
 end
 class PokemonGlobalMetadata
   attr_accessor :arena_extra_furniture_stock_added
+  attr_accessor :arena_wide_furniture_layout_version
 end
 ArenaDemo.singleton_class.prepend(ArenaDemo::ExtraFurnitureIntegration)
 Sprite_Character.prepend(ArenaDemo::ExtraFurnitureFloorGraphic) if defined?(Sprite_Character)

@@ -1,5 +1,39 @@
 # Setup and implementation status
 
+## Furniture visual revision — 2026-11-02
+
+Arena Demo 0.25.1. Replaced uniform fit-to-32x64 packing with per-object native
+sizes and true nearest-neighbour sampling in tools/build-extra-furniture-art.rb;
+the PowerShell entry point delegates to it. Fixed snow crop (removed stairs),
+carpet matte and leafy tree crop (one complete tree). Shrunk plants/flowers,
+lamp/bin/single drum; enlarged pine, lab machine and barrel set. Generated a
+new transparent pixel-art candelabra with the built-in imagegen tool; packed
+asset and exact prompt documented in docs/FURNITURE_VISUAL_FIXES.md. SharedAssets
+still supplies every final PNG automatically; no user transfer step.
+
+091 uses actual bitmap/frame dimensions. 092 refreshes stored item names and
+supports four two-cell-wide furniture types. Native event.width, editor
+occupancy/removal, relief validation, visit decoding, server room validation,
+Tesla targets, device destinations and Strength overlays use shared footprints.
+Server capability arena_furniture_size=2 lets the launcher detect old services.
+One-time migration keeps existing wide furniture in place if possible, otherwise
+chooses the nearest free footprint at the same height. If none fits, returns it
+to the Bag before removing its old placement. No other placements are moved.
+Raised stand/board use ONLY native relief rendering; their event image is hidden
+and the catalogue preview is composed from the same platform top/wall art.
+
+Executed extra_furniture_test.rb: 41 tests / 1880 assertions; real TCP
+furniture_visit_server_test.rb: 4/48; arena_devices_rules_test.rb: 4/49;
+arena_devices_server_test.rb: 16/360; field_state_server_test.rb: 6/152;
+arena_relief_server_test.rb: 7/118. Total **78 tests / 2607 assertions**, all pass.
+Native tests run in disposable copies with copied Data/Plugins and shared
+read-only art. Visually inspected furniture-native-report-revised-map.png:
+full tree, changed relative sizes, snowball alone, clean carpet, no duplicate
+stand/board event graphic. Existing save/load, inventory and visit round trips
+pass. Final run: **266 native checks passed**, including legacy layout migration
+and preserved inventory. No manual two-PC session
+claimed. The two unrelated untracked user files are preserved.
+
 ## Original furniture and Gen 5 compiler recovery — 2026-11-02
 
 Arena Demo 0.25.0 adds 36 original-art furniture entries via 092_ExtraFurniture.rb,

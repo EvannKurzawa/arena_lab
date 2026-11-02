@@ -30,7 +30,7 @@ module ArenaVisitsServer
   ].freeze
 
   def dispatch_frame(conn, env, type, authed, body)
-    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 14, arena_bind: @config.bind, arena_follower_pose: true, arena_extra_furniture: true) if type == :ping
+    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 14, arena_bind: @config.bind, arena_follower_pose: true, arena_extra_furniture: true, arena_furniture_size: 2) if type == :ping
     if conn.data[:arena_local_world] && type == :save
       return reply(conn, type: :save_err, seq: env[:seq], reason: 'local_world')
     end
@@ -78,8 +78,9 @@ module ArenaVisitsServer
             difficulty.is_a?(Integer) && difficulty.between?(0, 2) &&
             valid_arena_surface?(surface) && valid_arena_placements?(placements, surface) &&
             ArenaRelief.valid?(env[:relief], surface,
-              [ARENA_START, ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT], placements) &&
+              [ARENA_START, ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT], ArenaFurnitureRules.positions(placements)) &&
             ArenaRelief.valid_styles?(env[:styles], env[:relief]) &&
+            ArenaFurnitureRules.valid_footprints?(placements,surface,env[:relief],[ARENA_START,ARENA_GUIDE,ARENA_TRAINER,ARENA_EXIT]) &&
             ArenaDevices.valid_sparks?(placements, surface, env[:relief], [ARENA_START, ARENA_GUIDE, ARENA_TRAINER, ARENA_EXIT])
     return arena_error(conn, 'Invalid or oversized arena customization. Reopen the game and try again.') unless valid
     room = { token: SecureRandom.hex(12), host: conn, guest: nil, field_states: {}, field_revision: 0, disabled_devices: [],
@@ -156,7 +157,8 @@ module ArenaVisitsServer
     room[:placements].none? do |kind, item, px, py|
       slot += 1 if kind == 0
       point = kind == 0 ? room[:field_states].fetch(slot, [px, py]) : [px, py]
-      point == [x, y] && (kind == 1 || ArenaDevices.blocked?(item, slot, room[:disabled_devices] || []))
+      point && ArenaFurnitureRules.cells(kind == 0 ? item : nil,*point).include?([x,y]) &&
+        (kind == 1 || ArenaDevices.blocked?(item, slot, room[:disabled_devices] || []))
     end
   end
 
@@ -187,7 +189,7 @@ module ArenaVisitsServer
     return false unless placements.is_a?(Array) && placements.length <= ARENA_MAX_PLACEMENTS
     return false unless ArenaDevices.valid_pairs?(placements)
     occupied = {}
-    placements.all? do |entry|
+    valid = placements.all? do |entry|
       next false unless entry.is_a?(Array) && entry.length == 4
       kind, item, x, y = entry
       next false unless [0, 1].include?(kind) && item.is_a?(String) &&
@@ -199,6 +201,7 @@ module ArenaVisitsServer
       next false if ArenaRelief.blocked_surface?(surface, x, y)
       occupied[point] = true
     end
+    valid && ArenaFurnitureRules.valid_footprints?(placements,surface,nil,[ARENA_START,ARENA_GUIDE,ARENA_TRAINER,ARENA_EXIT])
   end
 
   def arena_invite(conn, env)

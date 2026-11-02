@@ -1,5 +1,23 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Mobilier : découpes et proportions corrigées — Arena Demo 0.25.1
+
+Boule de neige détourée seule, tapis rouge transparent, arbre feuillu entier,
+sapin agrandi et tailles individuelles pour les plantes, fleurs, lampe,
+poubelle, machines et barils. Chandelier redessiné en pixel art. Les noms du
+catalogue et du Sac ne contiennent plus les mentions de région ou HGSS.
+Arbres, machine de laboratoire et set de barils occupent **2 cases côte à côte**,
+avec les mêmes collisions en solo et en visite. Estrade et planche utilisent
+uniquement le relief natif, sans dessin superposé à la plateforme.
+
+Les meubles élargis déjà posés conservent leur position si la deuxième case
+est libre ; sinon ils sont déplacés au plus proche, au même niveau, sans perte
+d'inventaire. Tous les graphismes suivent **Arena Update.exe**, puis
+**Play-Arena.bat**, sur les deux PC.
+Voir [les corrections et la consigne du chandelier](docs/FURNITURE_VISUAL_FIXES.md).
+
+Validation : **266 contrôles natifs et 78 tests / 2 607 assertions réussis**.
+
 ## Mobilier original et compilation du Pokédex — Arena Demo 0.25.0
 
 **36 nouveaux meubles** dans Personnalisation → Meubles : végétation, arbres,

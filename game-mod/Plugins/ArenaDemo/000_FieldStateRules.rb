@@ -32,7 +32,8 @@ module ArenaFieldState
           !ArenaRelief.wall?(relief, *point) && ArenaRelief.at(relief, *point) <= 1
       end
     end
-    points = effective(placements, states).map { |p| p[2, 2] }
+    objects = effective(placements, states)
+    points = defined?(ArenaFurnitureRules) ? ArenaFurnitureRules.positions(objects) : objects.map { |p| p[2,2] }
     points.uniq.length == points.length
   end
 
