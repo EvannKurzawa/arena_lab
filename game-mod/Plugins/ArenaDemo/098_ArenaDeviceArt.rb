@@ -45,44 +45,20 @@ module ArenaDemo::DeviceArt
     cyan, purple, yellow = color(72, 235, 246), color(164, 78, 235), color(255, 232, 79)
     root = 'Graphics/ArenaDevices/'
     file = if ArenaDevices.coil?(item) then 'coil'
-           elsif ArenaDevices::MAGNETS.include?(item) then 'antenna'
+           elsif ArenaDevices::MAGNETS.include?(item) then 'antenna-' + item.split('_').last
            elsif item == ArenaDevices::BUTTON then disabled ? 'button-down' : 'button-up'
-           elsif item == ArenaDevices::RUNE then 'rune' end
+           elsif item == ArenaDevices::RUNE then 'rune'
+           elsif item == ArenaDevices::WEB then 'web'
+           elsif item == ArenaDevices::TELEPORT then 'teleporter' end
     if file
       source = Bitmap.new(root + file + '.png')
       image.blt(0, 0, source, source.rect)
       source.dispose
-      arrow(image, item.split('_').last, cyan, 48) if ArenaDevices::MAGNETS.include?(item)
     elsif ArenaDevices::CONVEYORS.include?(item)
       sheet = Bitmap.new(root + 'conveyor-sheet.png')
       row = { 'R' => 0, 'L' => 2, 'U' => 4, 'D' => 6 }.fetch(item.split('_').last)
       image.blt(0, 32, sheet, Rect.new(phase * 32, row * 32, 32, 32))
       sheet.dispose
-    elsif item == ArenaDevices::WEB
-      threads = Bitmap.new(32, 64)
-      8.times do |i|
-        angle = i * Math::PI / 4
-        line(threads, 16, 48, (16 + Math.cos(angle) * 14).round, (48 + Math.sin(angle) * 14).round, Color.white)
-      end
-      [5, 10, 14].each do |r|
-        8.times do |i|
-          t, u = i * Math::PI / 4, (i + 1) * Math::PI / 4
-          line(threads, (16 + Math.cos(t) * r).round, (48 + Math.sin(t) * r).round,
-            (16 + Math.cos(u) * r).round, (48 + Math.sin(u) * r).round, Color.white)
-        end
-      end
-      32.times do |x|
-        (32...64).each do |y|
-          next if threads.get_pixel(x,y).alpha == 0
-          (-1..1).each { |dx| (-1..1).each { |dy| image.set_pixel(x+dx,y+dy,Color.black) if (x+dx).between?(0,31) && (y+dy).between?(0,63) } }
-        end
-      end
-      image.blt(0,0,threads,threads.rect)
-      threads.dispose
-    elsif item == ArenaDevices::TELEPORT
-      source = Bitmap.new(root + 'hgss-map.jpg')
-      image.stretch_blt(Rect.new(2,34,28,28), source, Rect.new(36,60,23,23))
-      source.dispose
     end
     @cache[key] = image
   end

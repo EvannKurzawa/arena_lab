@@ -1,5 +1,40 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## v9.2.1 — Arena Demo 0.23.1
+
+Corrige le blocage au démarrage après une réécriture des données d'animations
+sans changement de contenu. Révise le tapis, la rune, la toile, les quatre
+orientations de l'antenne et le son magnétique. Fermer les jeux, lancer
+**Arena Update**, puis **Play-Arena.bat** sur chaque PC. Aucune réinstallation
+complète requise ; protocole multijoueur inchangé (**14**).
+
+Avant mise à jour, sauvegarder les scripts, PBS et sprites personnalisés.
+Réintégrer les ajouts dans les fichiers à jour sans rétablir les anciens scripts
+complets. Les scripts personnalisés vont dans `game-mod/Plugins/ArenaDemo/` ;
+les copies du runtime sont remplacées lors de la préparation.
+
+Diagnostic d'un blocage « Battle animation data changed » : voir
+[le compte rendu](docs/BATTLE_ANIMATION_STARTUP_RECOVERY.md). Le lancement accepte
+désormais les réécritures dont le contenu des animations est inchangé et migre
+les anciennes installations automatiquement si leur référence peut être vérifiée.
+Ne pas supprimer le marqueur pour forcer une réinstallation du pack.
+
+## Nouveaux visuels et sons des objets (2 novembre 2026)
+
+Correction du rendu : tapis à défilement périodique sans coupure, rune creuse,
+toile claire sans contour noir et quatre antennes orientées sans flèche.
+Bourdonnement renforcé dans les médiums ; fichier et appel au moteur audio
+vérifiés. **35 contrôles natifs réussis.** Fermer toutes les fenêtres du jeu,
+puis relancer **Play-Arena.bat** pour installer cette révision.
+
+Tapis noir à chevrons jaunes animé, dalle de téléportation bleue, rune violette,
+toile irrégulière et antenne simplifiée. Le Pokémon suiveur disparaît pendant
+l'attraction magnétique et revient à l'arrêt, y compris devant un obstacle.
+Un bourdonnement accompagne l'attraction ; le bouton Tesla produit un son de
+coupure électrique. Relancer **Play-Arena.bat** pour installer les sprites et
+générer les sons sur chaque PC. Vérification native : **32 contrôles réussis**,
+sans lire ni écrire de sauvegarde joueur. Détails : [assets](docs/ARENA_DEVICE_ASSETS.md).
+
 ## Objets interactifs et Pokédex de 650 Pokémon (Arena Demo 0.23.0, local)
 
 **Dark Lugia possède désormais sa propre entrée nationale 650** ; Lugia normal

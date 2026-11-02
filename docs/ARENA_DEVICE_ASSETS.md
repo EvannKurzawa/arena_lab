@@ -1,5 +1,62 @@
 # Assets des objets interactifs — 0.23.0
 
+## Correction du rendu — 2 novembre 2026
+
+Le tapis est maintenant construit par un motif périodique natif : période de
+16 pixels, quatre phases espacées de 4 pixels, cadre fixe et rotations des
+quatre directions. Cette méthode remplace le décalage d'un recadrage non
+raccordable de l'image générée, qui provoquait des sauts dans l'animation.
+
+La rune est creuse et allégée. La toile n'a plus de contour noir ; sa réduction
+conserve la couverture des fils avant conversion en pixels clairs opaques.
+Les fichiers `antenna-R.png`, `antenna-L.png`, `antenna-U.png` et `antenna-D.png`
+remplacent le sprite unique avec flèche. La vue gauche est le miroir exact de
+la vue droite. Les vues nord/sud conservent un pied vertical et orientent la
+parabole. Génération intégrée imagegen, prompts exacts :
+[DEVICE_REVISION_PROMPTS.md](DEVICE_REVISION_PROMPTS.md).
+Les PNG actifs restent dans `game-mod/Graphics/ArenaDevices/`.
+
+Le bourdonnement utilise maintenant 330/660/990 Hz à volume 95 avant application
+du réglage général des effets. L'ancienne fondamentale à 110 Hz pouvait être
+masquée sur des petits haut-parleurs ; ce n'est pas une cause confirmée du
+silence rapporté. Le test natif contrôle maintenant le WAV complet, sa résolution
+par le moteur et l'appel réel à `Audio.bgs_play` à volume non nul.
+
+Reconstruction facultative depuis les originaux privés :
+`powershell -ExecutionPolicy Bypass -File tools/rebuild-device-revision.ps1 -SourceRoot <dossier-images-generees>`.
+L'installation normale copie les PNG prêts à jouer et régénère le son ; elle
+ne dépend pas du dossier des originaux.
+
+## Révision du 2 novembre 2026
+
+Les sprites actifs `conveyor-sheet.png`, `teleporter.png`, `rune.png`,
+`antenna.png` et `web.png` sont désormais des adaptations générées avec l'outil
+imagegen intégré à partir des références utilisateur. La toile est une
+adaptation pixel art, pas une copie exacte de la photo de stock. La dalle
+bleue remplace le recadrage HGSS. Les sources décrites plus bas pour l'ancien
+tapis et l'ancienne rune sont historiques et ne décrivent plus les fichiers
+actifs. Les boutons et la bobine restent inchangés.
+
+`game-mod/tools/build_device_sprites.ps1` réduit les originaux transparents
+en sprites natifs 32×64 ; le tapis est assemblé en quatre phases et quatre
+directions (planche 128×256), bord fixe et intérieur défilant. Les PNG prêts
+à jouer sont dans `game-mod/Graphics/ArenaDevices/` ; les originaux restent
+dans le dossier privé des images générées.
+
+Les sons `Arena Magnet` (BGS en boucle) et `Arena Coil Off` (SE décroissant)
+sont synthétisés par `game-mod/tools/build_device_audio.rb` lors de Prepare.
+Aucun échantillon externe : sinusoïdes modulées et bruit déterministe. Le
+son HGSS de téléportation existant est conservé. L'ambiance BGS précédente
+reprend après l'attraction, depuis son début.
+
+Prompts utilisés avec l'outil intégré (fond transparent) :
+
+- Tapis : Use reference image #1 (green conveyor) as EDIT TARGET. Create a single square conveyor floor tile with exactly this simple chevron design but charcoal black belt and yellow chevron bands pointing left. Remove surrounding ground and frame, keep thin grey mechanical border. Crisp 16-bit RPG pixel sprite, no blur. Transparent outside square. One tile only, no text. For game integration will reduce to 32x32 and animate chevrons in code.
+- Téléporteur : Use reference image #2 as design reference: isolate/recreate ONLY the blue white square teleporter pad circled in red, without the red circle. Square blue cyan center, concentric dark-blue and white square frames, metallic dark border, slightly top-down Pokemon floor tile. One 32x32 logical pixel-art tile enlarged, transparent outside tile. No people, scene, text.
+- Rune : Use reference image #3 as reference. Single purple magenta glowing circular blindness rune, two concentric circles with little arcane marks between, four main projecting radial ticks and central tiny magenta point. Dark plum translucent interior, bright pink-white outlines. Preserve design as closely as possible. One floor tile sprite, crisp pixel art suitable for 32x32 logical reduction. Transparent outside circular glyph. No text or scene.
+- Antenne : Create a very SIMPLE restrained Pokemon RPG overworld magnetic antenna sprite, 32x48 logical pixels enlarged, crisp pixel art with small limited grey/red palette. Plain small square grey pedestal, short thin post and simple small grey dish with red central emitter pointed right. No bolts, wires, gauges, complex panels, large highlights or elaborate machinery. Fits understated existing Pokemon map props. Entire single sprite on transparent background. No text.
+- Toile : Use attached reference image #4 as design reference. Create one white irregular dense spiderweb matching its angular radial pattern, with broken and uneven polygonal rings and jagged outer strands. Pixel art sprite for Pokemon floor tile. White strands with subtle dark outline for visibility on ground. Transparent background including the holes between strands. No grey rectangle, text, stock footer or watermark. Square centered single web, 32x32 logical pixels enlarged, crisp pixels.
+
 Les fichiers partagés sont dans `game-mod/Graphics/ArenaDevices/`.
 `Play-Arena.bat` appelle `tools/install-arena-device-assets.ps1` pendant la
 préparation. Le téléporteur et le son HGSS restent dans le runtime privé ignoré

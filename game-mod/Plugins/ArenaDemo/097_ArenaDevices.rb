@@ -22,6 +22,7 @@ module ArenaDemo::Devices
   end
 
   def apply_disabled(values)
+    pbSEPlay('Arena Coil Off') if @disabled_scope == scope && (values - disabled).any?
     @disabled_scope, @disabled, @button_pending = scope, values.dup, nil
   end
 
@@ -75,7 +76,7 @@ module ArenaDemo::Devices
 
   def forcing?; active? && (@busy || @queued || @forced); end
   def sliding?; active? && !!@transport_kind; end
-  def hiding_follower?; @transport_kind == :conveyor && @restore_follower == true; end
+  def hiding_follower?; !!@transport_kind && @restore_follower == true; end
 
   def begin_transport(kind)
     return if @transport_kind == kind
@@ -86,12 +87,23 @@ module ArenaDemo::Devices
     $game_player.instance_variable_set(:@step_anime, false)
     $game_player.instance_variable_set(:@arena_device_sliding, true)
     $game_player.pattern = $game_player.instance_variable_get(:@original_pattern) || 0
-    @restore_follower = kind == :conveyor && defined?(FollowingPkmn) && FollowingPkmn.active? && !FollowingPkmn.hidden?
+    @restore_follower = defined?(FollowingPkmn) && FollowingPkmn.active? && !FollowingPkmn.hidden?
     FollowingPkmn.hide_follower if @restore_follower
+    if kind == :magnet
+      @previous_bgs = $game_system.playing_bgs&.clone
+      # Use the standard audio helper and an audible midrange loop. The native
+      # probe also verifies the file and the backend call, beyond playing_bgs.
+      pbBGSPlay('Arena Magnet', 95, 100)
+    end
     PEMK::Presence.emit_now(:pos) if defined?(PEMK::Presence)
   end
 
   def end_transport
+    if @transport_kind == :magnet
+      # Stop the loop at arrival/blockage and restore the map ambience.
+      $game_system.bgs_play(@previous_bgs)
+      @previous_bgs = nil
+    end
     player, animation, restore = @transport_player, @transport_animation, @restore_follower
     @transport_kind = @transport_player = @transport_animation = @restore_follower = nil
     if player && animation
@@ -129,7 +141,7 @@ module ArenaDemo::Devices
         :room => ArenaDemo::Visits.scope, :slot => slot)
     else
       disabled << coil
-      pbSEPlay('GUI sel decision')
+      pbSEPlay('Arena Coil Off')
       ArenaDemo.refresh_custom_placements
     end
   end

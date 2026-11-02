@@ -1,5 +1,148 @@
 # Setup and implementation status
 
+## v9.2.1 publication preparation — 2026-11-02 (Arena Demo 0.23.1)
+
+Pre-publication rerun: battle_animation_install_test.rb **7/44**,
+arena_devices_rules_test.rb **4/49**, arena_devices_server_test.rb **16/360**:
+**27 tests / 453 assertions**, no failures/errors. `git diff --check` passed.
+`git fetch origin` succeeded after approval for writing FETCH_HEAD; local main
+and origin/main matched (0/0) before this commit. Publication commands prepared:
+`git commit -m v9.2.1` and `git push origin main`.
+
+Scope: animation-content startup recovery plus device sprite/audio revisions.
+Plugin version bumped to 0.23.1; network protocol remains 14. Existing animated
+battler/Dark Lugia work, friend-provided files, private runtime and presentation
+are excluded from this update. Removed a duplicated antenna-mirroring block
+from the optional asset rebuild helper. User reports successful launch with
+the startup fix. Earlier device native run passed 35 checks; no live two-client
+session or human listening assessment is claimed. Manual update: back up local
+customizations, close clients, run Arena Update then Play-Arena.bat on each PC;
+merge custom trainer additions into updated source scripts rather than replacing
+them wholesale. No full reinstall or database migration is required.
+
+## Device rendering and magnetic audio revision — 2026-11-02
+
+Conveyor chevrons now use a native 16px periodic pattern and four 4px phases,
+with fixed frame and four rotated directions. This replaces nonperiodic crop
+scrolling that visibly jumped. Rune is hollow/sparser; web is clear without
+black outline, with coverage-preserving reduction to avoid broken threads.
+Four oriented antenna PNGs replace the arrow overlay. Left is mirrored from
+right; north/south keep upright bases. Active PNGs are under
+game-mod/Graphics/ArenaDevices. Built-in imagegen prompts and packing details:
+docs/DEVICE_REVISION_PROMPTS.md and docs/ARENA_DEVICE_ASSETS.md.
+
+Magnetic BGS now uses 330/660/990Hz at volume 95 rather than a 110Hz-heavy
+loop at 65. This improves audibility; the cause of the reported silence has
+not been confirmed. Native checks now verify WAV payload, engine asset
+resolution and an actual Audio.bgs_play call at positive volume. No human
+listening assessment or live two-client session was performed.
+
+Executed: C:/msys64/mingw64/bin/python.exe tools/test-native-dark-lugia.py --devices
+— **35 native checks passed**, no player save read/written. Initial run passed
+audio checks but failed a wall-time web-speed ratio (4.88); median of three
+passages passed at 4.03 without changing tolerance or gameplay speed. Enlarged
+sprites and all antenna orientations were visually inspected. Final web
+resampling was visually checked after that native run. A final native rerun
+with the finished web also passed all 35 checks (web ratio 3.93). PNG output and native
+GUI launch required approved elevation. Other local work preserved; no
+upstream/protocol change, commit or push.
+
+Manual update: close all clients, then relaunch Play-Arena.bat on each updated
+PC. Prepare copies sprites and regenerates audio. Effects volume must be above
+zero. The normal installer does not depend on the private generated originals.
+
+## Animation content verification and legacy recovery — 2026-11-02
+
+Implemented in `tools/install-battle-animations.ps1` and
+`game-mod/tools/install_battle_animation_data.rb`. Receipts now store pack,
+binary and content SHA256 fingerprints. Changed bytes with identical animation
+content update only the receipt atomically; real edits and invalid data remain
+protected. Old receipts migrate directly when bytes match; otherwise the
+checksum-verified pack and pre-install backup must reconstruct the old binary
+fingerprint before content comparison is trusted. Missing/unverifiable backup
+still requires review. Recovery never re-appends the pack or replaces sprites,
+animation bytes or move mappings. README and recovery documentation updated.
+
+Executed bundled Ruby `game-mod/test/battle_animation_install_test.rb`:
+**7 runs / 44 assertions**, zero failures/errors. Verified engine reserialization,
+real frame edits, trailing data, legacy migration, altered backup, idempotence
+and sprite/mapping preservation. Ignored local recovery harness successfully
+migrated copies of the friend's supplied files using the local pre-install
+backup and verified ZIP, then passed repeat verification. PowerShell harness
+`tools/runtime/test-animation-recovery.ps1` passed syntax parsing, full legacy
+recovery through archive extraction, repeated installer fast check and unchanged
+animation-byte check. Original submissions and active runtime were untouched.
+No full game, server or two-client launch, commit or push performed. Manual step:
+update both installer scripts on friend's PC, then run `Play-Arena.bat`.
+
+## Device reference sprites, magnetic follower and audio — 2026-11-02
+
+Implemented the requested black/yellow animated conveyor, blue square pad,
+purple blindness rune, irregular white web and simpler magnetic antenna.
+Five transparent sprites were produced with built-in imagegen, then packed
+with `game-mod/tools/build_device_sprites.ps1` into the native bitmap layout.
+Visual inspection covered an enlarged sprite preview and the native map
+capture `tools/runtime/devices-native-objects.png` (ignored runtime artifact).
+The web is a generated adaptation of the reference, not an exact stock-image copy.
+Prompts and asset provenance: `docs/ARENA_DEVICE_ASSETS.md`.
+
+`097_ArenaDevices.rb` hides/restores the active follower for magnetic travel,
+loops a synthesized BGS until arrival or blockage, then restores the previous
+map ambience from its beginning. Local button presses and new shared disabled
+coil states play the synthesized electrical shutdown SE. Existing hidden
+followers remain hidden. `098_ArenaDeviceArt.rb` loads the new floor sprites.
+The audio builder uses only Ruby's standard library and is called by the
+normal PowerShell asset installer and native device test launcher.
+
+Executed successfully:
+- `C:/msys64/mingw64/bin/python.exe tools/test-native-dark-lugia.py --devices`:
+  **32 native checks passed** in mkxp-z, including follower visibility and BGS
+  state during magnetic movement, arrival and intervening obstacle. No player
+  save read or written. Audio playback state was checked; no human listening
+  assessment was performed.
+- Portable Ruby `game-mod/test/arena_devices_rules_test.rb`: **4 runs,
+  49 assertions, no failures/errors**.
+- Portable Ruby `game-mod/test/arena_devices_server_test.rb`: **16 runs,
+  360 assertions, no failures/errors**. No live two-client session in this pass.
+
+Tooling issues: Python lacks Pillow/pip, so sprite packing uses Windows
+System.Drawing instead. Restricted filesystem writes failed for PNG output
+and removal of an unused provisional converter; reran with approved elevation.
+The first unit-test commands used `--disable-gems` and could not load minitest;
+rerunning with normal gem loading passed as above.
+
+Manual step: restart `Play-Arena.bat` on each updated PC to install graphics
+and synthesize `Audio/BGS/Arena Magnet.wav` and `Audio/SE/Arena Coil Off.wav`.
+Protocol and upstream versions are unchanged. These changes are local and
+have not been committed or pushed. Existing unrelated work was preserved.
+
+## Friend's animation startup guard — 2026-11-02
+
+Inspected the three files supplied in `other_computer_bug`; originals unchanged.
+The supplied marker matches the local installed reference's SHA256, but the
+friend's animation file has SHA256
+`b266b87315c066f4b7669d9d1b7416cb4d64224ba80f645cb5dfa4e0b84c991b`.
+Executed bundled Ruby `tools/inspect-battle-animation-report.rb` against both
+files: 1,843 records each, identical normalized content SHA256
+`5719c8deb599fde875a009db576299f0db401136a65f0c9281bec0e66df489eb`.
+Verified Essentials' `compile_animations` can rewrite these data during PBS
+compilation. A compiler rewrite is plausible; its execution on that PC is not
+proven. Prepared a corrected marker and recovery instructions under
+`other_computer_bug/repaired`, valid only for the reviewed animation bytes.
+No animation reinstall, trainer merge, runtime change, commit or push performed.
+
+Executed bundled Ruby `-c other_computer_bug/009_ArenaCustomMode.rb`: Syntax OK,
+with duplicate POKEMONBREEDER_1 and PSYCHIC_F_1 keys. Modified PBS and sprites
+were not supplied. No game/server/two-client launch executed for this diagnosis.
+Manual steps: back up friend's project, replace only the marker as described in
+the prepared LISEZ-MOI, then launch Play-Arena.bat on that PC. See
+`docs/BATTLE_ANIMATION_STARTUP_RECOVERY.md`. Added diagnostic Ruby script and
+README pointer; existing unrelated working changes preserved.
+Additional verification: bundled Ruby `game-mod/test/battle_animation_install_test.rb`
+passed **2 runs / 16 assertions**, no failures or errors. Confirmed the prepared
+marker's target hash equals the reviewed friend's file; documentation diff check
+passed. The fix still requires a launch test on the friend's PC.
+
 ## Device visuals, sliding and directional Tesla — 2026-11-02 (0.23.0, local)
 
 Supersedes device behavior below: conveyors and magnetic attraction freeze the

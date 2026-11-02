@@ -18,6 +18,13 @@ module ArenaDeviceProbeCatalogInput
   end
 end
 Input.singleton_class.prepend(ArenaDeviceProbeCatalogInput)
+module ArenaDeviceProbeAudio
+  def bgs_play(*args)
+    ($device_bgs_calls ||= []) << args
+    super
+  end
+end
+Audio.singleton_class.prepend(ArenaDeviceProbeAudio)
 module ArenaDemo::NativeDevicesProbe
   def device_layout(entries, edits = {})
     $PokemonGlobal.arena_demo_placements = entries.map do |item, x, y|
@@ -38,6 +45,8 @@ module ArenaDemo::NativeDevicesProbe
           raise 'Follower visible on conveyor' unless FollowingPkmn.hidden?
           @conveyor_sampled = true
         else
+          raise 'Follower visible during magnetic attraction' unless FollowingPkmn.hidden?
+          raise 'Magnetic sound missing' unless $game_system.playing_bgs&.name == 'Arena Magnet'
           @magnet_sampled = true
         end
       end
@@ -77,6 +86,9 @@ module ArenaDemo::NativeDevicesProbe
       check = proc { |ok, label| raise "FAIL: #{label}" unless ok; lines << "PASS: #{label}"; File.write(path, lines.join("\n")) }
       SaveData.initialize_bootup_values
       SaveData.load_new_game_values
+      check.call(FileTest.audio_exist?('Audio/BGS/Arena Magnet'), 'magnetic loop is installed and resolvable by the engine')
+      wave = File.binread('Audio/BGS/Arena Magnet.wav')
+      check.call(wave[0, 4] == 'RIFF' && wave[8, 4] == 'WAVE' && wave[40, 4].unpack1('V') == wave.bytesize - 44, 'magnetic loop has a complete PCM WAV payload')
       ArenaDemo::Devices.install
       $PokemonGlobal.arena_demo_centered_layout_migration_version = 3
       $map_factory = PokemonMapFactory.new(100)
@@ -113,17 +125,25 @@ module ArenaDemo::NativeDevicesProbe
       $game_player.moveto(50, 49)
       device_step(2)
       check.call([$game_player.x, $game_player.y] == [54, 50], 'magnet attracts on its configured half-line until adjacent')
-      check.call(@magnet_sampled && $game_player.walk_anime, 'magnet slides without walking and restores normal movement')
+      check.call(@magnet_sampled && $game_player.walk_anime && !FollowingPkmn.hidden? && $game_system.playing_bgs&.name != 'Arena Magnet', 'magnet hides follower, loops audio and restores both at arrival')
+      check.call(($device_bgs_calls || []).any? { |args| args[0].include?('Arena Magnet') && args[1] > 0 }, 'magnetic loop reaches the native Audio backend at nonzero volume')
       device_layout([['ARENA_MAGNET_L', 55, 50], ['ARENA_FURNITURE_ROCK', 52, 50]])
       $game_player.moveto(50, 49)
       device_step(2)
       check.call([$game_player.x, $game_player.y] == [51, 50], 'magnetic attraction stops at the intervening object')
+      check.call(!FollowingPkmn.hidden? && $game_system.playing_bgs&.name != 'Arena Magnet', 'blocked magnet restores follower and stops audio')
       device_layout([])
       $game_player.moveto(49, 50)
-      normal = device_step(6)
+      normal = 3.times.map do
+        $game_player.moveto(49, 50)
+        device_step(6)
+      end.sort[1]
       device_layout([[ArenaDevices::WEB, 50, 50]])
       $game_player.moveto(49, 50)
-      slowed = device_step(6)
+      slowed = 3.times.map do
+        $game_player.moveto(49, 50)
+        device_step(6)
+      end.sort[1]
       check.call((slowed / normal).between?(3.4, 4.6), "web traversed at one-quarter native speed (ratio #{(slowed / normal).round(2)})")
       after = device_step(2)
       clear = device_step(2)
@@ -189,6 +209,7 @@ module ArenaDemo::NativeDevicesProbe
       ArenaDemo::Devices.clear
       check.call(mask.disposed?, 'room/editor reset disposes the blindness mask')
       device_layout([['ARENA_CONVEYOR_R', 47, 50], ['ARENA_MAGNET_L', 49, 50],
+        ['ARENA_MAGNET_R', 49, 48], ['ARENA_MAGNET_U', 51, 48], ['ARENA_MAGNET_D', 53, 48],
         [ArenaDevices::WEB, 51, 50], [ArenaDevices::TELEPORT, 53, 50], [ArenaDevices::TELEPORT, 55, 50],
         [ArenaDevices::COIL, 47, 52], [ArenaDevices::BUTTON, 49, 52], [ArenaDevices::RUNE, 51, 52]])
       $game_player.moveto(51, 54)
