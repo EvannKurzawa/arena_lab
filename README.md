@@ -1,5 +1,25 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## Mobilier original et compilation du Pokédex — Arena Demo 0.25.0
+
+**36 nouveaux meubles** dans Personnalisation → Meubles : végétation, arbres,
+boule de neige, décorations de Hoenn/Sinnoh, machines, stockage, éclairage,
+statue, tapis rouge et pics HGSS. Deux exemplaires par nouveauté, une seule
+fois par profil. Décorations solides, sauf tapis traversable et estrade/planche
+solide qui créent un niveau de plateforme, accessible avec les escaliers de
+l'éditeur. Les images sont incluses dans la mise à jour.
+
+Corrige la compilation « PERRSERKER non définie » : le filtre du Pokédex ne
+tronque plus les exports du compilateur. La préparation répare les dépendances
+manquantes depuis la sauvegarde Gen 8 fournie avec Essentials, sans remplacer
+les fichiers PBS personnels. Le Pokédex jouable reste **649 espèces + Dark Lugia**,
+avec uniquement les formes connues jusqu'à Noir 2/Blanc 2 : pas de Galar ni Méga.
+
+Fermer les jeux, **Arena Update.exe** sur les deux PC, puis **Play-Arena.bat**.
+Voir [le mobilier et les sources](docs/ARENA_FURNITURE.md).
+
+Validation : **224 contrôles natifs et 41 tests / 1 826 assertions réussis**.
+
 ## Dialogue de l'entrée et suivi fluide — Arena Demo 0.24.2
 
 Le dialogue héberger/visiter ne se rouvre plus à la reprise d'une sauvegarde

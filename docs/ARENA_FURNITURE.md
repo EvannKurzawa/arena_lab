@@ -1,5 +1,58 @@
 # Mobilier de base pour la personnalisation — 2026-11-01
 
+## Extension 0.25.0 — 2026-11-02
+
+Ajoute **36 références** aux 20 meubles précédents et aux trois obstacles,
+soit 59 types de mobilier classique, en plus des appareils interactifs.
+
+| Famille | Nouveautés |
+|---|---|
+| Végétation | Plante tropicale, grande plante, plante multicolore, plante somptueuse, plante en pot de Sinnoh, arbre feuillu, sapin |
+| Fleurs | Fleurs rouges, jolies fleurs de Hoenn, fleur Pokémon, jolies fleurs de Sinnoh, fleurs délicates |
+| Hoenn | Boule de Boue, Porte Cassable, Déco de Sable, pneu, barrières verticale/horizontale, estrade, planche solide |
+| Machines et stockage | Machine de laboratoire, machine de soin, baril, set de barils, caisse, carton, conteneur, poubelle, poutres métalliques |
+| Ornements | Cogne-Cogne, chandelier, lampe, statue d'arène, boule de neige, tapis rouge d'entrée HGSS, pics d'Ébènelle HGSS |
+
+Choix utilisateur : Boule de Boue, Porte Cassable, Déco de Sable et Cogne-Cogne
+sont des **décorations avec collisions**. Les machines sont aussi décoratives.
+La boule de neige et les pics sont solides, sans dégâts ou mini-jeu.
+Le tapis est traversable. Estrade et planche solide créent un sommet de hauteur
+1 avec le relief natif ; l'accès se construit avec les escaliers de l'éditeur.
+Le retrait restaure le sol précédent et refuse de supprimer l'appui d'un
+escalier encore présent. Les meubles sont adaptés à une case ; le tapis se
+pose par morceaux. Pas de meuble multi-case.
+
+Deux exemplaires de chaque nouveauté sont ajoutés une seule fois au Sac,
+y compris sur les profils existants. Placement, annulation, sauvegarde et
+visite utilisent l'éditeur et le format réseau existants. Le serveur connaît
+les trois meubles traversables ; le lanceur détecte les anciens services.
+Mettre à jour les deux PC avec **Arena Update.exe**, puis **Play-Arena.bat**.
+Les 36 PNG de `game-mod/SharedAssets/Graphics/ArenaFurniture/` sont copiés
+automatiquement : aucun téléchargement ou transfert d'image séparé à faire.
+
+Cette extension utilise des images originales des jeux, redimensionnées avec
+leurs proportions et transparence. Les liens, sommes SHA-256 et rectangles
+sont consignés dans `game-mod/AssetSources/furniture-sources.json`.
+Sources consultées : [collections de bases secrètes Pamtre Berry](https://pamtre-berry.neocities.org/fun/secretbase),
+[décorations Poképédia](https://www.pokepedia.fr/D%C3%A9coration),
+[arène d'Ébènelle HGSS](https://www.pokepedia.fr/Ar%C3%A8ne_d%27%C3%89b%C3%A8nelle),
+[carte de Frimapic DP](https://www.pokepedia.fr/Fichier%3AAr%C3%A8ne_Frimapic_DP.png)
+et `Outside.png` de l'installation Essentials locale pour les arbres.
+Aucune licence explicite de redistribution des graphismes Pokémon n'a été
+identifiée sur la collection ; leur présence en ligne et l'usage personnel
+ne constituent pas une licence. Projet personnel non commercial, non officiel.
+Les cartes complètes et le runtime privé ne sont pas ajoutés au dépôt.
+`tools/build-extra-furniture-art.ps1` reconstruit les images à partir du cache
+local des sources vérifiées ; les joueurs n'ont pas à exécuter cet outil.
+
+Validation de l'extension et du correctif de compilation associé : **224 contrôles
+natifs**, **41 tests / 1 826 assertions**, tous réussis. Les tests natifs sont
+réalisés dans une copie jetable du jeu ; aucune sauvegarde personnelle utilisée.
+
+Les paragraphes suivants documentent les 20 meubles initiaux et leur ancienne
+validation ; leurs mentions d'assets locaux et d'absence de changement serveur
+se rapportent à cette première version.
+
 Le catalogue ajoute **20 objets** aux trois obstacles existants, soit 23 types.
 Ils s'inspirent des familles de décorations des bases secrètes des jeux
 classiques : sièges, bureaux, plantes, ornements et poupées.

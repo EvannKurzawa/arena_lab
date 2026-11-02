@@ -12,6 +12,22 @@ module ArenaDemo::NativeFurnitureProbe
       $map_factory = PokemonMapFactory.new(100)
       $game_player.moveto(49, 53)
       ArenaDemo.ensure_custom_inventory
+      national = GameData::Species.each_species.map(&:id)
+      check.call(national.length == 650 && national.last == :DARKLUGIA && !national.include?(:PERRSERKER), 'national dex remains Gen 1-5 plus Dark Lugia')
+      dependencies = Compiler.with_arena_species_dependencies { GameData::Species.each_species.map(&:id) }
+      check.call(dependencies.include?(:PERRSERKER) && dependencies.length > 650, 'compiler retains internal post-Gen5 evolution dependencies')
+      check.call(Thread.current[:arena_compiling_species].nil?, 'compiler scope restores national filter')
+      check.call(!ArenaDemo::PokedexRoster.supported_form?(:MEOWTH, 2) && !ArenaDemo::PokedexRoster.supported_form?(:CHARIZARD, 1), 'Galarian and Mega forms excluded from playable roster')
+      check.call(ArenaDemo::PokedexRoster.supported_form?(:GIRATINA, 1) && ArenaDemo::PokedexRoster.supported_form?(:KYUREM, 2) && ArenaDemo::PokedexRoster.supported_form?(:PICHU, 1), 'pre-Gen6 alternate forms remain available')
+      meowth = Pokemon.new(:MEOWTH, 20)
+      meowth.form = 2
+      check.call(meowth.form == 0, 'Galarian Meowth cannot be selected')
+      meowth.form_simple = 1
+      meowth.forced_form = 2
+      check.call(meowth.form == 0 && meowth.form_simple == 0, 'alternate form assignment paths obey Gen5 limit')
+      kyurem = Pokemon.new(:KYUREM, 70)
+      kyurem.form = 2
+      check.call(kyurem.form == 2, 'Black Kyurem remains playable')
       check.call(ArenaDemo::BASIC_FURNITURE.length == 20, '20 additional furniture types')
       check.call(ArenaDemo::BASIC_FURNITURE.keys.all? { |item| $bag.quantity(item) == 2 }, 'fresh save receives two copies each')
       ArenaDemo.ensure_custom_inventory
@@ -95,6 +111,29 @@ module ArenaDemo::NativeFurnitureProbe
         shots << [$furniture_picker_shot, path.sub(/\.log$/, suffix)]
       end
       check.call(before == Marshal.dump([$bag, $PokemonGlobal]), 'browsing and cancelling never changes stock or layout')
+      check.call(ArenaDemo::EXTRA_FURNITURE.length == 36, '36 extra furniture types')
+      check.call(ArenaDemo::EXTRA_FURNITURE.keys.all? { |item| $bag.quantity(item) == 2 }, 'extra stock granted once')
+      placements.clear
+      records.clear
+      ArenaDemo::EXTRA_FURNITURE.each_key.with_index do |item, i|
+        x, y = 38 + i % 8 * 3, 38 + i / 8 * 4
+        ArenaDemo.editor_apply_placement(placements, records, 'furniture', { item: item }, x, y)
+        event = $game_map.events[ArenaDemo::FURNITURE_SLOT_BASE + i]
+        check.call(placements.length == i + 1 && event.instance_variable_get(:@arena_furniture_item) == item, "extra native placement: #{item}")
+        sprite = Sprite_Character.new(nil, event)
+        sprite.update
+        check.call(sprite.bitmap && [sprite.bitmap.width, sprite.bitmap.height] == [32,64], "extra native graphic: #{item}")
+        check.call(event.through == ArenaFurnitureRules.walkable?(item), "extra native collision: #{item}")
+        check.call(ArenaDemo.relief_code(records, x, y) == 1, "raised native floor: #{item}") if ArenaFurnitureRules.raised?(item)
+        sprites << sprite
+      end
+      payload = ArenaDemo.visit_snapshot_payload
+      decoded = ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], payload[:relief], payload[:styles])
+      expected = placements.map { |p| p.reject { |key,_| key == 'arena_under_surface' } }
+      check.call(decoded && decoded[:placements] == expected, 'extra native visit snapshot round trip')
+      check.call(Game.save('Data/furniture-probe-save.rxdata'), 'extra disposable save written')
+      Game.load(SaveData.read_from_file('Data/furniture-probe-save.rxdata'))
+      check.call(ArenaDemo.custom_placements == placements, 'extra furniture and underlying ground survive save and load')
       sprites.each(&:dispose)
       shots.each do |bitmap, filename|
         raw = ''.b

@@ -121,6 +121,9 @@ module ArenaDemo::DarkLugia
   module SpeciesLoader
     def each_species
       return enum_for(:each_species) unless block_given?
+      # Compiler exports must retain the complete dependency graph (including
+      # evolutions and regional forms). The playable national roster stays 1–5.
+      return super { |entry| yield entry } if Thread.current[:arena_compiling_species]
       entries = []
       super { |entry| entries << entry if ArenaDemo::PokedexRoster.supported?(entry) }
       dark = entries.find { |entry| entry.id == ArenaDemo::DarkLugia::SPECIES }
@@ -165,6 +168,28 @@ module ArenaDemo::DarkLugia
     end
   end
 end
+module ArenaDemo::FullSpeciesCompilation
+  def with_arena_species_dependencies
+    previous = Thread.current[:arena_compiling_species]
+    Thread.current[:arena_compiling_species] = true
+    yield
+  ensure
+    Thread.current[:arena_compiling_species] = previous
+  end
+  def write_all(*args)
+    with_arena_species_dependencies { super }
+  end
+  def compile_all(*args)
+    with_arena_species_dependencies { super }
+  end
+  def write_pokemon(*args)
+    with_arena_species_dependencies { super }
+  end
+  def compile_pokemon(*args)
+    with_arena_species_dependencies { super }
+  end
+end
+Compiler.singleton_class.prepend(ArenaDemo::FullSpeciesCompilation) if defined?(Compiler)
 GameData::Species.singleton_class.prepend(ArenaDemo::DarkLugia::SpeciesLoader)
 GameData::SpeciesMetrics.singleton_class.prepend(ArenaDemo::DarkLugia::MetricsLoader)
 ArenaDemo::DarkLugia.register

@@ -15,6 +15,7 @@ ruby = runtime / 'ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe'
 fixture = Path(tempfile.mkdtemp(prefix='furniture-native-', dir=runtime))
 game, engine = fixture / 'game', fixture / 'engine'
 report = runtime / 'furniture-native-report.log'
+report.unlink(missing_ok=True)
 links = []
 process = None
 try:
@@ -49,6 +50,10 @@ try:
     info.wShowWindow = 0
     process = subprocess.Popen([str(engine / 'mkxp-z.x86_64.exe'), 'debug'], cwd=engine, env=env, startupinfo=info)
     process.wait(timeout=90)
+    if not report.exists():
+        error_log = game / 'errorlog.txt'
+        if error_log.exists():
+            print(error_log.read_text(encoding='utf-8', errors='replace')[-6000:])
     result = report.read_text(encoding='utf-8') if report.exists() else 'No furniture native report.'
     print(result)
     if process.returncode or 'native furniture checks passed' not in result:

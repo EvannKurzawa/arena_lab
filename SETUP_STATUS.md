@@ -1,5 +1,52 @@
 # Setup and implementation status
 
+## Original furniture and Gen 5 compiler recovery — 2026-11-02
+
+Arena Demo 0.25.0 adds 36 original-art furniture entries via 092_ExtraFurniture.rb,
+shared 000_ArenaFurnitureRules.rb and the existing 091 rendering hooks. Stock is
+two copies per profile, idempotent including already placed copies. All objects
+are single-cell static decorations, except the walkable carpet and raised
+stand/solid board. Raised placement atomically updates the native relief and
+retains the old tile record in local placement metadata; removal restores it,
+validates supporting stairs and returns stock. Shared server collision rules
+allow the three floor items. Protocol 14 retained; a pong capability prompts
+the launcher to replace older managed services. Sources/hashes/crops are in
+game-mod/AssetSources/furniture-sources.json; packed PNGs ship in SharedAssets.
+
+Reproduced the user's exact PERRSERKER compile failure in the disposable native
+fixture. 095_DarkLugia globally filtered each_species to the national roster;
+Compiler.write_all consequently omitted Gen6+ species while retaining evolution
+references and regional forms. Compiler export/compile now uses a scoped full
+enumeration, with the previous thread state restored afterward. Gameplay and
+national dex still expose 649 species plus Dark Lugia. User confirmed ONLY forms
+known by Gen5: 095_GenFiveForms retains the explicit B2W2 forms plus Spiky-eared
+Pichu, filters the Pokedex form chooser and clamps later form assignments.
+Legacy Lugia form1 remains readable for existing XD001 conversion.
+
+repair_species_dependencies.rb runs both during the released updater helper
+(install-game-plugins.ps1) and Play Prepare. It reads existing PBS/Gen 8 backup,
+adds missing original species sections to pokemon_arena_dependencies.txt and
+never replaces personal base PBS. Missing source dependency raises a clear
+error with originals intact. No game saves or credentials changed.
+
+Corrected tools/test-native-furniture.py to remove stale reports before launch
+and print compiler errors if boot fails. The original stale 101-check report
+was NOT evidence of the first failed run; the corrected runner reproduced the
+PERRSERKER error and then completed 219 native checks after the compiler fix.
+Final verification with form restrictions: **224 native checks passed**,
+including rejected Galarian/Mega forms, accepted original forms and Black Kyurem.
+
+Executed Ruby extra_furniture_test.rb: 37 runs / 1787 assertions; real TCP
+furniture_visit_server_test.rb: 2 runs / 32 assertions; species_dependencies_test.rb:
+2 runs / 7 assertions. All pass. Native fixture verifies real sprites/collisions,
+all 36 placements, raised floors, visit encoding and disk save/load in a disposable
+copy. No new manual two-PC session is claimed. Install: close clients, run Arena
+Update.exe on BOTH PCs, then Play-Arena.bat; host again after updating.
+
+Executed tools/test-updater-plugin-install.ps1 successfully: the exact released
+updater helper deploys current scripts/cache even with French already installed,
+preserves personal files, backs up old scripts and is idempotent on repeat.
+
 ## Saved entrance dialogue and smoother followers — 2026-11-02
 
 Arena Demo 0.24.2. The entrance connection flow saves from inside event 4's

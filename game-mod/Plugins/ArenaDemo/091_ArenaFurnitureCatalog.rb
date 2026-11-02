@@ -30,6 +30,10 @@ module ArenaDemo
 
   module_function
 
+  def catalog_furniture?(item)
+    BASIC_FURNITURE.key?(item)
+  end
+
   def furniture_bitmap(item)
     @basic_furniture_art ||= {}
     cached = @basic_furniture_art[item]
@@ -81,7 +85,7 @@ module ArenaDemo
     if entry[:action] == :remove
       art.fill_rect(20, 44, 56, 8, Color.new(235, 105, 95))
     else
-      if BASIC_FURNITURE.key?(item)
+      if catalog_furniture?(item)
         source = furniture_bitmap(item)
         rect = Rect.new(0, 0, 32, 64)
       else
@@ -150,8 +154,8 @@ module ArenaDemo
         event = $game_map.events[FURNITURE_SLOT_BASE + slot]
         next unless event
         item = furniture[slot] && placement_item(furniture[slot])
-        event.instance_variable_set(:@arena_furniture_item, BASIC_FURNITURE.key?(item) ? item : nil)
-        next unless BASIC_FURNITURE.key?(item)
+        event.instance_variable_set(:@arena_furniture_item, catalog_furniture?(item) ? item : nil)
+        next unless catalog_furniture?(item)
         event.walk_anime = false
         event.instance_variable_set(:@step_anime, false)
       end
@@ -161,7 +165,7 @@ module ArenaDemo
   module FurnitureCharacterGraphic
     def refresh_graphic
       item = @character.instance_variable_get(:@arena_furniture_item)
-      unless BASIC_FURNITURE.key?(item)
+      unless ArenaDemo.catalog_furniture?(item)
         @arena_furniture_graphic = nil
         return super
       end

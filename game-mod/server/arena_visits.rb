@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'securerandom'
+require_relative '../Plugins/ArenaDemo/000_ArenaFurnitureRules'
 require_relative '../Plugins/ArenaDemo/000_ReliefRules'
 require_relative '../Plugins/ArenaDemo/000_FieldStateRules'
 require_relative '../Plugins/ArenaDemo/000_ArenaDeviceRules'
@@ -29,7 +30,7 @@ module ArenaVisitsServer
   ].freeze
 
   def dispatch_frame(conn, env, type, authed, body)
-    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 14, arena_bind: @config.bind, arena_follower_pose: true) if type == :ping
+    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 14, arena_bind: @config.bind, arena_follower_pose: true, arena_extra_furniture: true) if type == :ping
     if conn.data[:arena_local_world] && type == :save
       return reply(conn, type: :save_err, seq: env[:seq], reason: 'local_world')
     end

@@ -29,6 +29,8 @@ foreach ($file in Get-ChildItem -LiteralPath $arenaSource -File) {
     New-Item -ItemType Directory -Path $arenaTarget -Force | Out-Null
     Copy-Item -LiteralPath $file.FullName -Destination $target -Force
 }
+& $ruby --disable-gems (Join-Path $ProjectRoot 'game-mod/tools/repair_species_dependencies.rb') $GameRoot
+if ($LASTEXITCODE -ne 0) { throw 'Species compiler dependencies could not be repaired; existing PBS files preserved.' }
 & $ruby --disable-gems (Join-Path $ProjectRoot 'tools/sync-plugin-cache.rb') $GameRoot
 if ($LASTEXITCODE -ne 0) { throw 'The installed game plugin cache could not be updated. Do not launch the stale game.' }
 Write-Host 'Installed game scripts and PEMK cache synchronized.'

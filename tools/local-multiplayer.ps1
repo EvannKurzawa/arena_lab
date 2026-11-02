@@ -87,6 +87,7 @@ function Prepare-Clients {
         if (!(Test-Path -LiteralPath $configPath)) { Set-Content -LiteralPath $configPath -Value "host = 127.0.0.1`nport = 9998" -Encoding ASCII }
     }
     & "$PSScriptRoot/install-client-runtime.ps1"
+    Invoke-Ruby @("$projectRoot/game-mod/tools/repair_species_dependencies.rb", $gameRoot)
     Invoke-Ruby @("$projectRoot/game-mod/tools/build_arena_map.rb", $gameRoot)
     Invoke-Ruby @("$PSScriptRoot/sync-plugin-cache.rb", $gameRoot)
     Write-Host 'Clients prepared. Use a different account in each game window; existing accounts are retained.'

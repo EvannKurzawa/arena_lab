@@ -50,6 +50,7 @@ module ArenaDevices
 
   def blocked?(item, slot, disabled)
     return false if floor?(item)
+    return false if defined?(ArenaFurnitureRules) && ArenaFurnitureRules.walkable?(item)
     true
   end
 
