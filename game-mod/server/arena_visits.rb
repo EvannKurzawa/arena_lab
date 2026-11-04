@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'securerandom'
+require_relative '../Plugins/ArenaDemo/000_NetworkCapacity'
 require_relative '../Plugins/ArenaDemo/000_ArenaFurnitureRules'
 require_relative '../Plugins/ArenaDemo/000_ReliefRules'
 require_relative '../Plugins/ArenaDemo/000_FieldStateRules'
@@ -14,10 +15,10 @@ module ArenaVisitsServer
   ARENA_GUIDE = [ARENA_OFFSET + 10, ARENA_OFFSET + 16].freeze
   ARENA_TRAINER = [ARENA_OFFSET + 12, ARENA_OFFSET + 4].freeze
   ARENA_EXIT = [ARENA_OFFSET + 12, ARENA_OFFSET + 18].freeze
-  ARENA_MAP_WIDTH = 100
-  ARENA_MAP_HEIGHT = 100
+  ARENA_MAP_WIDTH = 200
+  ARENA_MAP_HEIGHT = 200
   ARENA_SURFACE_BYTES = ARENA_MAP_WIDTH * ARENA_MAP_HEIGHT
-  ARENA_MAX_PLACEMENTS = 96
+  ARENA_MAX_PLACEMENTS = 196
   POSITIONS = [
     [[5, 6], [5, 9], [5, 12], [19, 6], [19, 9], [19, 12]],
     [[8, 6], [16, 8], [8, 10], [16, 12], [8, 14], [16, 14]],
@@ -30,7 +31,7 @@ module ArenaVisitsServer
   ].freeze
 
   def dispatch_frame(conn, env, type, authed, body)
-    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 14, arena_bind: @config.bind, arena_follower_pose: true, arena_extra_furniture: true, arena_furniture_size: 2) if type == :ping
+    return reply(conn, type: :pong, t: ping_t(env[:t]), arena_visits: 15, arena_bind: @config.bind, arena_follower_pose: true, arena_extra_furniture: true, arena_furniture_size: 3) if type == :ping
     if conn.data[:arena_local_world] && type == :save
       return reply(conn, type: :save_err, seq: env[:seq], reason: 'local_world')
     end
@@ -41,7 +42,7 @@ module ArenaVisitsServer
       arena_detach_zone(conn)
       conn.data[:arena_cap] = true
       conn.data[:arena_local_world] ||= env[:local_world] == true
-      return reply(conn, type: :arena_ready, version: 14)
+      return reply(conn, type: :arena_ready, version: 15)
     end
     return arena_error(conn, 'Restart the updated client') unless conn.data[:arena_cap]
     case type

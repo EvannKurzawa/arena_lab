@@ -84,15 +84,15 @@ module ArenaVisitTestSupport
     send_frame(socket, type: :ping, t: 1)
     pong = receive(socket)
     assert_equal :pong, pong[:type]
-assert_equal 14, pong[:arena_visits]
+assert_equal 15, pong[:arena_visits]
     assert_equal '0.0.0.0', pong[:arena_bind]
     socket
   end
   def open_room(host, objects = [0, 2], layout = 1)
-    surface = '0' * 10000
-    (37..61).each { |y| (37..61).each { |x| surface.setbyte(y * 100 + x, 49) } }
+    surface = '0' * 40000
+    (37..61).each { |y| (37..61).each { |x| surface.setbyte(y * 200 + x, 49) } }
     send_frame(host, type: :arena_open, objects: objects, layout: layout, difficulty: 2,
-      surface: surface, relief: '0' * 10000, styles: '0' * 10000, placements: [])
+      surface: surface, relief: '0' * 40000, styles: '0' * 40000, placements: [])
     frame = until_type(host, :arena_state)
     assert_equal :host, frame[:role]
     send_frame(host, type: :pos, map: 102, x: 4, y: 6)

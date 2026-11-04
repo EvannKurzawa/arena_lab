@@ -76,7 +76,7 @@ class FurnitureCatalogTest < Minitest::Test
     ArenaDemo.stub(:ensure_bag_pockets, nil) do
       ArenaDemo.stub(:refresh_custom_placements, nil) do
         ArenaDemo::BASIC_FURNITURE.each_key.with_index do |item, i|
-          ArenaDemo.editor_apply_placement(placements, ArenaDemo.tile_edit_records, 'furniture', { item: item }, 40 + i % 5, 44 + i / 5)
+          ArenaDemo.editor_apply_placement(placements, ArenaDemo.tile_edit_records, 'furniture', { item: item }, 40 + i % 5 * 4, 44 + i / 5 * 3)
         end
       end
       assert_equal 20, placements.length
@@ -86,11 +86,12 @@ class FurnitureCatalogTest < Minitest::Test
       assert_equal placements, Marshal.load(Marshal.dump(placements))
     end
   end
-  def test_all_art_is_visible_single_cell_and_cached
+  def test_all_art_matches_furniture_size_and_is_cached
     ArenaDemo::BASIC_FURNITURE.each_key do |item|
       art = ArenaDemo.furniture_bitmap(item)
-      assert_equal [32, 64], [art.width, art.height]
-      assert (0...64).any? { |y| (0...32).any? { |x| art.get_pixel(x, y).alpha > 0 } }, item.to_s
+      width = item == :ARENA_FURNITURE_SOFA ? 96 : (item == :ARENA_FURNITURE_ARMCHAIR ? 64 : 32)
+      assert_equal [width, 64], [art.width, art.height]
+      assert (0...64).any? { |y| (0...width).any? { |x| art.get_pixel(x, y).alpha > 0 } }, item.to_s
       assert_same art, ArenaDemo.furniture_bitmap(item)
       preview = ArenaDemo.furniture_catalog_preview(item: item)
       assert_equal [96, 96], [preview.width, preview.height]

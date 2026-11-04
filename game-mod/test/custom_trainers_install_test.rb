@@ -29,7 +29,9 @@ class CustomTrainersInstallTest < Minitest::Test
       sprite=File.join(game,CustomTrainerAssets::FILES.first)
       FileUtils.mkdir_p(File.dirname(sprite)); File.binwrite(sprite,'edited')
       CustomTrainerAssets.install(game,cache)
-      assert_equal "[GOLD]\nName = My Gold\n",File.read(main)
+      assert File.read(main).start_with?("[GOLD]\nName = My Gold\n")
+      assert_equal 1, File.read(main).scan(/^\[GOLD\]$/).length
+      assert_includes File.read(main), '[CYNTHIA]'
       refute File.exist?(File.join(game,'PBS/trainer_types_gold.txt'))
       assert_equal 'edited',File.binread(sprite)
     end

@@ -7,6 +7,41 @@ require_relative '../Plugins/ArenaDemo/028_ArenaMaterialsArt'
 require_relative '../Plugins/ArenaDemo/031_ArenaLiquidAnimation'
 
 class ExtraFurnitureTest < FurnitureCatalogTest
+  def test_sofa_uses_three_cells_and_migrates_without_losing_stock
+    stock
+    $PokemonGlobal.arena_wide_furniture_layout_version = 5
+    sofa = {'kind'=>'furniture','item'=>'ARENA_FURNITURE_SOFA','x'=>44,'y'=>44}
+    rock = {'kind'=>'furniture','item'=>'ARENA_FURNITURE_ROCK','x'=>46,'y'=>44}
+    $PokemonGlobal.arena_demo_placements = [sofa,rock]
+    inventory = Marshal.dump($bag)
+    placements = ArenaDemo.custom_placements
+    assert_equal [46,44], rock.values_at('x','y')
+    assert_equal 3, ArenaFurnitureRules.width(sofa['item'])
+    refute ArenaFurnitureRules.cells(sofa['item'],sofa['x'],sofa['y']).include?([46,44])
+    assert_equal 2, placements.length
+    assert_equal inventory, Marshal.dump($bag)
+    assert_equal 6, $PokemonGlobal.arena_wide_furniture_layout_version
+    surface,relief = '1'*40000,'0'*40000
+    wire = [[0,'ARENA_FURNITURE_SOFA',44,44]]
+    assert ArenaFurnitureRules.valid_footprints?(wire,surface,relief)
+    refute ArenaFurnitureRules.valid_footprints?(wire+[[0,'ARENA_FURNITURE_ROCK',46,44]],surface,relief)
+    refute ArenaFurnitureRules.valid_footprints?([[0,'ARENA_FURNITURE_SOFA',198,44]],surface,relief)
+    assert_equal 2, ArenaFurnitureRules.width('ARENA_FURNITURE_ARMCHAIR')
+  end
+
+  def test_sofa_can_be_removed_from_its_last_cell
+    stock
+    placements = $PokemonGlobal.arena_demo_placements = []
+    ArenaDemo.stub(:refresh_custom_placements,nil) do
+      ArenaDemo.editor_apply_placement(placements,ArenaDemo.tile_edit_records,'furniture',{item: :ARENA_FURNITURE_SOFA},44,44)
+      assert_equal 1, placements.length
+      assert_same placements.first, ArenaDemo.editor_occupied(placements,46,44)
+      ArenaDemo.editor_apply_placement(placements,ArenaDemo.tile_edit_records,'furniture',{action: :remove},46,44)
+      assert_empty placements
+      assert_equal 2, $bag.quantity(:ARENA_FURNITURE_SOFA)
+    end
+  end
+
   def setup
     super
     ArenaDemo.instance_variable_set(:@editor_surface_edits,nil)
@@ -113,7 +148,7 @@ class ExtraFurnitureTest < FurnitureCatalogTest
     ArenaDemo.stub(:apply_tile_surface,nil) { ArenaDemo.custom_placements }
     assert_equal original,records['45,43']['ground']
     assert_equal original,records['46,43']['ground']
-    assert_equal 5,$PokemonGlobal.arena_wide_furniture_layout_version
+    assert_equal 6,$PokemonGlobal.arena_wide_furniture_layout_version
   end
 
   def test_legacy_stand_and_isolated_orphan_are_removed_once
@@ -211,14 +246,14 @@ class ExtraFurnitureTest < FurnitureCatalogTest
   end
 
   def test_footprints_cannot_overlap_or_straddle_height_and_void
-    surface, relief = '1' * 10000, '0' * 10000
+    surface, relief = '1' * 40000, '0' * 40000
     wide = [0,'ARENA_FURNITURE_DPPT_LABMACHINE',44,44]
     assert ArenaFurnitureRules.valid_footprints?([wide],surface,relief)
     refute ArenaFurnitureRules.valid_footprints?([wide,[0,'ARENA_FURNITURE_SNOWBALL',45,44]],surface,relief)
-    relief.setbyte(44*100+45,49)
+    relief.setbyte(44*200+45,49)
     refute ArenaFurnitureRules.valid_footprints?([wide],surface,relief)
-    relief.setbyte(44*100+45,48)
-    surface.setbyte(44*100+45,48)
+    relief.setbyte(44*200+45,48)
+    surface.setbyte(44*200+45,48)
     refute ArenaFurnitureRules.valid_footprints?([wide],surface,relief)
   end
 
@@ -241,7 +276,7 @@ class ExtraFurnitureTest < FurnitureCatalogTest
 
   def test_tesla_sparks_and_strength_respect_the_second_cell
     wide = [0,'ARENA_FURNITURE_DPPT_LABMACHINE',44,44]
-    surface,relief = '1'*10000,'0'*10000
+    surface,relief = '1'*40000,'0'*40000
     placements = [wide,[0,'ARENA_FURNITURE_BOULDER',45,45]]
     assert_nil ArenaFieldState.proposal(placements,{},1,:STRENGTH,8,surface,relief)
     coil = [0,'ARENA_TESLA_L',46,44]

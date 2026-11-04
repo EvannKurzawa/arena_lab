@@ -24,12 +24,14 @@ module ArenaDemo::Devices
   def apply_disabled(values)
     pbSEPlay('Arena Tesla Button') if @disabled_scope == scope && (values - disabled).any?
     @disabled_scope, @disabled, @button_pending = scope, values.dup, nil
+    ArenaDemo::DeviceAmbience.update
   end
 
   def clear
     @web_hiding = false
     @effect_hiding = {}
-    end_transport
+    end_transport(false)
+    ArenaDemo::DeviceAmbience.stop
     (@spark_sprites || []).each(&:dispose)
     @spark_sprites = []
     @darkness&.dispose unless @darkness&.disposed?
@@ -58,7 +60,7 @@ module ArenaDemo::Devices
     points.each_with_index do |(x, y), index|
       sprite = @spark_sprites[index]
       sprite = @spark_sprites[index] = Sprite.new(Spriteset_Map.viewport) if !sprite || sprite.disposed?
-      sprite.bitmap = ArenaDemo::DeviceArt.spark((System.uptime * 12).floor % 9)
+      sprite.bitmap = ArenaDemo::DeviceArt.spark((System.uptime * ArenaDemo::DeviceArt::SPARK_FPS).floor % ArenaDemo::DeviceArt::SPARK_FRAMES)
       sprite.x = x * 32 - $game_map.display_x.to_f / Game_Map::X_SUBPIXELS
       sprite.y = y * 32 - $game_map.display_y.to_f / Game_Map::Y_SUBPIXELS
       sprite.z = 80
@@ -129,20 +131,12 @@ module ArenaDemo::Devices
     sync_follower_visibility
     if kind == :magnet
       @magnet_started = System.uptime
-      @previous_bgs = $game_system.playing_bgs&.clone
-      # Use the standard audio helper and an audible midrange loop. The native
-      # probe also verifies the file and the backend call, beyond playing_bgs.
-      pbBGSPlay('Arena Magnet', 95, 100)
     end
+    ArenaDemo::DeviceAmbience.update
     PEMK::Presence.emit_now(:pos) if defined?(PEMK::Presence)
   end
 
-  def end_transport
-    if @transport_kind == :magnet
-      # Stop the loop at arrival/blockage and restore the map ambience.
-      $game_system.bgs_play(@previous_bgs)
-      @previous_bgs = nil
-    end
+  def end_transport(update_audio = true)
     player, animation = @transport_player, @transport_animation
     @transport_kind = @transport_player = @transport_animation = nil
     if player && animation
@@ -152,6 +146,7 @@ module ArenaDemo::Devices
       player.direction = @transport_exit_direction if @transport_exit_direction
     end
     @magnet_started = @transport_exit_direction = nil
+    ArenaDemo::DeviceAmbience.update if update_audio
     sync_follower_visibility
     PEMK::Presence.emit_now(:pos) if player && defined?(PEMK::Presence)
   end
@@ -182,6 +177,7 @@ module ArenaDemo::Devices
         :room => ArenaDemo::Visits.scope, :slot => slot)
     else
       disabled << coil
+      ArenaDemo::DeviceAmbience.update
       pbSEPlay('Arena Tesla Button')
       ArenaDemo.refresh_custom_placements
     end
@@ -229,6 +225,7 @@ module ArenaDemo::Devices
   end
 
   def update
+    ArenaDemo::DeviceAmbience.update
     return if @busy
     map = $game_map&.map_id
     if @map != map

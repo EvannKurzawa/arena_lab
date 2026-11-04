@@ -3,16 +3,16 @@ module ArenaDemo
   FURNITURE_POCKET = 7
   TRAINER_POCKET = 8
   FURNITURE_SLOT_BASE = 200
-  TRAINER_SLOT_BASE = 300
-  MAX_ARENA_FURNITURE = 80
+  TRAINER_SLOT_BASE = 500
+  MAX_ARENA_FURNITURE = 180
   MAX_ARENA_TRAINERS = 16
-  MAP_WIDTH = 100
-  MAP_HEIGHT = 100
+  MAP_WIDTH = 200
+  MAP_HEIGHT = 200
   GROUND_FILE = "Data/ArenaDemoGround.txt"
   TILE_EDIT_MIGRATION_VERSION = 1
   INITIAL_FIELD_SIZE = 25
-  INITIAL_FIELD_X = (MAP_WIDTH - INITIAL_FIELD_SIZE) / 2
-  INITIAL_FIELD_Y = (MAP_HEIGHT - INITIAL_FIELD_SIZE) / 2
+  INITIAL_FIELD_X = 37 # Keep existing arena coordinates when expanding.
+  INITIAL_FIELD_Y = 37
   SURFACE_TAGS = { "grass" => :Grass, "desert" => :Sand,
                    "ice" => :Ice, "rock" => :Rock,
                    "water" => :Water, "marsh_water" => :StillWater }.freeze
@@ -9009,7 +9009,7 @@ module ArenaDemo
       "platform_style" => ArenaRelief::STYLES.include?(record["platform_style"]) ? record["platform_style"] : "mountain" }
   end
 
-  # Network snapshot: 10,000 one-byte surface codes and at most 96 placements.
+  # Network snapshot: 40,000 one-byte surface codes and at most 196 placements.
   def visit_snapshot_payload
     surface = String.new(capacity: MAP_WIDTH * MAP_HEIGHT)
     records = tile_edit_records

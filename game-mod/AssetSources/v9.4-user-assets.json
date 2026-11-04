@@ -1,0 +1,132 @@
+[
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle BIANCA.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle BIANCA.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle BLUE.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle BLUE.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle BRICE.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle BRICE.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle CYNTHIA.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle CYNTHIA.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle GHETIS.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle GHETIS.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle GOLD.mp3",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle GOLD.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle GOYAH.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle GOYAH.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle IRIS.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle IRIS.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle LOUKA.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle LOUKA.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle MATIS.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle MATIS.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle N.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle N.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle OAK.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle OAK.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle RED.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle RED.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle SILVER.wav",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle SILVER.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle GIOVANNI.ogg",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle GIOVANNI.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Audio/BGM/Battle ROCKET.ogg",
+    "published": "game-mod/SharedAssets/Audio/BGM/Battle ROCKET.ogg",
+    "origin": "User-supplied local trainer audio; no additional license asserted"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Graphics/Trainers/ANIS.png",
+    "published": "game-mod/SharedAssets/Graphics/Trainers/ANIS.png",
+    "origin": "User-supplied trainer sprite"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Graphics/Characters/trainer_ANIS.png",
+    "published": "game-mod/SharedAssets/Graphics/Characters/trainer_ANIS.png",
+    "origin": "User-supplied trainer sprite"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Graphics/Trainers/KUNZ.png",
+    "published": "game-mod/SharedAssets/Graphics/Trainers/KUNZ.png",
+    "origin": "User-supplied trainer sprite"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Graphics/Characters/trainer_KUNZ.png",
+    "published": "game-mod/SharedAssets/Graphics/Characters/trainer_KUNZ.png",
+    "origin": "User-supplied trainer sprite"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Graphics/Trainers/PERCILA.png",
+    "published": "game-mod/SharedAssets/Graphics/Trainers/PERCILA.png",
+    "origin": "User-supplied trainer sprite"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Graphics/Characters/trainer_PERCILA.png",
+    "published": "game-mod/SharedAssets/Graphics/Characters/trainer_PERCILA.png",
+    "origin": "User-supplied trainer sprite"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Graphics/Trainers/TCHEREN.png",
+    "published": "game-mod/SharedAssets/Graphics/Trainers/TCHEREN.png",
+    "origin": "User-supplied trainer sprite"
+  },
+  {
+    "source": "tools/runtime/essentials-v21.1-base/Graphics/Characters/trainer_TCHEREN.png",
+    "published": "game-mod/SharedAssets/Graphics/Characters/trainer_TCHEREN.png",
+    "origin": "User-supplied trainer sprite"
+  },
+  {
+    "source": "tesla_sound.m4a",
+    "published": "game-mod/SharedAssets/Audio/BGS/Arena Tesla Hum.wav",
+    "origin": "User-provided recording; crossfaded private import"
+  },
+  {
+    "source": "tesla_sound.m4a",
+    "published": "game-mod/SharedAssets/Audio/BGS/Arena Magnet Tesla.wav",
+    "origin": "User-provided recording; crossfaded private import"
+  }
+]

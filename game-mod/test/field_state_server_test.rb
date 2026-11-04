@@ -6,10 +6,10 @@ class FieldStateServerTest < Minitest::Test
              [0, 'ARENA_FURNITURE_BOULDER', 50, 54]].freeze
 
   def room(host, placements = OBJECTS, surface: nil, relief: nil)
-    surface ||= '0' * 10000
-    (37..61).each { |y| (37..61).each { |x| surface.setbyte(y * 100 + x, 49) } } if surface.count('1') == 0
+    surface ||= '0' * 40000
+    (37..61).each { |y| (37..61).each { |x| surface.setbyte(y * 200 + x, 49) } } if surface.count('1') == 0
     send_frame(host, type: :arena_open, objects: [], layout: 0, difficulty: 1,
-      placements: placements, surface: surface, relief: relief || '0' * 10000, styles: '0' * 10000)
+      placements: placements, surface: surface, relief: relief || '0' * 40000, styles: '0' * 40000)
     until_type(host, :arena_state)
   end
 
@@ -127,10 +127,10 @@ class FieldStateServerTest < Minitest::Test
 
   def test_ice_steps_reach_the_edge_without_a_snapback_and_field_move_stays_adjacent
     host, guest = connect, connect
-    surface = '0' * 10000
-    (37..61).each { |y| (37..61).each { |x| surface.setbyte(y * 100 + x, 49) } }
-    (50..54).each { |x| surface.setbyte(53 * 100 + x, ArenaMaterials::SURFACE_CODES.fetch('ice').ord) }
-    surface.setbyte(53 * 100 + 55, 48)
+    surface = '0' * 40000
+    (37..61).each { |y| (37..61).each { |x| surface.setbyte(y * 200 + x, 49) } }
+    (50..54).each { |x| surface.setbyte(53 * 200 + x, ArenaMaterials::SURFACE_CODES.fetch('ice').ord) }
+    surface.setbyte(53 * 200 + 55, 48)
     snapshot = room(host, [[0, 'ARENA_FURNITURE_TREE', 54, 54]], surface: surface)
     join(host, guest, snapshot)
     position(host, 100, 49, 53)

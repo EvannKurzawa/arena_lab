@@ -27,7 +27,7 @@ module ArenaFieldState
         [:CUT, :ROCKSMASH].include?(move)
       else
         move == :STRENGTH && point.is_a?(Array) && point.length == 2 &&
-          point.all? { |v| v.is_a?(Integer) && v.between?(0, 99) } &&
+          point.all? { |v| v.is_a?(Integer) && v.between?(0, 199) } &&
           !ArenaRelief.blocked_surface?(surface, *point) &&
           !ArenaRelief.wall?(relief, *point) && ArenaRelief.at(relief, *point) <= 1
       end

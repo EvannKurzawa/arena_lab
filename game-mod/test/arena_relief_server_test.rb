@@ -7,8 +7,8 @@ class ArenaReliefServerTest < Minitest::Test
     host, guest = connect, connect
     payload = relief_payload
     ArenaMaterials::CASCADE_GROUNDS.each_with_index do |ground, i|
-      payload[:surface].setbyte(51 * 100 + 50 + i, ArenaMaterials::SURFACE_CODES.fetch(ground).ord)
-      payload[:relief].setbyte(51 * 100 + 50 + i, 49)
+      payload[:surface].setbyte(51 * 200 + 50 + i, ArenaMaterials::SURFACE_CODES.fetch(ground).ord)
+      payload[:relief].setbyte(51 * 200 + 50 + i, 49)
     end
     send_frame(host, payload)
     room = until_type(host, :arena_state)
@@ -19,7 +19,7 @@ class ArenaReliefServerTest < Minitest::Test
   def test_water_on_platform_relays_height_and_blocks_waterfall_face
     host, guest = connect, connect
     payload = relief_payload
-    payload[:surface].setbyte(51 * 100 + 51, ArenaMaterials::SURFACE_CODES.fetch('water').ord)
+    payload[:surface].setbyte(51 * 200 + 51, ArenaMaterials::SURFACE_CODES.fetch('water').ord)
     send_frame(host, payload)
     room = until_type(host, :arena_state)
     joined = join(host, guest, room)
@@ -43,27 +43,27 @@ class ArenaReliefServerTest < Minitest::Test
     socket = TCPSocket.new('127.0.0.1', @backend.reactor.port)
     @clients << socket
     send_frame(socket, type: :arena_hello)
-assert_equal 14, receive(socket)[:version]
+    assert_equal 15, receive(socket)[:version]
     send_frame(socket, type: :pos, map: 102, x: 4, y: 6)
     send_frame(socket, type: :ping, t: 1)
-assert_equal 14, until_type(socket, :pong)[:arena_visits]
+    assert_equal 15, until_type(socket, :pong)[:arena_visits]
     socket
   end
   def relief_payload
-    surface = '0' * 10000
-    (37..61).each { |y| (37..61).each { |x| surface.setbyte(y * 100 + x, 49) } }
-    relief = '0' * 10000
-    relief.setbyte(51 * 100 + 50, 49)
-    relief.setbyte(51 * 100 + 51, 49)
-    relief.setbyte(52 * 100 + 50, 56)
+    surface = '0' * 40000
+    (37..61).each { |y| (37..61).each { |x| surface.setbyte(y * 200 + x, 49) } }
+    relief = '0' * 40000
+    relief.setbyte(51 * 200 + 50, 49)
+    relief.setbyte(51 * 200 + 51, 49)
+    relief.setbyte(52 * 200 + 50, 56)
     { type: :arena_open, objects: [], layout: 0, difficulty: 1,
-      surface: surface, relief: relief, styles: '0' * 10000, placements: [] }
+      surface: surface, relief: relief, styles: '0' * 40000, placements: [] }
   end
   def test_relief_snapshot_relay_and_authoritative_stair_collisions
     host, guest = connect, connect
     payload = relief_payload
-    payload[:surface].setbyte(51 * 100 + 50, 54)
-    payload[:styles].setbyte(51 * 100 + 50, 50)
+    payload[:surface].setbyte(51 * 200 + 50, 54)
+    payload[:styles].setbyte(51 * 200 + 50, 50)
     send_frame(host, payload)
     room = until_type(host, :arena_state)
     assert_equal payload[:relief], room[:relief]
@@ -99,16 +99,16 @@ assert_equal 14, until_type(socket, :pong)[:arena_visits]
   def test_relief_server_rejects_malformed_or_unsupported_layouts
     host = connect
     payload = relief_payload
-    [nil, 'x' * 10000, '2' * 10000].each do |invalid|
+    [nil, 'x' * 40000, '2' * 40000].each do |invalid|
       send_frame(host, payload.merge(styles: invalid))
       assert_equal :arena_error, receive(host)[:type]
     end
-    [nil, '1', 'x' * 10000].each do |invalid|
+    [nil, '1', 'x' * 40000].each do |invalid|
       send_frame(host, payload.merge(relief: invalid))
       assert_equal :arena_error, receive(host)[:type]
     end
     broken = payload[:relief].dup
-    broken.setbyte(51 * 100 + 50, 48)
+    broken.setbyte(51 * 200 + 50, 48)
     send_frame(host, payload.merge(relief: broken))
     assert_equal :arena_error, receive(host)[:type]
     send_frame(host, payload.merge(placements: [[0, 'ARENA_FURNITURE_ROCK', 50, 52]]))
@@ -119,15 +119,15 @@ assert_equal 14, until_type(socket, :pong)[:arena_visits]
   def test_lava_rejects_movement_placements_and_stair_landings_while_volcano_syncs
     host, guest = connect, connect
     payload = relief_payload
-    payload[:surface].setbyte(53 * 100 + 48, 56)
-    payload[:surface].setbyte(51 * 100 + 50, 55)
-    payload[:styles].setbyte(51 * 100 + 50, 51)
+    payload[:surface].setbyte(53 * 200 + 48, 56)
+    payload[:surface].setbyte(51 * 200 + 50, 55)
+    payload[:styles].setbyte(51 * 200 + 50, 51)
     bad_spawn = payload[:surface].dup
-    bad_spawn.setbyte(53 * 100 + 49, 56)
+    bad_spawn.setbyte(53 * 200 + 49, 56)
     send_frame(host, payload.merge(surface: bad_spawn))
     assert_equal :arena_error, receive(host)[:type]
     bad_landing = payload[:surface].dup
-    bad_landing.setbyte(53 * 100 + 50, 56)
+    bad_landing.setbyte(53 * 200 + 50, 56)
     send_frame(host, payload.merge(surface: bad_landing))
     assert_equal :arena_error, receive(host)[:type]
     send_frame(host, payload.merge(placements: [[0, 'ARENA_FURNITURE_ROCK', 48, 53]]))
@@ -152,12 +152,12 @@ assert_equal 14, until_type(socket, :pong)[:arena_visits]
     host, guest = connect, connect
     payload = relief_payload
     ArenaMaterials::FLOORS.each_key.with_index do |key, i|
-      payload[:surface].setbyte(40 * 100 + 37 + i % 25 + (i / 25) * 100, ArenaMaterials::SURFACE_CODES[key].ord)
+      payload[:surface].setbyte(40 * 200 + 37 + i % 25 + (i / 25) * 100, ArenaMaterials::SURFACE_CODES[key].ord)
     end
-    payload[:surface].setbyte(53 * 100 + 48, ArenaMaterials::SURFACE_CODES['water'].ord)
-    payload[:styles].setbyte(51 * 100 + 50, ArenaMaterials::ALPHABET[ArenaRelief::STYLES.index('arena')].ord)
+    payload[:surface].setbyte(53 * 200 + 48, ArenaMaterials::SURFACE_CODES['water'].ord)
+    payload[:styles].setbyte(51 * 200 + 50, ArenaMaterials::ALPHABET[ArenaRelief::STYLES.index('arena')].ord)
     invalid = payload[:surface].dup
-    invalid.setbyte(53 * 100 + 49, ArenaMaterials::SURFACE_CODES['water'].ord)
+    invalid.setbyte(53 * 200 + 49, ArenaMaterials::SURFACE_CODES['water'].ord)
     send_frame(host, payload.merge(surface: invalid))
     assert_equal :arena_error, receive(host)[:type]
     send_frame(host, payload.merge(placements: [[0, 'ARENA_FURNITURE_ROCK', 48, 53]]))
@@ -178,9 +178,9 @@ assert_equal 14, until_type(socket, :pong)[:arena_visits]
   def test_surf_toxic_and_quicksand_return_are_validated_against_room_layout
     host, guest = connect, connect
     payload = relief_payload
-    payload[:relief] = '0' * 10000
+    payload[:relief] = '0' * 40000
     { [48, 53] => 'marsh_water', [48, 52] => 'toxic', [50, 53] => 'quicksand' }.each do |(x, y), ground|
-      payload[:surface].setbyte(y * 100 + x, ArenaMaterials::SURFACE_CODES.fetch(ground).ord)
+      payload[:surface].setbyte(y * 200 + x, ArenaMaterials::SURFACE_CODES.fetch(ground).ord)
     end
     send_frame(host, payload)
     room = until_type(host, :arena_state)
@@ -209,8 +209,8 @@ assert_equal 14, until_type(socket, :pong)[:arena_visits]
     send_frame(host, type: :arena_close)
     until_type(guest, :arena_state)
     until_type(host, :arena_state)
-    payload[:surface].setbyte(53 * 100 + 51, ArenaMaterials::SURFACE_CODES.fetch('quicksand').ord)
-    payload[:surface].setbyte(53 * 100 + 50, 49)
+    payload[:surface].setbyte(53 * 200 + 51, ArenaMaterials::SURFACE_CODES.fetch('quicksand').ord)
+    payload[:surface].setbyte(53 * 200 + 50, 49)
     send_frame(host, type: :pos, map: 102, x: 4, y: 6)
     send_frame(host, type: :ping, t: 3)
     until_type(host, :pong)

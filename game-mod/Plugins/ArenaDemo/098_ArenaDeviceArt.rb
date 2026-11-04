@@ -1,5 +1,7 @@
 # Small original pixel drawings generated with the engine's own Bitmap API.
 module ArenaDemo::DeviceArt
+  SPARK_FRAMES = 18
+  SPARK_FPS = 18
   module_function
   def color(r, g, b, a = 255); Color.new(r, g, b, a); end
   def line(image, x0, y0, x1, y1, ink)
@@ -22,44 +24,63 @@ module ArenaDemo::DeviceArt
     line(image, ex, ey, ex - dx * 5 + dy * 4, ey - dy * 5 - dx * 4, ink)
     line(image, ex, ey, ex - dx * 5 - dy * 4, ey - dy * 5 + dx * 4, ink)
   end
+  # Authored silhouettes on a 16x16 grid, drawn as crisp 2x2 pixel clusters.
+  SPARK_SHAPES = [
+    [[18,2],[17,9],[21,7],[19,13],[23,12],[22,15],[30,12],
+     [26,18],[22,17],[23,21],[18,19],[20,25],[16,23],[14,30],
+     [13,22],[10,24],[12,18],[7,20],[9,16],[2,18],[6,13],
+     [10,14],[8,9],[13,12],[12,5],[15,8]],
+    [[12,2],[17,8],[15,11],[19,10],[18,14],[24,9],[23,13],
+     [30,14],[24,17],[26,20],[20,18],[21,23],[17,21],[19,30],
+     [14,25],[15,20],[10,22],[12,17],[6,19],[8,15],[2,12],
+     [9,11],[9,7],[14,13],[13,8]],
+    [[21,3],[18,10],[21,9],[19,14],[25,13],[23,16],[30,20],
+     [23,20],[24,24],[18,20],[17,25],[14,23],[11,29],[12,21],
+     [8,23],[11,18],[5,17],[7,14],[2,9],[10,12],[9,7],
+     [14,11],[15,4],[17,8]]
+  ].freeze
   def spark(phase)
-    phase %= 9
+    phase %= SPARK_FRAMES
     @sparks ||= {}
     @sparks[phase] ||= begin
       image = Bitmap.new(32,32)
-      # A solid discharge with a gently deforming rim. Neighbouring scanlines
-      # move together so the contour breathes without rotating or breaking up.
-      rows = [[17,18],[16,18],[14,19],[13,20],[13,23],[10,22],
-              [9,22],[10,24],[7,25],[6,24],[7,23],[5,24],
-              [4,25],[5,27],[6,26],[4,24],[6,25],[7,25],
-              [6,24],[8,22],[9,23],[8,21],[10,21],[11,20],
-              [11,18],[13,19],[14,18],[15,16]]
-      mask = {}
-      ripple = [0,1,1,0,-1,-1,0,1,0]
-      rows.each_with_index do |(left,right),i|
-        group = i/3
-        dl = ripple[(phase+group*2)%9]
-        dr = right-left < 5 ? dl : ripple[(phase+group*2+3)%9]
-        ((left+dl)..(right+dr)).each { |x| mask[[x,i+2]]=true }
+      points = SPARK_SHAPES[(phase / 2) % SPARK_SHAPES.length].map { |x,y| [x / 2,y / 2] }
+      mask = Array.new(16) { Array.new(16, false) }
+      # Scan-convert the outline without smoothing or a translucent halo.
+      16.times do |y|
+        cuts = []
+        points.each_with_index do |p,i|
+          q = points[(i+1) % points.length]
+          next unless (p[1] <= y && q[1] > y) || (q[1] <= y && p[1] > y)
+          cuts << p[0] + (y-p[1]).to_f * (q[0]-p[0]) / (q[1]-p[1])
+        end
+        cuts.sort.each_slice(2) do |left,right|
+          (left.ceil..right.floor).each { |x| mask[y][x] = true }
+        end
       end
-      dark,blue,cyan,pale,white = color(39,73,170),color(58,136,229),color(98,198,255),color(178,235,255),color(242,255,255)
-      mask.each_key do |x,y|
-        depth = (1..5).find do |d|
-          [[d,0],[-d,0],[0,d],[0,-d]].any? { |dx,dy| !mask[[x+dx,y+dy]] }
-        end || 6
-        ink = case depth
-              when 1 then (x+y+phase)%5==0 ? blue : dark
-              when 2 then blue
-              when 3 then cyan
-              when 4 then pale
-              else white end
-        image.set_pixel(x,y,ink)
+      inside = proc { |x,y| x.between?(0,15) && y.between?(0,15) && mask[y][x] }
+      outline = color(184,112,40)
+      gold = color(248,208,72)
+      white = color(255,248,200)
+      16.times do |y|
+        16.times do |x|
+          next unless mask[y][x]
+          edge = !inside.call(x-1,y) || !inside.call(x+1,y) ||
+                 !inside.call(x,y-1) || !inside.call(x,y+1)
+          # Warm lower-right rim and pale upper highlights.
+          ink = if edge then (inside.call(x,y-1) && inside.call(x-1,y) ? outline : gold)
+                else white end
+          image.fill_rect(x*2,y*2,2,2,ink)
+        end
       end
-      channels = [[[17,5],[14,11],[18,10],[13,18],[17,17],[14,25]],
-                  [[9,12],[13,15],[8,20]],[[23,12],[19,16],[22,20]]]
-      channels.each_with_index do |points,i|
-        points.each_cons(2) { |a,b| line(image,*a,*b,(phase+i)%3==0 ? pale : white) }
+      radius = 1
+      (-radius..radius).each do |dy|
+        span = radius-dy.abs
+        (-span..span).each { |dx| image.fill_rect(16+dx*2,16+dy*2,2,2,white) }
       end
+      motes = [[5,5],[26,5],[27,26],[5,26],[17,2],[2,22]]
+      x,y = motes[(phase / 3) % motes.length]
+      image.fill_rect((x/2)*2,(y/2)*2,2,2,phase.even? ? gold : white)
       image
     end
   end
@@ -133,10 +154,10 @@ module ArenaDemo::DeviceArt
     body.dispose
     # Keep the south-facing discharge visible over the front of the pedestal.
     arc.each_cons(2) do |p,q|
-      [-1,0,1].each { |offset| line(image,p[0]+offset,p[1],q[0]+offset,q[1],color(25,97,224)) }
-      line(image,*p,*q,color(164,250,255))
+      [-1,0,1].each { |offset| line(image,p[0]+offset,p[1],q[0]+offset,q[1],color(248,208,72)) }
+      line(image,*p,*q,color(255,248,200))
     end
-    image.fill_rect(head[0]-1,head[1]-1,2,2,color(205,255,255)) unless disabled
+    image.fill_rect(head[0]-1,head[1]-1,2,2,color(255,248,200)) unless disabled
     image
   end
   def bitmap(item, disabled = false, phase = 0, links = 0, coil_direction = nil)

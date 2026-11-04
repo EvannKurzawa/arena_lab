@@ -233,9 +233,9 @@ ground = grounds.max_by { |_stack, count| count }&.first
 abort "No ordinary passable ground found in the local town tileset" unless ground
 abort "Selected ground tile is not renderable by Essentials: #{ground.inspect}" if ground[0] < 48
 File.binwrite(GROUND_FILE, ground.join(","))
-map.instance_variable_set(:@width, 100)
-map.instance_variable_set(:@height, 100)
-map.instance_variable_set(:@data, Table.build(100, 100, 3) do |x, y, z|
+map.instance_variable_set(:@width, 200)
+map.instance_variable_set(:@height, 200)
+map.instance_variable_set(:@data, Table.build(200, 200, 3) do |x, y, z|
   (x >= field_x && x < field_x + 25 && y >= field_y && y < field_y + 25) ? ground[z] : 0
 end)
 map.instance_variable_set(:@events, {
@@ -269,12 +269,12 @@ events[exit_id] = arena_return_door
 # Reusable runtime placement slots. The editor saves only inventory item IDs
 # and tile coordinates; these blank events provide render/collision slots
 # without writing user layouts into map binaries or game scripts.
-80.times do |index|
+180.times do |index|
   id = 200 + index
   events[id] = event(id, "Arena furniture slot", 1, 1, "")
 end
 16.times do |index|
-  id = 300 + index
+  id = 500 + index
   events[id] = event(id, "Arena trainer slot", 1, 1, "")
 end
 
@@ -617,7 +617,7 @@ File.binwrite(File.join(DATA_DIR, 'ArenaExpeditionPalette.rxdata'), Marshal.dump
 }))
 File.binwrite(MAP_INFOS, Marshal.dump(map_infos))
 floor_tiles = written_data.payload.byteslice(20..).unpack("v*").count { |tile_id| tile_id == ground[0] }
-puts "Built #{DEST_MAP}: 100x100 arena with centered 25x25 floor; floor tile IDs #{ground.inspect}; center verifies #{written_center.inspect}; base-floor count #{floor_tiles}/625."
+puts "Built #{DEST_MAP}: 200x200 arena with preserved 25x25 floor; floor tile IDs #{ground.inspect}; center verifies #{written_center.inspect}; base-floor count #{floor_tiles}/625."
 puts "Arena tileset: #{map.instance_variable_get(:@tileset_id)} / #{tileset_name}; image: #{File.basename(tileset_images.first)}; base tile index: #{ground[0] - 384}."
 puts "Arena start: #{start.join(',')}. Trainer: #{field_x + 12},#{field_y + 4}; guide: #{field_x + 10},#{field_y + 16}; exit: #{field_x + 12},#{field_y + 18}."
 puts "Added an intro skip choice to #{INTRO_MAP} (or kept the existing choice)."

@@ -99,10 +99,10 @@
       64
     ],
     "visible_size": [
-      20,
-      30
+      27,
+      40
     ],
-    "packed_sha256": "7ceb81761a91f2d29d4012d41112b3b6f9f9a518fedea21ded8b776ee753561f"
+    "packed_sha256": "a90b301fb57a250b425d5b3dcbe3afc34db2578427d5d9eebae8ee26e435f161"
   },
   {
     "name": "dppt-gymstatue",
@@ -189,10 +189,10 @@
       64
     ],
     "visible_size": [
-      20,
-      26
+      32,
+      39
     ],
-    "packed_sha256": "98fbc9e6e0b4e8e9fb671911793916e9cb7c5102560cb23392fb29d020453aab"
+    "packed_sha256": "bcf51f7a1774950c47389a927db6e54af88bac525b063ed6309fbbc3a0ed8a9c"
   },
   {
     "name": "dppt-pottedplant",
@@ -204,10 +204,10 @@
       64
     ],
     "visible_size": [
-      17,
-      32
+      20,
+      40
     ],
-    "packed_sha256": "0878868bc6d13fa2ef3526bbd2826f8f7b046d6d63ee22296039fdd154afd21c"
+    "packed_sha256": "15b8bcfe2f3d996d278dc30cf798d511d61b4f2b519e36b04323cb975d8bec3b"
   },
   {
     "name": "dppt-prettyflowers",
@@ -219,10 +219,10 @@
       64
     ],
     "visible_size": [
-      18,
-      30
+      24,
+      40
     ],
-    "packed_sha256": "23bc92257235499937703373971edcc2cda2470b7a43ffab0b1bb44671e0dad9"
+    "packed_sha256": "4c8bfa43b668dea9388be4ab0e25031ea1c0d1f8ca1e924339d56b561a103da9"
   },
   {
     "name": "dppt-trashcan",
@@ -264,10 +264,10 @@
       64
     ],
     "visible_size": [
-      24,
-      24
+      32,
+      32
     ],
-    "packed_sha256": "2bea31978bd2f42fcf94ef10304f2dcba7157ee4ca8db3629a6d7a93261a9cf4"
+    "packed_sha256": "2da0c54befdb51d1ff4ecd880147ecfd87eadc2ac368044a1e7dd4837ba91bc0"
   },
   {
     "name": "rse-colorful-plant",
@@ -279,10 +279,10 @@
       64
     ],
     "visible_size": [
-      24,
-      24
+      32,
+      28
     ],
-    "packed_sha256": "f6d0eaad8c9ede5b67ca0849201e1526fea70e66114a928567c504a6ab6da151"
+    "packed_sha256": "1409847592f57d715fde57c5ce401816d934661962360c9eb829fff69a2474f2"
   },
   {
     "name": "rse-fence-length",
@@ -324,10 +324,10 @@
       64
     ],
     "visible_size": [
-      24,
-      24
+      32,
+      31
     ],
-    "packed_sha256": "2ecb771e13402f3fffb91278607ef8de83a77e7b52ebde38f46148c8ff0a7560"
+    "packed_sha256": "da02eb6ee76f225a761e6fae7e43021f4ab3e93af7e8d54b41b9cc12e2a3ee94"
   },
   {
     "name": "rse-mud-ball",
@@ -354,10 +354,10 @@
       64
     ],
     "visible_size": [
-      15,
-      30
+      21,
+      40
     ],
-    "packed_sha256": "959967093758c16418f88676b2d67d32382448037128fb079856959e3d501ee5"
+    "packed_sha256": "f9a742c31550e2e5898c3d85fe133ffbecebf01bca69a49d2290b9a5c35b08d1"
   },
   {
     "name": "rse-red-flower",
@@ -369,10 +369,10 @@
       64
     ],
     "visible_size": [
-      15,
-      30
+      21,
+      40
     ],
-    "packed_sha256": "35a11e97e8649eb7a37ea9c0cd853b1f7fd94470e862e20dc279571ecdbe64b8"
+    "packed_sha256": "5666be00f33a06782da85e9e18dd597ebbb70aa5fe4ba1e09bb026380b96cfce"
   },
   {
     "name": "rse-sand-ornament",
@@ -450,10 +450,10 @@
       64
     ],
     "visible_size": [
-      16,
-      32
+      21,
+      40
     ],
-    "packed_sha256": "7f1d27d7de51cd864abfbdbfd7e3f96c24f161d3aabd004c50e3cddf982799d5"
+    "packed_sha256": "a0c5ae4ecb802c22a0cb44955b3436d0b1ca37050e0714ef4c4b179a78f36484"
   },
   {
     "name": "tree-leafy",

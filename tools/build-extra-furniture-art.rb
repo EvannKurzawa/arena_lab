@@ -96,9 +96,19 @@ entries.each do |entry|
       crop.set_pixel(x,y,Color.new(0,0,0,0)) unless keep
     end
   end
+  # Ignore source-image padding when matching vegetation to the native plants.
+  if name.match?(/flower|plant/)
+    points = []
+    crop.height.times { |y| crop.width.times { |x| points << [x,y] if crop.get_pixel(x,y).alpha > 0 } }
+    unless points.empty?
+      xs,ys = points.transpose
+      visible = Bitmap.new(xs.max-xs.min+1,ys.max-ys.min+1)
+      visible.blt(0,0,crop,Rect.new(xs.min,ys.min,visible.width,visible.height))
+      crop = visible
+    end
+  end
   limit = sizes[name]
-  limit ||= if name.match?(/flower/) then [20,30]
-            elsif name.match?(/plant/) then [24,32]
+  limit ||= if name.match?(/flower|plant/) then [32,40]
             else [32,64]
             end
   scale = [limit[0].to_f/crop.width,limit[1].to_f/crop.height].min

@@ -62,7 +62,7 @@ module ArenaDevices
     directions.each do |key|
       _direction, dx, dy = DIRECTIONS.fetch(key)
       point = [object[2] + dx, object[3] + dy]
-      next unless point.all? { |v| v.between?(0, 99) }
+      next unless point.all? { |v| v.between?(0, 199) }
       next if object[1] == COIL && occupied.include?(point)
       return point
     end

@@ -1,3 +1,72 @@
+# Published user trainer definitions and music associations.
+[POKEMONTRAINER_Red]
+Name = Légende
+Gender = Male
+BaseMoney = 60
+BattleBGM = Battle RED
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[POKEMONTRAINER_Leaf]
+Name = Légende
+Gender = Female
+BaseMoney = 60
+BattleBGM = Battle RED
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[POKEMONTRAINER_Brendan]
+Name = Légende
+Gender = Male
+BaseMoney = 60
+BattleBGM = Battle BRICE
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[POKEMONTRAINER_May]
+Name = Légende
+Gender = Female
+BaseMoney = 60
+BattleBGM = Battle BRICE
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[PROFESSOR]
+Name = Professor
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle OAK
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[TEAMROCKET_M]
+Name = Team Rocket
+Gender = Male
+BaseMoney = 32
+BattleBGM = Battle ROCKET
+#-------------------------------
+[TEAMROCKET_F]
+Name = Team Rocket
+Gender = Female
+BaseMoney = 32
+BattleBGM = Battle ROCKET
+#-------------------------------
+[ROCKETBOSS]
+Name = Rocket Boss
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle GIOVANNI
+VictoryBGM = Battle Victory leader
+#-------------------------------
+[LEADER_Giovanni]
+Name = Gym Leader
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle GIOVANNI
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHAMPION]
+Name = Champion
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle BLUE
+VictoryBGM = Battle victory leader
+#-------------------------------
 [CYNTHIA]
 Name = Championne
 Gender = Female
@@ -110,8 +179,3 @@ BaseMoney = 100
 BattleBGM = Battle BIANCA
 VictoryBGM = Battle Victory leader
 #-------------------------------
-
-
-
-
-

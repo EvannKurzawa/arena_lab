@@ -208,14 +208,14 @@ class ArenaReliefTest < Minitest::Test
     assert_equal @placements, decoded[:placements]
     assert_equal 'grass', decoded[:tile_edits]['45,43']['ground']
     invalid = payload[:relief].dup
-    invalid.setbyte(43 * 100 + 44, 48)
+    invalid.setbyte(43 * 200 + 44, 48)
     assert_nil ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], invalid)
-    assert_nil ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], 'x' * 10000)
+    assert_nil ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], 'x' * 40000)
     assert_nil ArenaDemo.decode_visit_snapshot(payload[:surface], payload[:placements], nil)
   end
   def test_existing_flat_saves_remain_flat
     payload = ArenaDemo.visit_snapshot_payload
-    assert_equal '0' * 10000, payload[:relief]
+    assert_equal '0' * 40000, payload[:relief]
     refute_nil ArenaDemo.decode_visit_snapshot(payload[:surface], [], payload[:relief])
   end
   def test_material_catalogue_menus_and_water_identity
@@ -260,8 +260,8 @@ class ArenaReliefTest < Minitest::Test
       assert_empty @placements
       refute ArenaDemo.editor_apply_ground(@records, [], 49, 53, floor: 'field', ground: ground)
       invalid = surface.dup
-      invalid.setbyte(53 * 100 + 49, ArenaMaterials::SURFACE_CODES[ground].ord)
-      assert_nil ArenaDemo.decode_visit_snapshot(invalid, [], '0' * 10000)
+      invalid.setbyte(53 * 200 + 49, ArenaMaterials::SURFACE_CODES[ground].ord)
+      assert_nil ArenaDemo.decode_visit_snapshot(invalid, [], '0' * 40000)
     end
     assert ArenaDemo.editor_apply_ground(@records, [], 40, 40, floor: 'field', ground: 'plain')
     assert edit(40, 40, 1), 'Replacing a hazard restores normal building'
@@ -340,7 +340,7 @@ class ArenaReliefTest < Minitest::Test
     end
     payload = ArenaDemo.visit_snapshot_payload
     invalid = payload[:surface].dup
-    invalid.setbyte(40 * 100 + 40, 95)
+    invalid.setbyte(40 * 200 + 40, 95)
     assert_nil ArenaDemo.decode_visit_snapshot(invalid, [], payload[:relief], payload[:styles])
     $PokemonGlobal = Marshal.load(Marshal.dump($PokemonGlobal))
     assert_equal payload, ArenaDemo.visit_snapshot_payload
@@ -409,8 +409,8 @@ class ArenaReliefTest < Minitest::Test
     refute ArenaDemo.editor_apply_platform_style(@records, 45, 44, 'grass'), 'Wall is not a platform selection'
     refute ArenaDemo.editor_apply_platform_style(@records, 44, 43, 'invalid')
     assert_equal snapshot, Marshal.dump(@records)
-    assert_nil ArenaDemo.decode_visit_snapshot(payload[:surface], [], payload[:relief], 'x' * 10000)
-    assert_nil ArenaDemo.decode_visit_snapshot(payload[:surface], [], payload[:relief], '2' * 10000)
+    assert_nil ArenaDemo.decode_visit_snapshot(payload[:surface], [], payload[:relief], 'x' * 40000)
+    assert_nil ArenaDemo.decode_visit_snapshot(payload[:surface], [], payload[:relief], '2' * 40000)
     assert_equal 'plain', ArenaDemo.tile_surface_state({}, 50, 50)['ground'], 'Legacy floor remains supported'
   end
   def test_guest_snapshot_is_used_without_overwriting_personal_save
@@ -428,7 +428,7 @@ class ArenaReliefTest < Minitest::Test
     refute ArenaDemo::Visits.ready?
     ArenaDemo::Visits.receive(type: :arena_ready, version: 7)
     refute ArenaDemo::Visits.ready?
-    ArenaDemo::Visits.receive(type: :arena_ready, version: 14)
+    ArenaDemo::Visits.receive(type: :arena_ready, version: 15)
     assert ArenaDemo::Visits.ready?
     ArenaDemo::Visits.receive(payload.merge(type: :arena_state, phase: :open,
       role: :guest, room: 'room-relief', host: 1, guest: 2,

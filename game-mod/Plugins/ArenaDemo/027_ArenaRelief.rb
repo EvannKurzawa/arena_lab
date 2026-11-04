@@ -8,7 +8,7 @@ module ArenaDemo
     records.each do |key, record|
       next unless record.is_a?(Hash) && (record['height'] == 1 || record['stair']) && record['floor'] != 'void'
       x, y = key.split(',').map(&:to_i)
-      next unless x && y && x.between?(0, 99) && y.between?(0, 99)
+      next unless x && y && x.between?(0, 199) && y.between?(0, 199)
       grid.setbyte(y * MAP_WIDTH + x, ArenaMaterials::ALPHABET[ArenaRelief::STYLES.index(record['platform_style']) || 0].ord)
     end
     grid
@@ -74,7 +74,7 @@ module ArenaDemo
     records.each do |key, record|
       next unless record.is_a?(Hash) && record["floor"] != "void"
       coords = key.split(",").map(&:to_i)
-      next unless coords.length == 2 && coords.all? { |n| n.between?(0, 99) }
+      next unless coords.length == 2 && coords.all? { |n| n.between?(0, 199) }
       code = record["stair"] || (record["height"] == 1 ? 1 : 0)
       grid.setbyte(coords[1] * MAP_WIDTH + coords[0], 48 + code)
     end

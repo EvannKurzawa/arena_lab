@@ -180,11 +180,13 @@ module ArenaDemo
       placements = super
       purge_retired_furniture!(placements) unless defined?(Visits) && Visits.snapshot
       return placements if !$PokemonGlobal || (defined?(Visits) && Visits.snapshot)
-      return placements if $PokemonGlobal.arena_wide_furniture_layout_version.to_i >= 5
+      previous_version = $PokemonGlobal.arena_wide_furniture_layout_version.to_i
+      return placements if previous_version >= 6
       records = tile_edit_records
-      remove_legacy_stands!(placements,records)
-      migrate_raised_furniture!(placements,records)
+      remove_legacy_stands!(placements,records) if previous_version < 5
+      migrate_raised_furniture!(placements,records) if previous_version < 5
       placements.dup.each do |placed|
+        next if previous_version >= 5 && !%w[ARENA_FURNITURE_SOFA ARENA_FURNITURE_ARMCHAIR].include?(placed['item'].to_s)
         next unless placed['kind'] == 'furniture' && ArenaFurnitureRules.width(placed['item']) > 1
         next if placed['item'].to_s == ArenaFurnitureRules::STAND
         others = placements.reject { |p| p.equal?(placed) }.flat_map do |p|
@@ -210,6 +212,7 @@ module ArenaDemo
         end
       end
       placements.each do |p|
+        next if previous_version >= 5
         next unless p['kind'] == 'furniture' && p['item'].to_s == ArenaFurnitureRules::STAND
         [1,2].each do |dx|
           px,py = p['x']+dx,p['y']-1
@@ -223,7 +226,7 @@ module ArenaDemo
           apply_tile_surface($game_map,px,py,records[key]) if $game_map
         end
       end
-      $PokemonGlobal.arena_wide_furniture_layout_version = 5
+      $PokemonGlobal.arena_wide_furniture_layout_version = 6
       placements
     end
 
@@ -273,7 +276,7 @@ module ArenaDemo
       end
       furniture_placements(placements).each_with_index do |placed, slot|
         item = placement_item(placed)
-        next unless EXTRA_FURNITURE.key?(item)
+        next unless catalog_furniture?(item)
         event = $game_map.events[FURNITURE_SLOT_BASE + slot]
         if event
           event.through = ArenaFurnitureRules.walkable?(item)
@@ -342,7 +345,7 @@ module ArenaDemo
             !tile_is_void?(px,py,records) && !%w[quicksand water deep_water lava].include?(tile_surface_state(records,px,py)['ground'])
         end
         unless valid
-          pbMessage('Ce meuble nécessite deux cases libres côte à côte, au même niveau.')
+          pbMessage("Ce meuble nécessite #{ArenaFurnitureRules.width(selected[:item])} cases libres côte à côte, au même niveau.")
           return false
         end
       end

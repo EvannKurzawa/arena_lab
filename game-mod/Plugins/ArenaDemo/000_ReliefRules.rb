@@ -67,12 +67,12 @@ module ArenaMaterials
   STYLE_BYTES = STYLE_KEYS.each_index.map { |i| ALPHABET[i].ord }.freeze
   module_function
   def valid_surface?(grid)
-    grid.is_a?(String) && grid.bytesize == 10000 && grid.bytes.all? { |b| SURFACE_BYTES.include?(b) }
+    grid.is_a?(String) && grid.bytesize == 40000 && grid.bytes.all? { |b| SURFACE_BYTES.include?(b) }
   end
 
   def ground_at(surface, x, y)
-    return nil unless x.between?(0, 99) && y.between?(0, 99)
-    SURFACE_CODES.key(surface[y * 100 + x])
+    return nil unless x.between?(0, 199) && y.between?(0, 199)
+    SURFACE_CODES.key(surface[y * 200 + x])
   end
 
   def traversable?(surface, x, y, mode = :walk)
@@ -84,7 +84,7 @@ module ArenaMaterials
 end
 
 module ArenaRelief
-  SIZE = 100
+  SIZE = 200
   DIRECTIONS = { 2 => [0, 1], 4 => [-1, 0], 6 => [1, 0], 8 => [0, -1] }.freeze
   CODES = [0, 1, 2, 4, 6, 8].freeze
   STYLES = ArenaMaterials::STYLE_KEYS
@@ -130,7 +130,7 @@ module ArenaRelief
 
   def valid?(grid, surface, reserved = [], placements = [])
     return false unless grid.is_a?(String) && grid.bytesize == SIZE * SIZE &&
-                        grid.match?(/\A[012468]{10000}\z/)
+                        grid.match?(/\A[012468]{40000}\z/)
     return false unless surface.is_a?(String) && surface.bytesize == SIZE * SIZE
     grid.bytes.each_with_index do |byte, i|
       code = byte - 48

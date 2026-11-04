@@ -1,11 +1,11 @@
-# Secret Base-inspired, single-cell furniture. Native artwork stays local.
+# Secret Base-inspired furniture. Native artwork stays local.
 module ArenaDemo
   BASIC_FURNITURE = {
     :ARENA_FURNITURE_CHAIR_BLUE => ['Chaise bleue', [64, 5152, 32, 32]],
     :ARENA_FURNITURE_CHAIR_RED => ['Chaise rouge', [64, 5184, 32, 32]],
     :ARENA_FURNITURE_STOOL => ['Tabouret vert', [192, 5120, 32, 32]],
     :ARENA_FURNITURE_ARMCHAIR => ['Fauteuil confortable', [128, 5088, 64, 64]],
-    :ARENA_FURNITURE_SOFA => ['Petit canapé bleu', [64, 5024, 96, 64]],
+    :ARENA_FURNITURE_SOFA => ['Canapé bleu', [64, 5024, 96, 64]],
     :ARENA_FURNITURE_DESK => ['Petit bureau bleu', [0, 6784, 96, 64]],
     :ARENA_FURNITURE_ROUND_TABLE => ['Petite table ronde', [192, 6784, 64, 64]],
     :ARENA_FURNITURE_BOOKCASE => ['Petite bibliothèque', [64, 5472, 64, 64]],
@@ -56,12 +56,22 @@ module ArenaDemo
       raise 'Missing local Essentials Interior general tileset' unless source
       rect = Rect.new(*spec)
     end
-    image = Bitmap.new(32, 64)
-    # Fit the native object to one collision cell, retaining its proportions.
-    limit_w, limit_h = spec.is_a?(Symbol) ? [28, 28] : [32, 64]
+    plant = %i[ARENA_FURNITURE_LEAF_PLANT ARENA_FURNITURE_FERN ARENA_FURNITURE_PALM ARENA_FURNITURE_TOPIARY].include?(item)
+    if plant
+      points = []
+      rect.height.times { |y| rect.width.times { |x| points << [rect.x+x,rect.y+y] if source.get_pixel(rect.x+x,rect.y+y).alpha > 0 } }
+      unless points.empty?
+        xs,ys = points.transpose
+        rect = Rect.new(xs.min,ys.min,xs.max-xs.min+1,ys.max-ys.min+1)
+      end
+    end
+    canvas_width = item == :ARENA_FURNITURE_SOFA ? 96 : (item == :ARENA_FURNITURE_ARMCHAIR ? 64 : 32)
+    image = Bitmap.new(canvas_width, 64)
+    # Preserve full seat proportions; plants share a visible 32x40 envelope.
+    limit_w, limit_h = spec.is_a?(Symbol) ? [28, 28] : [canvas_width, plant ? 40 : 64]
     scale = [limit_w.to_f / rect.width, limit_h.to_f / rect.height, 1.0].min
     w, h = [(rect.width * scale).round, 1].max, [(rect.height * scale).round, 1].max
-    left, top = (32 - w) / 2, 64 - h - (spec.is_a?(Symbol) ? 5 : 0)
+    left, top = (canvas_width - w) / 2, 64 - h - (spec.is_a?(Symbol) ? 5 : 0)
     h.times do |y|
       w.times do |x|
         image.set_pixel(left + x, top + y,
@@ -143,7 +153,8 @@ module ArenaDemo
     def material_catalog_description(entry)
       return super unless entry[:furniture_catalog]
       return 'Choisir un meuble à retirer' if entry[:action] == :remove
-      "En réserve : #{entry[:qty]}\nOccupe 1 case"
+      width = defined?(ArenaFurnitureRules) ? ArenaFurnitureRules.width(entry[:item]) : 1
+      "En réserve : #{entry[:qty]}\nOccupe #{width} #{width == 1 ? 'case' : 'cases'}"
     end
 
     def refresh_custom_placements(placements = custom_placements)

@@ -1,5 +1,130 @@
 # Pokémon Arena Manager — Codex Project Brief
 
+## v9.4
+
+Arène de 200 × 200 cases avec espace de debug, mobilier et plantes ajustés,
+étincelle Tesla rétro et ambiance électrique continue. Les ressources de mise
+à jour incluent les musiques de combat ajoutées localement, leurs associations
+de dresseurs et les sprites d'Anis, Kunz, Percila et Tcheren. Les deux boucles
+Tesla issues de l'enregistrement personnel sont incluses dans les ressources.
+Fermer le jeu, appliquer Arena Update sur les deux PC, puis relancer
+Play-Arena.bat ; redémarrer également l'hôte après la mise à jour.
+
+## Ambiance électrique Tesla
+
+Un bourdonnement de haute tension accompagné d'un léger grésillement se joue
+en boucle lorsqu'au moins une bobine active est visible à l'écran. Il s'arrête
+quand la dernière bobine visible est éteinte ou sort du champ. Plusieurs bobines
+partagent une seule ambiance ; l'aimant reste audible pendant les déplacements.
+Le volume suit le réglage des effets sonores. Fermer le jeu puis relancer
+**Play-Arena.bat** : le son personnel importé depuis `tesla_sound.m4a` est installé
+automatiquement au lancement, y compris sa version combinée avec l'aimant.
+La fin et le début de l'enregistrement se chevauchent sur 200 ms : le son
+reste continu à chaque reprise, sans fondu vers le silence.
+Pour réimporter le fichier : `tools/import-tesla-sound.ps1`. Les WAV convertis
+restent dans `game-mod/LocalAssets`, hors du dépôt.
+
+## Étincelle Tesla — pixel art rétro
+
+L'étincelle adopte des éclairs jaune doré sur une grille de 16 × 16, affichés
+en blocs nets de 2 × 2 pixels, avec un cœur crème et trois couleurs rétro.
+Trois silhouettes dessinées à la main alternent avec de petites étincelles
+mobiles ; l'arc de la bobine est assorti à cette palette.
+Fermer le jeu puis relancer **Play-Arena.bat** pour charger le nouveau dessin.
+
+## Animation, plantes et sièges — Arena Demo 0.26.3
+
+L'étincelle Tesla s'anime sur **18 images à 18 images/seconde** : pulsation du
+noyau, décharges qui se déplacent, s'allongent et se ramifient, avec des ombrages
+communs. Les fleurs et plantes partagent une enveloppe visible de 32 × 40 pixels,
+en conservant leurs proportions ; les fleurs rouges sont agrandies et les
+grandes plantes en pot ajustées. Les arbres gardent leur taille.
+
+Le **canapé bleu occupe 3 cases** et le **fauteuil 2 cases**, avec leurs dessins
+complets, collisions et retrait depuis n'importe quelle case. Les anciens sièges
+restent en place si l'espace est libre, sinon ils sont déplacés au plus proche
+au même niveau, ou remis au Sac si aucune place n'est disponible.
+Fermer le jeu puis relancer **Play-Arena.bat**. Après publication, appliquer
+**Arena Update.exe** sur les deux PC pour recevoir aussi les images des plantes.
+
+## Animation, plantes et sièges — Arena Demo 0.26.3
+
+L'étincelle Tesla s'anime sur **18 images à 18 images/seconde** : pulsation du
+noyau, décharges qui se déplacent, s'allongent et se ramifient, avec des ombrages
+communs. Les fleurs et plantes partagent une enveloppe visible de 32 × 40 pixels,
+en conservant leurs proportions ; les fleurs rouges sont agrandies et les
+grandes plantes en pot ajustées. Les arbres gardent leur taille.
+
+Le **canapé bleu occupe 3 cases** et le **fauteuil 2 cases**, avec leurs dessins
+complets, collisions et retrait depuis n'importe quelle case. Les anciens sièges
+restent en place si l'espace est libre, sinon ils sont déplacés au plus proche
+au même niveau, ou remis au Sac si aucune place n'est disponible.
+Fermer le jeu puis relancer **Play-Arena.bat**. Après publication, appliquer
+**Arena Update.exe** sur les deux PC pour recevoir aussi les images des plantes.
+
+## Étincelle unifiée — Arena Demo 0.26.2
+
+Le noyau et les décharges Tesla composent une seule silhouette lumineuse :
+les ramifications en zigzag se fondent dans la boule d'énergie et partagent
+ses ombrages. Pointes inégales, angles asymétriques et scintillement irrégulier
+sur neuf images, sans rotation. Fermer le jeu puis relancer **Play-Arena.bat**.
+
+## Décharge électrique et debug compact — Arena Demo 0.26.1
+
+L'étincelle conserve son noyau d'énergie lumineux, entouré de longs éclairs
+ramifiés en zigzag et d'une silhouette hérissée qui scintille sans tourner.
+Les meubles de debug sont regroupés en rangées dans une zone de 26 cases de
+large, avec une case libre entre les dessins et entre les rangées. Les arbres,
+l'estrade et les étincelles Tesla disposent de la place nécessaire.
+Les téléporteurs restent aux mêmes endroits. Les sauvegardes avec la première
+disposition intacte sont réagencées automatiquement ; une zone modifiée à la
+main est conservée si le réagencement risque d'écraser ces modifications.
+Fermer le jeu puis relancer **Play-Arena.bat** pour charger la révision locale.
+
+## Décharge électrique et debug compact — Arena Demo 0.26.1
+
+L'étincelle conserve son noyau d'énergie lumineux, entouré de longs éclairs
+ramifiés en zigzag et d'une silhouette hérissée qui scintille sans tourner.
+Les meubles de debug sont regroupés en rangées dans une zone de 26 cases de
+large, avec une case libre entre les dessins et entre les rangées. Les arbres,
+l'estrade et les étincelles Tesla disposent de la place nécessaire.
+Les téléporteurs restent aux mêmes endroits. Les sauvegardes avec la première
+disposition intacte sont réagencées automatiquement ; une zone modifiée à la
+main est conservée si le réagencement risque d'écraser ces modifications.
+Fermer le jeu puis relancer **Play-Arena.bat** pour charger la révision locale.
+
+## Arène 200 × 200 et espace de debug — Arena Demo 0.26.0
+
+Un téléporteur au centre du terrain rejoint une zone de test dans la nouvelle
+partie de la carte, avec retour et un exemplaire de chaque meuble, y compris
+les orientations des appareils et leurs boutons. Le sol vierge autour reste
+disponible pour expérimenter. Les positions et meubles personnels sont conservés ;
+si le centre est occupé, le téléporteur apparaît sur la case libre la plus proche.
+La zone est ajoutée une seule fois à chaque sauvegarde et reste modifiable.
+L'étincelle Tesla forme une boule d'énergie pixel art au cœur lumineux et au
+contour irrégulier, avec un léger scintillement sans rotation.
+
+Fermer le jeu puis relancer **Play-Arena.bat** pour préparer les fichiers locaux.
+Pour une installation distante, appliquer **Arena Update.exe** après publication
+de cette révision, puis **Play-Arena.bat** sur les deux PC. Protocole de visite 15 :
+client et serveur doivent tous deux être à jour.
+
+## Arène 200 × 200 et espace de debug — Arena Demo 0.26.0
+
+Un téléporteur au centre du terrain rejoint une zone de test dans la nouvelle
+partie de la carte, avec retour et un exemplaire de chaque meuble, y compris
+les orientations des appareils et leurs boutons. Le sol vierge autour reste
+disponible pour expérimenter. Les positions et meubles personnels sont conservés ;
+si le centre est occupé, le téléporteur apparaît sur la case libre la plus proche.
+La zone est ajoutée une seule fois à chaque sauvegarde et reste modifiable.
+L'étincelle Tesla forme une boule d'énergie pixel art au cœur lumineux et au
+contour irrégulier, avec un léger scintillement sans rotation.
+
+Fermer le jeu puis relancer **Play-Arena.bat** pour préparer les fichiers locaux.
+Pour une installation distante, appliquer **Arena Update.exe** après publication
+de cette révision, puis **Play-Arena.bat** sur les deux PC. Protocole de visite 15 :
+client et serveur doivent tous deux être à jour.
+
 ## Nouveaux dresseurs personnels
 
 Les 16 nouveaux dresseurs, leurs types, sprites de terrain et de combat et les

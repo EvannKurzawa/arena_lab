@@ -223,7 +223,7 @@ module ArenaDemo
     def decode_visit_snapshot(*args)
       return nil unless args[1].is_a?(Array) && ArenaDevices.valid_pairs?(args[1])
       result = super
-      return nil unless result && ArenaDevices.valid_sparks?(args[1], args[0], args[2] || '0' * 10000, relief_reserved)
+      return nil unless result && ArenaDevices.valid_sparks?(args[1], args[0], args[2] || '0' * 40000, relief_reserved)
       result
     end
 

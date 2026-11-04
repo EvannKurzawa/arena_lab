@@ -1,6 +1,20 @@
 require_relative 'field_state_server_test'
 
 class ArenaDevicesServerTest < FieldStateServerTest
+  def test_showroom_teleport_beyond_old_bounds_and_return
+    host = connect
+    surface = '0' * 40000
+    (37..61).each { |y| (37..61).each { |x| surface.setbyte(y*200+x,49) } }
+    (120..190).each { |y| (120..190).each { |x| surface.setbyte(y*200+x,49) } }
+    room(host, [[0,ArenaDevices::TELEPORT,50,53],[0,ArenaDevices::TELEPORT,124,124]], surface: surface)
+    position(host,100,49,53)
+    position(host,100,50,53)
+    position(host,100,124,124)
+    position(host,100,125,124)
+    position(host,100,124,124)
+    position(host,100,50,53)
+  end
+
   def test_directional_spark_blocks_until_button_but_coil_stays_solid
     host = connect
     snapshot = room(host, [[0, 'ARENA_TESLA_D', 51, 52], [0, ArenaDevices::BUTTON, 50, 53]])
@@ -48,10 +62,10 @@ class ArenaDevicesServerTest < FieldStateServerTest
 
   def test_unpaired_objects_are_refused
     host = connect
-    surface = '1' * 10000
+    surface = '1' * 40000
     send_frame(host, type: :arena_open, objects: [], layout: 0, difficulty: 1,
       placements: [[0, ArenaDevices::TELEPORT, 50, 53]], surface: surface,
-      relief: '0' * 10000, styles: '0' * 10000)
+      relief: '0' * 40000, styles: '0' * 40000)
     assert_equal :arena_error, receive(host)[:type]
   end
 end

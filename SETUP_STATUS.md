@@ -1,5 +1,297 @@
 # Setup and implementation status
 
+## v9.4 commit preparation — 2026-11-04
+
+User requested commit/push as v9.4 including locally added trainer assets.
+Packaged 16 trainer battle tracks (large WAV/MP3 converted to Vorbis quality 5;
+Giovanni/Rocket OGGs copied), four paired trainer sprites (Anis, Kunz, Percila,
+Tcheren), and both crossfaded Tesla loops. Exported 26 user trainer sections
+including base-type music associations for clean installs. Asset provenance:
+game-mod/AssetSources/v9.4-user-assets.json. User sources remain local; no new
+license claim. The existing shared-asset installer applies these on updates.
+
+Includes arena/showroom/furniture/device changes already present. Raw recordings,
+saves, engine data and binaries remain ignored. Unrelated title_screen_design.pptx
+and the other session's animation handoff note are excluded. Internal plugin
+version stays 0.26.3; v9.4 is the Git commit/tag label. No GitHub binary release
+was requested. Updated a stale relief server test handshake expectation from
+protocol 14 to the implemented protocol 15; runtime protocol unchanged here.
+
+Validation for this commit: 144 tests / 4914 assertions passed across device
+rules/server, relief rules/server, extra furniture, field state server,
+catalogue, showroom-only, Tesla ambience and trainer installation suites.
+The showroom file must run with --name /showroom/: running all inherited tests
+in its globally altered fixture produced failures in the imported base suites;
+those suites pass separately and the four showroom cases pass in isolation.
+The initial relief-server run failed only on the old handshake expectation;
+all seven cases pass after correction. Shared audio conversion/packaging passed.
+
+## Continuous Tesla recording loop — 2026-11-04
+
+User requested uninterrupted playback while an active coil remains visible.
+FFmpeg silencedetect at -40 dB / 40 ms found no silence in tesla_sound.m4a.
+The previous importer added separate 20 ms fade-in/out ramps, causing an
+unnecessary volume dip at every repeat. Replaced those ramps with a 200 ms
+tail/head linear overlap and rotated trim so the last sample continues into
+the beginning. Applied a loop overlap to the combined magnet/Tesla recording
+too, with limiter latency compensation to avoid leading padding.
+
+Executed powershell.exe -NoProfile -ExecutionPolicy Bypass -File
+tools/import-tesla-sound.ps1 with elevated filesystem permission: conversion
+and installation succeeded; the importer verified that both installed WAVs
+exactly match the private overrides. Source M4A unchanged. Playback still uses
+the existing native BGS loop, with no per-frame restarting while visible.
+No native listening session performed in this turn. Restart Play-Arena.bat
+to reload the current sound. Files changed: importer, README, this status log.
+
+## User-provided Tesla recording — 2026-11-04
+
+Imported C:/arena-lab/tesla_sound.m4a (AAC stereo, 48 kHz, about 3.439 s)
+using tools/import-tesla-sound.ps1 and the installed FFmpeg 9.0.2. Converted
+to mono PCM16 WAV at 22050 Hz with 20 ms edge fades; the original is intact.
+Created Arena Tesla Hum.wav and a combined Arena Magnet Tesla.wav containing
+the same recording plus the existing magnet sound. Both live in ignored
+game-mod/LocalAssets/Audio/BGS; the input M4A is also ignored. No redistribution
+rights inferred and no user audio added to distributable source control.
+
+build_device_audio.rb now applies these private WAV overrides after synthesis
+on every Prepare, preserving the selection across Play-Arena.bat launches.
+Its optional second argument selects an override directory, used by tests to
+isolate synthesized-loop checks. Existing visibility/disabled playback logic
+is unchanged. Updated README and .gitignore.
+
+Executed: FFprobe on source and converted WAV (3.438639 s); import script via
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File (elevated after the
+restricted attempt was denied directory creation); Ruby audio generator for
+the installed local game; tesla_ambience_test.rb: 10 tests / 40 assertions pass.
+No new native launch or listening session for this recording. Close/relaunch
+Play-Arena.bat to hear the replacement in a fresh session. No commit/publication.
+
+## Tesla sound follow-up — 2026-11-04
+
+User initially reported silence during normal walking. Confirmed the installed
+script and both generated WAV files existed. The elevated disposable native
+showroom test passed 251 checks, including visible-coil detection, starting the
+Tesla BGS and stopping it on disable. This did not establish why the user's
+sound was initially silent. Increased Tesla playback volume from 65 to 90 and
+shifted most synthesized hum energy into 450/900/1350 Hz for clearer audibility
+over music and on small speakers, retaining the 100 Hz undertone. Combined
+magnet/Tesla audio was rebalanced. Added native backend/frame continuity checks
+to native_showroom_boot_probe.rb. The initial restricted native run timed out;
+the elevated run succeeded. tesla_ambience_test.rb still passes 10 tests /
+40 assertions. User subsequently confirmed: "it now works". No listening
+verification by the agent and no live multiplayer test. No publication.
+
+## Visible Tesla high-voltage ambience — 2026-11-04
+
+Added 098_TeslaAmbience.rb and integrated it with 097_ArenaDevices.rb. During
+normal arena play, a visible active coil starts one shared looping electrical
+hum with light corona crackle. Camera/body intersection includes partially
+visible coils; disabled furniture slots are excluded. Local buttons and incoming
+multiplayer state stop the hum when the last visible coil is disabled. Leaving
+the screen area, editor entry, battles and map/scene exit also stop the hum.
+Previous BGS is restored without overwriting audio replaced by another scene.
+Map music and unrelated sound effects are untouched.
+
+Essentials has one BGS channel: a combined Magnet/Tesla loop preserves both
+effects during magnetic transport. The standard pbBGSPlay helper applies the
+user's SE volume. build_device_audio.rb synthesizes original 4-second Tesla
+and combined WAV loops using periodic mains harmonics and deterministic high
+frequency tones; no external downloads or audio dependencies. The existing
+install-arena-device-assets.ps1 invokes this generator on Prepare, so
+Play-Arena.bat generates the new audio locally. No binaries added to git.
+
+Validation with tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe:
+- game-mod/test/tesla_ambience_test.rb: 10 tests / 40 assertions passed: viewport
+  edges, multiple coils, disabled indexing, reset, BGS restoration, combined
+  playback, battles, scene teardown, missing assets, WAV length, RMS, clipping
+  and loop seam. Initial test-fixture naming errors were corrected.
+- game-mod/test/arena_devices_rules_test.rb: 4 tests / 49 assertions passed.
+- -c game-mod/Plugins/ArenaDemo/097_ArenaDevices.rb: Syntax OK.
+- git diff --check on modified tracked implementation files: passed.
+A shell write to the test file required elevated Windows permission.
+No native client/server or live two-client session launched this turn. Audio
+validated numerically, not by an in-game listening session.
+
+Files: 097_ArenaDevices.rb, new 098_TeslaAmbience.rb, build_device_audio.rb,
+new tesla_ambience_test.rb, README.md and this log. Existing unrelated edits
+preserved. Close the game and relaunch Play-Arena.bat to prepare the scripts
+and sound files. No commit or publication performed.
+
+## Chunkier retro Tesla spark — 2026-11-04
+
+Refined the preceding DS-style artwork at the user's request to better match
+Essentials with a Game Boy-inspired pixel treatment. DeviceArt.spark now draws
+its silhouettes on a 16x16 logical grid, using opaque 2x2 blocks in the same
+32x32 bitmap. Reduced the palette to three flat colours (ochre, golden yellow,
+cream), including block-shaped detached sparks. The connecting arc uses the
+matching gold/cream palette. Timing, placement and collisions are unchanged.
+Files changed this turn: 098_ArenaDeviceArt.rb, README.md and this status file.
+
+Executed with tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe:
+- -c game-mod/Plugins/ArenaDemo/098_ArenaDeviceArt.rb: Syntax OK.
+- tools/runtime/preview-furniture-scale.rb: rendered and visually inspected all
+  18 frames in tools/runtime/energy-orb-preview.png at 4x enlargement.
+No native game or multiplayer launch performed. Close the game and relaunch
+Play-Arena.bat to load the revised artwork. No commit or publication performed.
+
+## Tesla spark in a DS-inspired pixel style — 2026-11-04
+
+Changed only DeviceArt spark rendering and the connecting arc palette in
+game-mod/Plugins/ArenaDemo/098_ArenaDeviceArt.rb, plus README.md and this log.
+Replaced the procedural blue orb with three authored angular silhouettes,
+four opaque cream/yellow/gold/ochre colours, a small bright central diamond,
+and moving detached sparks. The existing 32x32 cache and 18 fps timing remain;
+silhouette poses are held for two ticks. The coil arc uses matching colours.
+Original artwork drawn with the existing Bitmap API; no downloaded assets.
+Other pre-existing workspace changes were preserved.
+
+Executed with tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe:
+- -c game-mod/Plugins/ArenaDemo/098_ArenaDeviceArt.rb: Syntax OK.
+- tools/runtime/preview-furniture-scale.rb: rendered all 18 cached frames to
+  tools/runtime/energy-orb-preview.png, visually inspected at 4x.
+- game-mod/test/arena_devices_rules_test.rb: 4 tests / 49 assertions passed.
+
+The initial Python write was denied by filesystem permissions; the elevated
+retry using bare python resolved to the Windows Store alias and failed. Using
+C:/msys64/mingw64/bin/python.exe with approval successfully applied the change.
+No native client launch, server launch or two-client session in this turn.
+Manual step: close the game and relaunch Play-Arena.bat. No commit/publication.
+
+## More animated Tesla, vegetation scale and multi-cell seating — 2026-11-03
+
+Arena Demo 0.26.3. Tesla uses 18 cached frames at 18 fps (previously 9 at 12),
+with stronger independent changes in branch angle, length, bend and width,
+varying fork lengths, core pulsation and moving highlights. The unified filled
+silhouette and common shading are preserved, with no global rotation.
+
+Basic potted plants and shared flower/plant sprites now fit visible 32x40 bounds
+without changing proportions. Alpha padding is trimmed before scaling, instead
+of shrinking flowers into 20x30 while native ferns remained up to 64px tall.
+Ten shared vegetation PNGs and furniture-sources.json were regenerated from
+the existing local sources using tools/build-extra-furniture-art.rb. No new
+asset source or third-party content was downloaded. The first sandbox build
+failed writing existing SharedAssets/chandelier.png; the elevated Ruby build
+then packed all 34 sprites successfully. Trees and unrelated artwork unchanged.
+
+The original sofa graphic now renders at 96x64 with three horizontal collision
+cells; the armchair is 64x64 with two. The native event width, editor occupancy,
+placement validation, removal, catalogue description and shared server rules
+use those widths. Wide-layout migration 6 processes the enlarged seats on saves
+already at version 5, retaining a clear position or relocating to the closest
+free footprint on the same level, with Bag fallback. It does not rerun legacy
+stand cleanup on those saves. Fresh debug shelf packing uses the larger widths;
+existing seats go through the same safe migration. Server furniture capability
+advances to 3 so the launcher can detect an older collision implementation.
+
+Executed with the installed portable Ruby:
+- extra_furniture_test.rb: 47 tests / 1916 assertions passed, including three-cell
+  overlap/bounds, crowded-save migration, inventory preservation and removal
+  through the final sofa cell.
+- debug_showroom_test.rb --name /showroom/: 4 tests / 96 assertions passed.
+- arena_devices_server_test.rb: 17 tests / 372 assertions passed on local sockets.
+- tools/runtime/preview-furniture-scale.rb: rendered vegetation/seating and all
+  18 spark frames with the existing headless Bitmap implementation; inspected
+  tools/runtime/plant-seating-preview.png and energy-orb-preview.png visually.
+
+Native QA: C:/msys64/mingw64/bin/python.exe tools/test-native-showroom.py
+passed 248 checks in a disposable game with the final regenerated assets,
+including all event footprints, all sprites, 18 native spark bitmaps and
+visible bounds for red flowers, fern, leafy plant and potted plant.
+No live two-PC session or changes to the running game.
+Manual step: close the game, run Play-Arena.bat; both PCs need the same revision
+for online collision behavior. The SharedAssets images follow Arena Update
+after this revision is published; no commit or publication was performed here.
+
+## Unified chaotic electric silhouette — 2026-11-03
+
+Arena Demo 0.26.2. Replaced the independent circular fill and overpainted bolts
+in DeviceArt.spark with one implicit filled silhouette: an uneven energy core
+unites with tapered zigzag segments and forks before any shading is applied.
+All pixels use the same signed-distance palette, eliminating the circular rim
+and overlaid-stroke seams. Eleven unevenly spaced discharge directions, varied
+reach, alternating bends, forks and periodic phase jitter keep an asymmetric,
+chaotic outline without rotating the effect. Nine frames remain cached at 32x32.
+
+Executed the existing headless Ruby furniture-preview Bitmap renderer with
+098_ArenaDeviceArt.rb to generate tools/runtime/energy-orb-preview.png; visually
+inspected all nine final frames enlarged 4x. This turn changes artwork only;
+no native launch or multiplayer session was run. Debug furniture layout remains
+at version 2. Manual step: close the game and relaunch Play-Arena.bat.
+
+## Static discharge and compact debug showroom — 2026-11-03
+
+Arena Demo 0.26.1. The energy effect now has a smaller luminous filled core,
+13 fixed-angle zigzag lightning branches, flickering reach and offshoots.
+Sharp radial peaks break up the silhouette; the continuous dark circular rim
+has been removed. Final nine-phase rendering was regenerated with the Ruby
+Bitmap-compatible preview and visually inspected after the user's further
+request to make the effect more electrical.
+
+Showroom shelf packing fits all furniture in 26 columns instead of the old
+roughly 60-column spread. It reserves visible sprite dimensions, native raised
+footprints and three-wide Tesla displays including their spark cells, with
+one empty tile between neighbours and rows. Teleporters remain (49,49)/(124,124).
+Per-save layout version 2 compacts an intact v1 showroom, restores old raised
+surfaces, rebuilds new relief and preserves inventory and placement order.
+The migration skips rearranging a manually changed fixture set or occupied/
+edited destination so it cannot overwrite personal furniture or destination
+terrain. Guest snapshots are not migrated. No new item grant is performed.
+
+Validation: ruby game-mod/test/debug_showroom_test.rb --name /showroom/:
+4 tests / 96 assertions passed, covering full snapshot validation, old-layout
+migration, underlying relief restoration, no duplication and personal obstacle
+preservation. C:/msys64/mingw64/bin/python.exe tools/test-native-showroom.py:
+164 native checks passed in a disposable game with the compact arrangement.
+The final stronger lightning revision was rendered headlessly afterward; no
+live two-PC session was run. Manual step: close the game and run Play-Arena.bat.
+
+## Energy orb and 200x200 furniture showroom — 2026-11-03
+
+Arena Demo 0.26.0. Map 100 expands to 200x200 while the existing starting field
+stays at (37,37), preserving saved placements, surface edit keys and spawns.
+New per-save initialization adds a paired furniture teleporter at (49,49) and
+(124,124), plus a plain 71x71 test field at (120,120)..(190,190). Occupied centre
+cells are preserved; the nearest free, safe level cell is used instead.
+The showroom includes every furniture stock ID, all device orientations and
+matching Tesla buttons. Raised furniture receives its native relief and stored
+underlying surfaces. The initializer is idempotent, skips guest snapshots and
+does not subtract items from the player's Bag. Furniture capacity increases to
+180, trainer event slots move to 500..515, and the map builder emits those slots.
+An existing running client must be closed before preparing these generated maps.
+
+Surface/relief/style grids, collision bounds and server validation now cover
+40,000 cells. Visit handshake is version 15 and the launcher ping detects older
+services. A bounded Arena extension raises PEMK's primitive envelope cap from
+64 to 256 KiB on client/server; upstream source files remain unchanged. This
+was necessary after socket tests exposed closure on the three larger grids.
+The Tesla drawing uses a bright blue/white energy core, uneven lobes, pixel
+tips and nine flickering phases without rotation. Final contour incorporates
+the user's request for more irregularity while retaining an energy-ball shape.
+
+Executed with tools/runtime/ruby-portable/rubyinstaller-3.3.12-1-x64/bin/ruby.exe:
+- game-mod/test/extra_furniture_test.rb: 45 tests, 1901 assertions passed.
+- game-mod/test/debug_showroom_test.rb --name /showroom/: 2 tests, 88 assertions passed.
+- game-mod/test/arena_devices_server_test.rb: 17 tests, 372 assertions passed,
+  including a real local PEMK socket round trip to (124,124) and back.
+- Headless engine-Bitmap-compatible rendering of all nine orb frames generated
+  tools/runtime/energy-orb-preview.png; final irregular contours inspected.
+
+Initial regression failures used old 100x100 fixture strides and handshake;
+fixtures now match the 200x200 protocol. Native showroom QA uses a disposable
+game/engine via tools/test-native-showroom.py; Characters are copied rather
+than linked because the map builder writes generated facade graphics there.
+Native execution passed 164 checks: real 200x200 map Table, all 79 furniture
+events/sprites, paired destinations, decoded snapshot, empty floor and save marker.
+Command: C:/msys64/mingw64/bin/python.exe tools/test-native-showroom.py.
+The sandbox attempt was denied write access; elevated execution required the
+explicit installed C:/msys64/mingw64/bin/python.exe (Windows python alias absent).
+No live two-PC session or modification to the currently running game was made.
+Manual use: close the game, run Play-Arena.bat, step on the central teleporter;
+step off and back onto the arrival teleporter to return. Both PCs need this
+revision before joining a visit. Arena Update can deliver it after publication;
+this task does not commit or publish the changes.
+
 ## User trainer teams, types and artwork — 2026-11-03
 
 Preserved the user's Trainer stock changes (Red team and 16 new trainers).
